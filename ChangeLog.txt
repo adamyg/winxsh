@@ -1,0 +1,72 @@
+Wed Apr 29 14:31:33 2020 adamy
+
+	* BUILD 54
+
+	* initial source release; github
+
+	* mebedtls 2.16.6
+
+	* mcwin32 merge; libw32 / vio upgrades
+
+	* 2020
+
+Tue Nov  6 20:18:45 2018 adamy
+
+	* BUILD 53
+
+	* mebedtls 1.8.0 libssh2 engine enabled
+
+Sun Oct 28 22:52:38 2018 adamy
+
+	* version 0.2.2
+
+	* added agent supported; untested.
+
+	* removed non-ascii characters within diagnostics.
+
+	* command line options
+
+		-Q <what>, Query the supported alorgthms.
+		-c <ciphers> , Ciper specification list, comma seperated.
+		corrected -l; value was previously ignored.
+
+	* windows 10 console support.
+
+Mon Mar 20 13:24:23 2017 adamy
+
+	* key-translation support enabled.
+
+Sun Mar 19 01:05:04 2017 adamy
+
+	* additional command line argument usage errors.
+
+	* save/restore image of start and exit.
+
+Sat Mar 18 00:10:31 2017 adamy
+
+	* CSI-s/r DECSET partional implementation.
+
+	* additional ctrl/alt key mapped (CTRL-@ etc)
+
+Fri Mar 17 18:45:02 2017 adamy
+
+	* overstrike, faint and inverse modes enabled.
+
+	* console2 and Windows 10 console detection.
+		in both cases extended color support is disabled.
+		In future Windows10 releases, console support should have native true-color support,
+		at which time functionality cab be reviewed.
+
+Fri Feb 17 20:02:17 2017 adamy
+
+	* rlogin '-i' logic enforce,
+		previously stated remote and local user names where always the same.
+
+	* released build 52
+
+/*
+ * Local Variables: ***
+ * mode: changelog ***
+ * End: ***
+ */
+

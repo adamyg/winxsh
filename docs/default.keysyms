@@ -1,0 +1,71 @@
+! $Id: default.keysyms,v 1.1 2020/04/29 11:54:23 cvsuser Exp $
+! -*- mode: mk; tabs: 8; indent-width: 8; -*-
+! rlogin/slogin default key translation table, as at 20/03/17
+!
+
+xterm*VT100.Translations: #override \n\
+	~Shift<Key>osfPageUp:		scroll-back(1,lines)	\n\
+	~Shift<Key>osfPageDown:		scroll-forw(1,lines)	\n\
+	~Shift<Key>osfUp:		scroll-back(1,page)	\n\
+	~Shift<Key>osfDown:		scroll-forw(1,page)
+
+!   ** Translation Table Syntax
+!
+!	The Table Syntax follows XLib style translation resource, as utilised by Xterm, 
+!	allowing existing definitions to shared.
+!
+!	The basic syntax for specifying a translation table as a resource is as follows:
+!
+!		[object*[subobject...]]*translations:  #override \
+!			[modifier]<event>...][detail]: action([arguments]) 
+!				:
+!
+!	A translation table must be a continuous string. In order to link multiple
+!	mappings as a continuous string, each event-action line should be terminated by
+!	a newline character (\n), which is in turn followed by a backslash (\) to
+!	escape the actual newline.
+!
+!    Events:
+!
+!	The follow set of events are supported.
+!
+!	    ButtonPress		Any pointer button pressed.
+!	    ButtonRelease	Any pointer button released.
+!	    KeyPress		Key pressed.
+!	    Key			Key pressed (aliases).
+!	    KeyDown		Key pressed (aliases).
+!	    Ctrl		KeyPress with Ctrl modifier.
+!	    Meta		KeyPress with Meta modifier.
+!	    Shift		KeyPress with Shift modifier.
+!
+!    Modifiers:
+!
+!	The follow set of modifiers are supported.
+!
+!	    Ctrl		Control key is held down.
+!	    Shift		Shift key is held down.
+!	    Lock		Caps Lock is in effect.
+!	    Meta		Meta key is held down.
+!	    Alt			Alt key is held down.
+!	    Button1		Pointer Button 1 is held down.
+!	    Button2		Pointer Button 2 is held down.
+!	    Button3		Pointer Button 3 is held down.
+!
+!	Modifiers can be decorated to extend their characteristics, as follows.
+!
+!	    None		No modifiers may be present.
+!	    !			No modifiers except those explicitly specified may be present.
+!	    :			Apply shift (and lock) modifier to key event before comparing.
+!	    ~			The modifier immediately following cannot be present.
+!
+!    Support actions:
+!
+!	scroll-forw(count, object)
+!	scroll-back(count, object)
+!	string( ... )
+!	insert_char()
+!	newline()
+!	quit()
+!	ignore() or noop()
+!
+!end

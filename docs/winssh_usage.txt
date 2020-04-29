@@ -1,0 +1,149 @@
+
+winssh - lean console ssh client
+slogin: 0.1.0a Build 52 (Feb 17 2017 13:08:10), libssh2 1.8.0, libz 1.2.11, libtsm 1.3.0a
+
+Copyright (C) 2015-2020 Adam Young
+libssh2 - Copyright (C) 2008-2007 (https://www.libssh2.org/license.html)
+zlib - Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler (http://www.zlib.net/zlib_license.html)
+libtsm - Copyright (C) 2011-2013 David Herrmann (https://www.freedesktop.org/wiki/Software/kmscon/libtsm/)
+All rights reserved
+
+
+Usage: slogin [-46CdnqTtV] [-e escape_char|-E] [-o option[,option]...]
+            [-b bind_address] [-l <user-name> [-p <port>] [-KPI] [user[:password]@]host
+
+  The slogin utility starts a terminal session on a remote host using SSH2 as its transport and authorization
+  mechanisms. It is intended to provide secure encrypted communications between two untrusted hosts over an insecure
+  network.
+
+  slogin connects and logs into the specified hostname (with optional user name). The user must prove his/her identity
+  to the remote machine using one of several methods (see below).
+
+  Once a connection has been establised, 'slogin' provides a vt220/xterm terminal emulation allowing advanced console
+  applications to be executed. The window size changes is also copied to the remote system if the server supports
+  the option.
+
+  Available command line options:
+
+    -4                           Forces use of IPv4 addresses only.
+
+    -6                           Forces use of IPv6 addresses only.
+
+    -b bind_address              Use bind_address on the local machine as the source address of the connection.
+                                 Only useful on systems with more than one network interface.
+
+    -C                           Enables data compression.
+
+    -d                           Enable socket debug.
+
+    -n                           Enable socket non-delay.
+
+    -e escape_char               Sets the escape character for sessions with a pty (default:`~'). The escape character
+                                 is only recognized at the beginning of a line. This specification may be as a literal
+                                 character, or as an octal value in the form \nnn. Stating the character as 'none'
+                                 disables any escape processing; as same -E.
+
+    -E                           Disables escape character processing.
+
+    -l username                  Specifies the user name to log in as on the remote machine.
+
+    -o option[=value],...        General option configuration. Options are specified with an -o flag followed by a
+                                 comma separated string of options with an associated optional value of the form
+                                 'option=value'. The option is used for specifying options for which there is no
+                                 separate command-line flag.
+
+                                 One or more '-o' arguments may be stated with the results accumulating, for example:
+
+                                    -o SetVarRC=1 -o Port=22,User=admin -o KeepAliveInterval=30 -o SetVarX=2
+
+                                 Note that 'SetVar' is an exception permitting only a single option per '-o' switch
+                                 to allow embedded spaces and commas. For available options and their possible values,
+                                 see below.
+
+    -p port                      Port to connect to on the remote host (default: 22).
+
+    -q                           Quiet mode; minimal diagnostics.
+
+    -T                           Disable pseudo-terminal allocation.
+
+    -t terminal_name             Force pseudo-terminal allocation. This can be used to execute arbitrary screen-based
+                                 programs on a remote machine.
+
+    -V                           Display the version details and exit.
+
+  Available configuration options:
+
+    AddressFamily
+            Address family selection. Specifies which address family to use when connecting. Valid arguments are 'any',
+            `inet' (IPv4 only), or `inet6' (IPv6 only). The default is 'any'.
+
+    Authentication
+            Authentication type selection. Specifies the sema-colon seperated list of authentication types, if
+            available to be utilised during session creation.
+            Available authentication methods:
+                 o 'password'
+                 o 'keyboard[-interactive]'
+                 o 'publickey'
+
+    BatchMode
+            Terminal interactive mode selection. If set to 'yes', both passphrase/password querying will be disabled.
+            This option is useful in scripts and other batch jobs where no user is available to supply the password.
+            Valid arguments are 'yes' or 'no'. The default is 'no'.
+
+    BindAddress
+            Explicit local bind address.Use the specified address on the local machine as the source address of the
+            connection. Only useful on systems with more than one interface.
+
+    Compression
+            Data compression state. Specifies whether to use data compression. The argument must be 'yes' or 'no'. The
+            default is 'no'. libssh2 supports zlib based compression, which must also be enabled on the server.
+
+    EscapeCharacter
+            Terminal escape character. Sets the escape character for sessions with a pty (default:`~'). The escape
+            character marks the introduction of control commands to the local terminal driver, for example '~.'
+            terminates the session. The escape character is only recognized at the beginning of a line. This
+            specification may be as a literal character, or as an octal value in the form \nnn. Stating the character
+            as 'none' disables any escape processing.
+
+    KeepAliveInterval
+            Keepalive timeout interval. Sets a timeout interval in seconds after which if no data transmitted,
+            slogin shall send a keep-alive message request. The default is 0, indicating that keep-alives shall not be
+            sent to the server.
+
+    MaxColors
+            Max terminal colors 8, 16, 88 or 256
+
+    Port
+            Server port: default 22
+
+    PseudoTerminal
+            Enable pseudo terminal eumlation.
+
+    Quiet
+            Quiet mode.
+
+    SetEnv
+            Set server environment variable. Specifies the value an environment variable which is sent to the server.
+            The server must also support it, and the server must be configured to accept these environment variables.
+            Up to a maximum of 128 variables may be stated using the form 'SetEnv NAME[=VALUE]'. If variable is stated
+            without a value the local environment variable of the same name is imported. Note that the TERM environment
+            variable is always sent whenever a pseudo-terminal is requested as it is required by the protocol.
+
+    StricthostKeyChecking
+            Enable strict known host file checks. If set to `yes', slogin will never automatically add host keys to the
+            known_hosts file, and shall refuse to connect to hosts whose host key has changed.
+
+    TerminalName
+            Terminal name. Specifies the name of the pseudo-terminal that is requested during pty creation. The
+            interval terminal emumations is reasonability generic and should behave under either a vt220 or xterm
+            flavoured termcap/terminfo specification.
+
+    User
+            Specifies the user to log in as on the remote machine. Useful when a alternative user name(s) are used on
+            different machines.
+
+
+Please send any bug reports (including the output of 'slogin -V') as tickets
+at https://sourceforge.net/projects/winssh
+
+							-- end ---

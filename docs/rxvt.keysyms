@@ -1,0 +1,111 @@
+! $Id: rxvt.keysyms,v 1.1 2020/04/29 11:54:23 cvsuser Exp $
+! -*- mode: mk; tabs: 8; indent-width: 8; -*-
+! rxvt function key translation table
+!
+!       X11 Key         Normal          Shift           Control         Shift+Control
+!       F1              ESC [ 11 ~      ESC [ 23 ~      ESC [ 11 ^      ESC [ 23 ^
+!       F2              ESC [ 12 ~      ESC [ 24 ~      ESC [ 12 ^      ESC [ 24 ^
+!       F3              ESC [ 13 ~      ESC [ 25 ~      ESC [ 13 ^      ESC [ 25 ^
+!       F4              ESC [ 14 ~      ESC [ 26 ~      ESC [ 14 ^      ESC [ 26 ^
+!       F5              ESC [ 15 ~      ESC [ 28 ~      ESC [ 15 ^      ESC [ 28 ^
+!       F6              ESC [ 17 ~      ESC [ 29 ~      ESC [ 17 ^      ESC [ 29 ^
+!       F7              ESC [ 18 ~      ESC [ 31 ~      ESC [ 18 ^      ESC [ 31 ^
+!       F8              ESC [ 19 ~      ESC [ 32 ~      ESC [ 19 ^      ESC [ 32 ^
+!       F9              ESC [ 20 ~      ESC [ 33 ~      ESC [ 20 ^      ESC [ 33 ^
+!       F10             ESC [ 21 ~      ESC [ 34 ~      ESC [ 21 ^      ESC [ 34 ^
+!       F11             ESC [ 23 ~      ESC [ 23 $      ESC [ 23 ^      ESC [ 23 @
+!       F12             ESC [ 24 ~      ESC [ 24 $      ESC [ 24 ^      ESC [ 24 @
+!       F13             ESC [ 25 ~      ESC [ 25 $      ESC [ 25 ^      ESC [ 25 @
+!       F14             ESC [ 26 ~      ESC [ 26 $      ESC [ 26 ^      ESC [ 26 @
+!       F15 (Help)      ESC [ 28 ~      ESC [ 28 $      ESC [ 28 ^      ESC [ 28 @
+!       F16 (Menu)      ESC [ 29 ~      ESC [ 29 $      ESC [ 29 ^      ESC [ 29 @
+!       F17             ESC [ 31 ~      ESC [ 31 $      ESC [ 31 ^      ESC [ 31 @
+!       F18             ESC [ 32 ~      ESC [ 32 $      ESC [ 32 ^      ESC [ 32 @
+!       F19             ESC [ 33 ~      ESC [ 33 $      ESC [ 33 ^      ESC [ 33 @
+!       F20             ESC [ 34 ~      ESC [ 34 $      ESC [ 34 ^      ESC [ 34 @
+!
+
+rxvt*VT100.Translations: #override \n\
+	!Shift<Key>F1 : 	string("\x1b[23~") \n\
+	!Shift<Key>F2 : 	string("\x1b[24~") \n\
+	!Shift<Key>F3 : 	string("\x1b[25~") \n\
+	!Shift<Key>F4 : 	string("\x1b[26~") \n\
+	!Shift<Key>F5 : 	string("\x1b[28~") \n\
+	!Shift<Key>F6 : 	string("\x1b[29~") \n\
+	!Shift<Key>F7 : 	string("\x1b[31~") \n\
+	!Shift<Key>F8 : 	string("\x1b[32~") \n\
+	!Shift<Key>F9 : 	string("\x1b[33~") \n\
+	!Shift<Key>F10 :	string("\x1b[34~") \n\
+	!Shift<Key>F11 :	string("\x1b[23$") \n\
+	!Shift<Key>F12 :	string("\x1b[24$") \n\
+	!Shift<Key>F13 :	string("\x1b[25$") \n\
+	!Shift<Key>F14 :	string("\x1b[26$") \n\
+	!Shift<Key>F15 :	string("\x1b[28$") \n\
+	!Shift<Key>F16 :	string("\x1b[29$") \n\
+	!Shift<Key>F17 :	string("\x1b[31$") \n\
+	!Shift<Key>F18 :	string("\x1b[32$") \n\
+	!Shift<Key>F19 :	string("\x1b[33$") \n\
+	!Shift<Key>F20 :	string("\x1b[34$") \n\
+	!Ctrl<Key>F1 :		string("\x1b[11^") \n\
+	!Ctrl<Key>F2 :		string("\x1b[12^") \n\
+	!Ctrl<Key>F3 :		string("\x1b[13^") \n\
+	!Ctrl<Key>F4 :		string("\x1b[14^") \n\
+	!Ctrl<Key>F5 :		string("\x1b[15^") \n\
+	!Ctrl<Key>F6 :		string("\x1b[17^") \n\
+	!Ctrl<Key>F7 :		string("\x1b[18^") \n\
+	!Ctrl<Key>F8 :		string("\x1b[19^") \n\
+	!Ctrl<Key>F9 :		string("\x1b[20^") \n\
+	!Ctrl<Key>F10 : 	string("\x1b[21^") \n\
+	!Ctrl<Key>F11 : 	string("\x1b[23^") \n\
+	!Ctrl<Key>F12 : 	string("\x1b[24^") \n\
+	!Ctrl<Key>F13 : 	string("\x1b[25^") \n\
+	!Ctrl<Key>F14 : 	string("\x1b[26^") \n\
+	!Ctrl<Key>F15 : 	string("\x1b[28^") \n\
+	!Ctrl<Key>F16 : 	string("\x1b[29^") \n\
+	!Ctrl<Key>F17 : 	string("\x1b[31^") \n\
+	!Ctrl<Key>F18 : 	string("\x1b[32^") \n\
+	!Ctrl<Key>F19 : 	string("\x1b[33^") \n\
+	!Ctrl<Key>F20 : 	string("\x1b[34^") \n\
+	!Shift Ctrl<Key>F1 :	string("\x1b[23^") \n\
+	!Shift Ctrl<Key>F2 :	string("\x1b[24^") \n\
+	!Shift Ctrl<Key>F3 :	string("\x1b[25^") \n\
+	!Shift Ctrl<Key>F4 :	string("\x1b[26^") \n\
+	!Shift Ctrl<Key>F5 :	string("\x1b[28^") \n\
+	!Shift Ctrl<Key>F6 :	string("\x1b[29^") \n\
+	!Shift Ctrl<Key>F7 :	string("\x1b[31^") \n\
+	!Shift Ctrl<Key>F8 :	string("\x1b[32^") \n\
+	!Shift Ctrl<Key>F9 :	string("\x1b[33^") \n\
+	!Shift Ctrl<Key>F10 :	string("\x1b[34^") \n\
+	!Shift Ctrl<Key>F11 :	string("\x1b[23@") \n\
+	!Shift Ctrl<Key>F12 :	string("\x1b[24@") \n\
+	!Shift Ctrl<Key>F13 :	string("\x1b[25@") \n\
+	!Shift Ctrl<Key>F14 :	string("\x1b[26@") \n\
+	!Shift Ctrl<Key>F15 :	string("\x1b[28@") \n\
+	!Shift Ctrl<Key>F16 :	string("\x1b[29@") \n\
+	!Shift Ctrl<Key>F17 :	string("\x1b[31@") \n\
+	!Shift Ctrl<Key>F18 :	string("\x1b[32@") \n\
+	!Shift Ctrl<Key>F19 :	string("\x1b[33@") \n\
+	!Shift Ctrl<Key>F20 :	string("\x1b[34@") \n\
+	None<Key>F1 :		string("\x1b[11~") \n\
+	None<Key>F2 :		string("\x1b[12~") \n\
+	None<Key>F3 :		string("\x1b[13~") \n\
+	None<Key>F4 :		string("\x1b[14~") \n\
+	None<Key>F5 :		string("\x1b[15~") \n\
+	None<Key>F6 :		string("\x1b[17~") \n\
+	None<Key>F7 :		string("\x1b[18~") \n\
+	None<Key>F8 :		string("\x1b[19~") \n\
+	None<Key>F9 :		string("\x1b[20~") \n\
+	None<Key>F10 :		string("\x1b[21~") \n\
+	None<Key>F11 :		string("\x1b[23~") \n\
+	None<Key>F12 :		string("\x1b[24~") \n\
+	None<Key>F13 :		string("\x1b[25~") \n\
+	None<Key>F14 :		string("\x1b[26~") \n\
+	None<Key>F15 :		string("\x1b[28~") \n\
+	None<Key>F16 :		string("\x1b[29~") \n\
+	None<Key>F17 :		string("\x1b[31~") \n\
+	None<Key>F18 :		string("\x1b[32~") \n\
+	None<Key>F19 :		string("\x1b[33~") \n\
+	None<Key>F20 :		string("\x1b[34~") \n\
+	Shift<Key>Tab :		string("\x1b[Z")
+
+!end

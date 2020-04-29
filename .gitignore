@@ -3,6 +3,7 @@ CVS/
 /objects.*/
 /lib.*/
 /bin.*/
+/include/
 /msvc2005/
 /msvc2008/
 /rlogind/

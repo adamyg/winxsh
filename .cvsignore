@@ -1,0 +1,9 @@
+.makelib
+objects.*
+include
+lib.*
+bin.*
+old
+BUILDNUMBER.in
+Makefile
+*.err
