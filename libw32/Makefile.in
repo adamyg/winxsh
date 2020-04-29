@@ -1,0 +1,179 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.11 2020/04/29 13:08:25 cvsuser Exp $
+# libw32 makefile.
+#
+#
+# Copyright (c) 1998 - 2020, Adam Young.
+# All rights reserved.
+#
+# This file is part of the WinRSH/WinSSH project.
+#
+# The WinRSH/WinSSH project is free software: you can redistribute it
+# and/or modify it under the terms of the WinRSH/WinSSH project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+O=		.o
+H=		.h
+A=		.a
+LP=		lib
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+AR=		@AR@
+RANLIB=		@RANLIB@
+RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
+RC=		@RC@
+
+# Common flags
+
+ARFLAGS=	rcv
+XFLAGS=		
+COPT=		@CFLAGS@
+CXXOPT=		@CXXFLAGS@
+ifeq "" "$(CXXOPT)"
+CXXOPT=		$(COPT)
+endif
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I$(D_INC) @CINCLUDE@ -I.
+CEXTRA=		@DEFS@ -D_WIN32_WINNT=0x601
+CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CXXFLAGS=	$(CPPFLAGS) $(CDEBUG) $(CXXOPT) $(CWARN) $(CEXTRA) $(CINCLUDE) $(XFLAGS)
+YFLAGS=		-d
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LXFLAGS=	$(LDLIBS) @LIBS@ @LIBMALLOC@
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/libw32
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+
+############################################################
+
+W32LIB=		$(D_LIB)/$(LP)w32_static$(A)
+W32DLL=		$(D_LIB)/$(LP)w32.la
+
+VERSION=	1.1.0
+VERSIONSPEC=	$(subst .,:,$(VERSION))
+
+CSOURCES=\
+	w32_child.c \
+	w32_close.c \
+	w32_dir.c \
+	w32_domainname.c \
+	w32_err.c \
+	w32_errno.c \
+	w32_getcwd.c \
+	w32_gethostname.c \
+	w32_getopt.c \
+	w32_getopt_long.c \
+	w32_getsubopt.c \
+	w32_gistrerror.c \
+	w32_ino.c \
+	w32_io.c \
+	w32_mmap.c \
+	w32_neterr.c \
+	w32_poll.c \
+	w32_popen.c \
+	w32_progname.c \
+	w32_pwd.c \
+	w32_read.c \
+	w32_realpath.c \
+	w32_reparse.c \
+	w32_shell.c \
+	w32_sockbase.c \
+	w32_socket.c \
+	w32_socket2.c \
+	w32_sockfd.c \
+	w32_sockpair.c \
+	w32_strlcat.c \
+	w32_strlcpy.c \
+	w32_time.c \
+	w32_user.c \
+	w32_util.c \
+	w32_write.c
+
+LIBOBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+
+DLLOBJS=\
+	$(subst $(O),.lo,$(LIBOBJS))
+ifeq ("mingw32","@build_os@")
+DLLOBJS+=	$(D_OBJ)/libw32_res.o
+else ifeq ("win32","@build_os@")
+DLLOBJS+=	$(D_OBJ)/libw32.res
+endif
+
+OBJS=		$(LIBOBJS) $(DLLOBJS)
+LIBS=		$(W32LIB) $(W32DLL)
+TSKS=
+
+# Rules
+
+all:			$(LIBS) $(TSKS)
+
+$(W32LIB):		CEXTRA += -DLIBW32_STATIC -DLIBW32_LIBRARY
+$(W32LIB):		$(D_OBJ)/.created $(LIBOBJS)
+		$(RM) $(RMFLAGS) $@
+		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
+		$(RANLIB) $@
+
+$(W32DLL):		CEXTRA += -DLIBW32_DYNAMIC -DLIBW32_LIBRARY
+$(W32DLL):		DLLDEF = -export-symbols libw32.def
+$(W32DLL):		$(DLLOBJS)
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
+			-rpath $(D_LIB) -bindir $(D_BIN) $(DLLDEF) -o $@ $^ $(LDLIBS)
+
+$(D_OBJ)/.created:
+		-@mkdir $(D_OBJ)
+		@echo "do not create" > $@
+
+clean:
+		-@$(LIBTOOL) --mode=clean $(RM) $(W32DLL) $(DLLOBJS) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(BAK) $(W32LIB) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(LIBOBJS) >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%.lo:		%.c
+		$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%.res:		%.rc
+		$(RC) -fo $@ $<
+
+$(D_OBJ)/%_res.o:	%.rc
+		$(RC) -o $@ $<
+
+#end
