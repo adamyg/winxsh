@@ -1,0 +1,8 @@
+# $Id: makelib.def,v 1.2 2017/03/10 03:47:43 cvsuser Exp $
+# win32 makelib configuration
+#
+inc=../include
+lbl=LIBZ
+lib=libz.lib
+def=HAVE_LIBZ
+def=HAVE_ZLIB_H
