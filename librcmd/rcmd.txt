@@ -1,0 +1,147 @@
+RCMD(3)                 NetBSD Library Functions Manual                RCMD(3)
+
+NAME
+     rcmd, orcmd, rcmd_af, orcmd_af, rresvport, rresvport_af, iruserok,
+     ruserok, iruserok_sa -- routines for returning a stream to a remote com-
+     mand
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     rcmd(char **ahost, int inport, const char *locuser, const char *remuser,
+         const char *cmd, int *fd2p);
+
+     int
+     orcmd(char **ahost, int inport, const char *locuser, const char *remuser,
+         const char *cmd, int *fd2p);
+
+     int
+     rcmd_af(char **ahost, int inport, const char *locuser,
+         const char *remuser, const char *cmd, int *fd2p, int af);
+
+     int
+     orcmd_af(char **ahost, int inport, const char *locuser,
+         const char *remuser, const char *cmd, int *fd2p, int af);
+
+     int
+     rresvport(int *port);
+
+     int
+     rresvport_af(int *port, int family);
+
+     int
+     iruserok(uint32_t raddr, int superuser, const char *ruser,
+         const char *luser);
+
+     int
+     ruserok(const char *rhost, int superuser, const char *ruser,
+         const char *luser);
+
+     int
+     iruserok_sa(const void *raddr, int rlen, int superuser,
+         const char *ruser, const char *luser);
+
+DESCRIPTION
+     The rcmd() function is available for use by anyone to run commands on a
+     remote system.  It acts like the orcmd() command, with the exception that
+     it makes a call out to the rcmd(1) command, or any other user-specified
+     command, to perform the actual connection (thus not requiring that the
+     caller be running as the super-user), and is only available for the
+     ``shell/tcp'' port.  The orcmd() function is used by the super-user to
+     execute a command on a remote machine using an authentication scheme
+     based on reserved port numbers.  While rcmd() and orcmd() can only handle
+     IPv4 address in the first argument, rcmd_af() and orcmd_af() can handle
+     other cases as well.  The rresvport() function returns a descriptor to a
+     socket with an address in the privileged port space.  The rresvport_af()
+     function is similar to rresvport(), but you can explicitly specify the
+     address family to use.  Calling rresvport_af() with AF_INET has the same
+     effect as rresvport().  The iruserok() and ruserok() functions are used
+     by servers to authenticate clients requesting service with rcmd().  All
+     six functions are present in the same file and are used by the rshd(8)
+     server (among others).  iruserok_sa() is an address family independent
+     variant of iruserok().
+
+     The rcmd() function looks up the host *ahost using gethostbyname(3),
+     returning -1 if the host does not exist.  Otherwise *ahost is set to the
+     standard name of the host and a connection is established to a server
+     residing at the well-known Internet port inport.
+
+     If the connection succeeds, a socket in the Internet domain of type
+     SOCK_STREAM is returned to the caller, and given to the remote command as
+     stdin and stdout.  If fd2p is non-zero, then an auxiliary channel to a
+     control process will be set up, and a descriptor for it will be placed in
+     *fd2p.  The control process will return diagnostic output from the com-
+     mand (unit 2) on this channel, and will also accept bytes on this channel
+     as being UNIX signal numbers, to be forwarded to the process group of the
+     command.  If fd2p is 0, then the stderr (unit 2 of the remote command)
+     will be made the same as the stdout and no provision is made for sending
+     arbitrary signals to the remote process, although you may be able to get
+     its attention by using out-of-band data.
+
+     rcmd_af() and orcmd_af() take address family in the last argument.  If
+     the last argument is PF_UNSPEC, interpretation of *ahost will obey the
+     underlying address resolution like DNS.
+
+     The protocol is described in detail in rshd(8).
+
+     The rresvport() and rresvport_af() functions are used to obtain a socket
+     with a privileged address bound to it.  This socket is suitable for use
+     by rcmd() and several other functions.  Privileged Internet ports are
+     those in the range 0 to 1023.  Only the super-user is allowed to bind an
+     address of this sort to a socket.
+
+     The iruserok() and ruserok() functions take a remote host's IP address or
+     name, respectively, two user names and a flag indicating whether the
+     local user's name is that of the super-user.  Then, if the user is NOT
+     the super-user, it checks the /etc/hosts.equiv file.  If that lookup is
+     not done, or is unsuccessful, the .rhosts in the local user's home direc-
+     tory is checked to see if the request for service is allowed.
+
+     If this file does not exist, is not a regular file, is owned by anyone
+     other than the user or the super-user, or is writable by anyone other
+     than the owner, the check automatically fails.  Zero is returned if the
+     machine name is listed in the ``hosts.equiv'' file, or the host and
+     remote user name are found in the ``.rhosts'' file; otherwise iruserok()
+     and ruserok() return -1.  If the local domain (as obtained from
+     gethostname(3)) is the same as the remote domain, only the machine name
+     need be specified.
+
+     If the IP address of the remote host is known, iruserok() should be used
+     in preference to ruserok(), as it does not require trusting the DNS
+     server for the remote host's domain.
+
+     While iruserok() can handle IPv4 addresses only, iruserok_sa() and
+     ruserok() can handle other address families as well, like IPv6.  The
+     first argument of iruserok_sa() is typed as void * to avoid dependency
+     between <unistd.h> and <sys/socket.h>.
+
+ENVIRONMENT
+     RCMD_CMD    When using the rcmd() function, this variable is used as the
+                 program to run instead of rcmd(1).
+
+DIAGNOSTICS
+     The rcmd() function returns a valid socket descriptor on success.  It
+     returns -1 on error and prints a diagnostic message on the standard
+     error.
+
+     The rresvport() and rresvport_af() function return a valid, bound socket
+     descriptor on success.  They return -1 on error with the global value
+     errno set according to the reason for failure.  The error code EAGAIN is
+     overloaded to mean ``All network ports in use.''
+
+SEE ALSO
+     rcmd(1), rlogin(1), rsh(1), intro(2), rexec(3), hosts.equiv(5),
+     rhosts(5), rexecd(8), rlogind(8), rshd(8)
+
+HISTORY
+     The orcmd(), rresvport(), iruserok() and ruserok() functions appeared in
+     4.2BSD, where the orcmd() function was called rcmd().  The (newer) rcmd()
+     function appeared in NetBSD 1.3.  rcmd_af() and rresvport_af() were
+     defined in RFC2292.
+
+NetBSD 7.0                      March 30, 2005                      NetBSD 7.0
+
