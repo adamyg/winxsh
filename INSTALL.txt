@@ -1,0 +1,45 @@
+
+    For installation notes relating to specific systems, please skip to the next
+    section of this document.
+
+                                   -------
+
+    On WIN32 using either Visual C/C++ or WATCOM, build by the following these steps:
+
+      a. Install the gnuwin32 tool set or similar. (optional) set the PATH environment
+        variable to include the win32 sub-directory which contains console versions
+        of several GNU tools, including gmake.
+
+            Source, http://unxutils.sourceforge.net/
+
+        Notes:
+
+         o gmake bundled with gnuwin32 is 3.81 wont function correctly as
+           GNU make 4.0 or greater shall be required to build several packages.
+
+
+      b. If you dont have perl available, download and install. 
+         ActivePerl is one of the better options.
+
+
+      c. Run the `makelib.pl' perl script by typing:
+
+         o MSVC
+
+            perl makelib.pl [--gnuwin32=<path-gnuwin32-bin>] vc[2008|2010|2015|2019]
+
+
+         o OpenWatcom 1.9 or 2.0 (beta at your caution)
+
+            perl makelib.pl owc
+
+
+      d. Build the entire tree with:
+
+            gmake
+
+                                 -------
+
+$Id: $
+
+
