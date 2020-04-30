@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.7 2020/04/29 19:33:08 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2020/04/30 21:30:28 cvsuser Exp $
 # winsh - top level makefile.
 #
 #
@@ -156,6 +156,7 @@ LIBS=	$(LW)w32$(A)
 endif
 LIBS+=\
 	$(LW)z$(A)		\
+	$(LW)mbedtls$(A)	\
 	$(LW)ssh2$(A)		\
 	$(LW)termemu$(A)
 
@@ -255,6 +256,7 @@ clean:
 		$(MAKE) -C libw32 clean
 		$(MAKE) -C libz clean
 		$(MAKE) -C libssh2 clean
+		$(MAKE) -C libmbedtls clean
 		$(MAKE) -C libtermemu clean
 		$(MAKE) -C rlogin clean
 		$(MAKE) -C slogin clean

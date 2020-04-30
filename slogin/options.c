@@ -1,4 +1,4 @@
-/* -*- mode: c; indent-width: 4; -*- */
+/* -*- mode: c; indent-width: 8; -*- */
 /*
  * win slogin
  *
@@ -45,10 +45,15 @@
 #include <unistd.h>
 #endif
 
+#ifndef HAVE_LIBMBEDTLS //FIXME
 #define HAVE_LIBMBEDTLS
+#endif
 
 #include <libw32_version.h>
+
 #include <libssh2.h>
+#include <libssh2_helper.h>
+
 #if defined(HAVE_LIBMBEDTLS)
 #include <mbedtls/version.h>
 #endif
@@ -105,7 +110,7 @@ static const char *usage_text[] = {
                                         "when processing translation tables, rather than the default resource name 'xterm'. \n"\
                                             "Name should not contain '.' or '*' characters.\n",
 
-            "\1-E",                     "\2Disables escape character processing.",
+            "\1-E logfile",             "\2Append debug logs to <logfile> instead of standard error\n",
 
             "\1-l username",            "\2Specifies the user name to log in as on the remote machine.",
 
@@ -134,6 +139,10 @@ static const char *usage_text[] = {
                                                 "This can be used to execute arbitrary screen-based programs on a remote machine.",
 
             "\1-V",                     "\2Display the version details and exit.",
+
+            "\1-v",                     "\2Verbose mode. Causes slogin to print debugging messages about its progress.\n" \
+                                            "This is helpful in debugging connection, authentication, and configuration problems.\n" \
+                                            "Multiple -v options increase the verbosity. The maximum is 3\n"
 
         "Available configuration options:",
         NULL
@@ -324,6 +333,7 @@ static int  parse_values(const struct optionval *values, const char *value, int 
 static char *Strndup(size_t len, const char *value);
 static char *Strdup(const char *value);
 
+
 void
 options_default(struct options *options)
 {
@@ -339,6 +349,7 @@ options_default(struct options *options)
 	options->StrictHostKeyChecking = 1;
 	options->TerminalName = "xterm-color";
 }
+
 
 int
 options_decode(struct options *options, const char *values)
@@ -363,6 +374,7 @@ options_decode(struct options *options, const char *values)
 	}
 	return rc;
 }
+
 
 int
 options_set(struct options *options, const char *name, const char *value)
@@ -537,7 +549,7 @@ version(void)
 {
 	fprintf(stderr,
 	    "\n"\
-            "winssh - lean console ssh client\n");
+	    "winssh - lean console ssh client (%s)\n", libssh2_helper_engine());
 
 #if defined(MBEDTLS_VERSION_STRING)
 	fprintf(stderr, "%s: %s Build %s (%s), libssh2 %s, libmbedtls %s, libz %s, libtsm %s, libw32 %s\n\n",
@@ -551,7 +563,7 @@ version(void)
 
 	fprintf(stderr,
 	    "Copyright (C) 2015-2020 Adam Young\n"
-	    "libssh2    - Copyright (C) 2004-2014 (https://www.libssh2.org/license.html)\n"
+	    "libssh2    - Copyright (C) 2004-2019 (https://www.libssh2.org/license.html)\n"
 #if defined(MBEDTLS_VERSION_STRING)
 	    "libmbedtls - Apache 2.0 license (https://tls.mbed.org/)\n"
 #endif
@@ -606,11 +618,11 @@ static void
 use_detailed(void)
 {
 	const size_t rmargin =
-		(console_width() < 80  ? 80 : 
-                (console_width() < 120 ? console_width() - 4 : 116));
+		(console_width() < 80  ? 80 :
+		(console_width() < 120 ? console_width() - 4 : 116));
 
 	const struct configdef *def = configdefs,
-                *defend = def + (sizeof(configdefs)/sizeof(configdefs[0]));
+		*defend = def + (sizeof(configdefs)/sizeof(configdefs[0]));
 	const char **opttext, *text;
 	size_t optlen, col;
 

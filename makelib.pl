@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.8 2020/04/29 19:33:08 cvsuser Exp $
+# $Id: makelib.pl,v 1.9 2020/04/30 21:30:28 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -207,7 +207,7 @@ my %x_environment   = (
             CWARN           => '-W3',
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MDd',
-            LDMAPFILE       => '-Fm$(MAPFILE)',
+            LDMAPFILE       => '-MAP:$(MAPFILE)',
             },
 
        # See: VsDevCmd.bat
@@ -241,7 +241,7 @@ my %x_environment   = (
             LDMAPFILE       => '-MAP:$(MAPFILE)',
 
         #   MFCDIR          => '/tools/WinDDK/7600.16385.1',
-        #   MFCCFLAGS       => '-nologo -Zi -RTC1 -MT$(USE_DEBUG)',
+        #   MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
         #   MFCCXXFLAGS     => '-nologo -Zi -RTC1 -MD$(USE_DEBUG) -EHsc',
         #   MFCCOPT         => '-Zc:wchar_t- -Zc:forScope -Gm',
         #   MFCCXXOPT       => '-Zc:wchar_t- -Zc:forScope -Gm',
@@ -266,7 +266,7 @@ my %x_environment   = (
             CWARN           => '-W3',
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MTd',
-            LDMAPFILE       => '-Fm$(MAPFILE)',
+            LDMAPFILE       => '-MAP:$(MAPFILE)',
             },
 
         'wc1300'        => {    # Watcom 11
@@ -2231,7 +2231,7 @@ Makefile($$$)           # (type, dir, file)
                 # directory slash conversion
               # $text =~ s/-I([^\s]+)/-i="$1"/g;
               # $text =~ s/-I ([^\s]+)/-i="$1"/g;
-                    #gnuwin32 make quotes would be retained; this can not guaranteed under an alt instance.
+                    #gnuwin32 make quotes would be retained; this can not be guaranteed under an alt instance.
                 $text =~ s/-I([^\s]+)/-i=\$(subst \/,\\,$1)/g;
                 $text =~ s/-I ([^\s]+)/-i=\$(subst \/,\\,$1)/g;
 

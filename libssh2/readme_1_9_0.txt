@@ -11,8 +11,11 @@
 
                   #ifdef WIN32
                 + #if defined(__WATCOMC__)
+                +  static void *safememset(void *a, int b, size_t c) {
+                +      return memset(a, b, c);
+                +  }
                 +  static void * (__watcall * const volatile memset_libssh)(void *, int, size_t) =
-                +      memset;
+                +      safememset;
                 + #else
                   static void * (__cdecl * const volatile memset_libssh)(void *, int, size_t) =
                       memset;

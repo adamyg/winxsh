@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2020/04/29 13:05:53 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2020/04/30 21:31:35 cvsuser Exp $
 # winssh Makefile
 #
 #
@@ -79,7 +79,7 @@ CINCLUDE+=	-I../libtermemu
 
 OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
-LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
+LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static -llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
 
 all:		$(D_BIN)/$(TARGET)
 

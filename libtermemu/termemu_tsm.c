@@ -2,7 +2,7 @@
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2018, Adam Young.
+ * Copyright (c) 2015 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -476,4 +476,5 @@ static int cb_renderer(struct tsm_screen *screen, uint32_t id,
 	vio_atputc(y, x, *ch ? *ch : ' ', 1);
 	return 0;
 }
+
 /*end*/

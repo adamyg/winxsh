@@ -1,6 +1,8 @@
-Thu Apr 30 01:03:24 2020 adamy
+Thu Apr 30 23:08:57 2020 adamy
 
-	* BUILD 55
+	* BUILD 56; release
+
+	* -E and -v command options; note only effective within local builds.
 
 	* libssh2 1.9.0; + Blowfish.
 

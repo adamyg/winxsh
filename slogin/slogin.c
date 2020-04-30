@@ -1,4 +1,4 @@
-/* -*- mode: c; indent-width: 4; -*- */
+/* -*- mode: c; indent-width: 8; -*- */
 /*
  * slogin, windows console ssh client (libssh2 based).
  *
@@ -62,6 +62,7 @@
 #include <ctype.h>
 
 #include <libssh2.h>
+#include <libssh2_helper.h>
 
 #define _NETBSD_SOURCE
 #include "../libtermemu/termios.h"
@@ -95,11 +96,18 @@ static int		ssh2_authenticate_agent(const struct options *options);
 static int		ssh2_prompt_continue(const struct options *options, const char *msg);
 static int		ssh2_connect(const char **ahost, const char **aip, const struct options *options);
 static void		ssh2_done(void);
+
+static void *		ssh2_trace_init(const char *filename);
+static void		ssh2_trace_close(void *context);
+static void		ssh2_trace_handler(LIBSSH2_SESSION *session, void* context, const char *data, size_t length);
+
 static int		prompt_confirm(const struct options *options, const char *msg);
 static char *		prompt_user(const char *msg, int echo);
 static int		prompt_password();
+
 static char *		path_resolve(const char *path);
 static int		path_make(const char *path, int has_file);
+
 static void		run(const struct options *options);
 static void		done(int status);
 static void		writer(const struct options *options);
@@ -165,7 +173,7 @@ static void kbd_callback_noprompt(const char *name, int name_len,
 } /* kbd_callback */
 
 
-#define OPTIONS "46aAb:c:Ce:k:N:l:o:p:" "Tt:" "dnqV" "PIK" "Q:"
+#define OPTIONS "46aAb:c:Ce:k:N:l:o:p:" "Tt:" "dnqVvE:" "PIK" "Q:"
 
 static const struct option long_options[] = {
 	{ "usage",   no_argument, NULL, 1000 },
@@ -201,7 +209,7 @@ main(int argc, char *argv[])
 		case 'a':   //disable agent
 			options.Agent = 0;
 			break;
-	        case 'A':   //enable agent -- undocumented
+		case 'A':   //enable agent -- undocumented
 			options.Agent = 1;
 			break;
 		case 'b':   //bind-address
@@ -266,15 +274,15 @@ main(int argc, char *argv[])
 		case 'n':   //non-delay.
 			options.NonDelay = 1;
 			break;
-//		case 'v':
-//			if (dflag == 0) {
-//				options.log_level = 1;
-//				options.debug_mode = 1;
-//			} else if (options.log_level < 3) {
-//				++options.log_level;
-//				++options.debug_mode;
-//			}
-//			break
+		case 'E':   //logfile
+			options.DebugOutput = optarg;
+			break;
+		case 'v':   //verbose, one or more (max 3)
+			if (options.LogLevel < 3) {
+				++options.LogLevel;
+				++options.DebugMode;
+			}
+			break;
 		case 'V':
 			version();
 			break;
@@ -341,12 +349,14 @@ main(int argc, char *argv[])
 					const char **algorithms = NULL;
 					int i, rc;
 
+					printf("LIBSSH2 engine: %s\n", libssh2_helper_engine());
 					libssh2_session_flag(session, LIBSSH2_FLAG_COMPRESS, 1);
 					if ((rc = libssh2_session_supported_algs(session, what,  &algorithms)) > 0) {
 						if (desc) printf("Supported %s:\n", desc);
-						for (i = 0; i < rc; ++i)
+						for (i = 0; i < rc; ++i) {
 							printf("%s\n", algorithms[i]);
-						libssh2_free(session, algorithms);
+						}
+						libssh2_free(session, (void *)algorithms);
 					}
 				}
 			}
@@ -419,8 +429,8 @@ main(int argc, char *argv[])
 		done(1);
 	}
 
-	if (options.DebugMode && setsockopt(rem, SOL_SOCKET, SO_DEBUG, (const char *)&one, sizeof(one)) < 0)
-		warn("setsockopt DEBUG (ignored)");
+//	if (options.DebugMode && setsockopt(rem, SOL_SOCKET, SO_DEBUG, (const char *)&one, sizeof(one)) < 0)
+//		warn("setsockopt DEBUG (ignored)");
 	if (options.NonDelay && setsockopt(rem, IPPROTO_TCP, TCP_NODELAY, (const char *)&one, sizeof(one)) < 0)
 		warn("setsockopt NODELAY (ignored)");
 
@@ -472,8 +482,8 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 	int sock, rc;
 
 	/*
-         *  Initialisation
-         */
+	 *  Initialisation
+	 */
 	rc = libssh2_init(0);
 	if (rc != 0) {
 		warnx("libssh2 initialization failed (%d)", rc);
@@ -481,8 +491,8 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 	}
 
 	/*
-         *  Connect ...
-         */
+	 *  Connect ...
+	 */
 	if ((SOCKET)-1 == (sock = ssh2_connect(&host, &ip, options))) {
 		warn("failed to connect");
 		return -1;
@@ -493,6 +503,26 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 	 *  banners, exchange keys, and setup crypto, compression, and MAC layers
 	 */
 	session = libssh2_session_init();
+
+	if (options->DebugMode) {
+		if (! libssh2_helper_trace()) { //only available when explicitly built (LIBSSH2DEBUG).
+			warnx("LIBSSH2 trace not available, option ignored");
+		} else {
+			void *context = ssh2_trace_init(options->DebugOutput);
+			int bitmask;
+
+			if (context) {
+				libssh2_trace_sethandler(session, context, ssh2_trace_handler);
+			}
+
+			bitmask |= LIBSSH2_TRACE_KEX | LIBSSH2_TRACE_AUTH | LIBSSH2_TRACE_PUBLICKEY | LIBSSH2_TRACE_ERROR;
+			if (options->DebugMode > 1) bitmask |= LIBSSH2_TRACE_TRANS | LIBSSH2_TRACE_CONN;
+			if (options->DebugMode > 2) bitmask |= LIBSSH2_TRACE_SOCKET;
+
+			libssh2_trace(session, bitmask);
+		}
+	}
+
 	if (options->Compression)
 		(void) libssh2_session_flag(session, LIBSSH2_FLAG_COMPRESS, 1);
 
@@ -509,14 +539,6 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 			//  endif
 		return -1;
 	}
-
-//	if (options->debug_mode) { //only available when explicitly inbuilt with trace enabled.
-//		libssh2_trace(session,
-//			LIBSSH2_TRACE_TRANS|LIBSSH2_TRACE_CONN|
-//			LIBSSH2_TRACE_KEX|LIBSSH2_TRACE_AUTH|LIBSSH2_TRACE_PUBLICKEY|
-//			LIBSSH2_TRACE_SCP|LIBSSH2_TRACE_SFTP|
-//			LIBSSH2_TRACE_ERROR|LIBSSH2_TRACE_SOCKET);
-//	}
 
 	if (! options->Quiet) {
 		fprintf(stderr, "Connected ... \n");
@@ -691,7 +713,7 @@ static int
 ssh2_authenticate_direct(const struct options *options, const char *host)
 {
 	const char *userauthlist = NULL;
-	int rc, auth_pw = 0;
+	int auth_pw = 0;
 
 	/*
 	 *  Check what authentication methods are available.
@@ -945,6 +967,65 @@ ssh2_done(void)
 	closesocket((SOCKET)rem);
 	libssh2_exit();
 }
+
+
+struct context {            // diagnostics context
+	FILE    *file;
+	time_t  now;
+	char    timestamp[32];
+};
+
+
+static void *
+ssh2_trace_init(const char *filename)
+{
+	static const char buffer[] = "New slogin session ---";
+	struct context *cxt = NULL;
+
+	if (filename && *filename) {
+		if (NULL == (cxt = (struct context *)calloc(1, sizeof(struct context))) ||
+		    NULL != (cxt->file = fopen(filename, "a"))) {
+			fputs("\n\n", cxt->file);
+			ssh2_trace_handler(NULL, cxt, buffer, sizeof(buffer)-1);
+		} else {
+			warnx("unable to open trace file <%s> : %d (%s)", filename, errno, strerror(errno));
+			free((void *)cxt), cxt = NULL;
+		}
+	}
+	return (void *)cxt;
+}
+
+
+void
+ssh2_trace_close(void *context)
+{
+	assert(context);
+	if (context) {
+		struct context *cxt = (struct context *) context;
+		fclose(cxt->file);
+		free(context);
+	}
+}
+
+
+static void
+ssh2_trace_handler(LIBSSH2_SESSION *session, void* context, const char *data, size_t length)
+{
+	const time_t now = time(NULL);
+	struct context *cxt = (struct context *) context;
+
+	assert(context);
+	if (cxt) {
+		if (cxt->now != now) {
+			const struct tm *tm = localtime(&now);
+			cxt->timestamp[strftime(cxt->timestamp, sizeof(cxt->timestamp)-2, "%H:%M:%S", tm)] = '\0';
+			cxt->now = now;
+		}
+		fprintf(cxt->file, "%s %*s\n", cxt->timestamp, length, data);
+		fflush(cxt->file);
+	}
+}
+
 
 static int
 prompt_confirm(const struct options *options, const char *msg)
@@ -1563,4 +1644,3 @@ exec(const char *command)
 #endif	//TODO
 
 /*end*/
-

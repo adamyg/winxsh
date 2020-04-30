@@ -58,28 +58,29 @@ struct options {
 #define AUTH_INTERACTIVE	2
 #define AUTH_PUBLICKEY		4
 	const char *BindAddress;	/* explicit local bind address */
-	int Agent;                      /* agent */
-	int BatchMode; 		        /* non interactive mode */
+	int Agent;			/* agent */
+	int BatchMode;			/* non interactive mode */
 	int Compression;		/* compression level */
-        int EscapeCharacter;            /* escape character */
+	int EscapeCharacter;		/* escape character */
 	int KeepAliveInterval;		/* keepalive interval configuration in seconds, <= 0 disabled */
 	int LogLevel;			/* diagnostics log level */
+	int DebugMode;			/* debug mode */
+	const char *DebugOutput;	/* optional debug filename */
 	int ColorMax;			/* max terminal colors 8, 16, 88 or 256 */
 	const char *ColorPalette;	/* color palattte name */
 	int Port;			/* server port: default 22 */
 	int Quiet;			/* quiet mode */
-        const char *TerminalName;       /* terminal name override */
+	const char *TerminalName;	/* terminal name override */
 	int StrictHostKeyChecking;	/* yes/no (default: yes) */
-        int DebugMode;
-        int NonDelay;
-        int PseudoTerminal;             /* assign pseudo terminal */
-        const char *User;
-        int UsePrivilegedPort;
+	int NonDelay;
+	int PseudoTerminal;		/* assign pseudo terminal */
+	const char *User;
+	int UsePrivilegedPort;
 
 	struct optionenv VariableValues[128]; /* environment variables to be transmitted */
-	int VariableCount;	        /* environment variable count */
+	int VariableCount;		/* environment variable count */
 
-        const char *CipherList;
+	const char *CipherList;
 };
 
 extern void msg(const char *str);
