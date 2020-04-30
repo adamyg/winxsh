@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2020/04/30 00:09:41 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2020/04/30 01:03:21 cvsuser Exp $
 # libssh2 makefile.
 #
 #
@@ -89,7 +89,7 @@ SSH2DLL=	$(D_LIB)/$(LP)ssh2.la
 
 VERSION=	1.9.0
 VERSIONSPEC=	$(subst .,:,$(VERSION))
-VERPACKED=	libssh2-$(VERSION).tgz
+VERPACKED=	libssh2-$(VERSION).gr.tgz
 
 SSH2BASE=	./libssh2-$(VERSION)
 SSH2SRC=	$(SSH2BASE)/src
