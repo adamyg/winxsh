@@ -92,6 +92,10 @@ enum vt_colors {
 #define VIO_FAINT           0x8000
 #define VIO_ATTRIBUTES      0xff00
 
+#define VIO_MINCOLS         12
+#define VIO_MINROWS         2
+#define VIO_MAXCOLS         1024
+#define VIO_MAXROWS         500
 #if defined(TERMEMU_VIO_SOURCE)
 typedef struct WCHAR_COLORINFO {                // color information.
 #define VIO_FOBJECT         0x0001                  // object reference.
@@ -137,7 +141,7 @@ LIBVIO_API void             vio_cursor_show(void);
 LIBVIO_API void             vio_cursor_hide(void);
 LIBVIO_API int              vio_cursor_state(void);
 LIBVIO_API int              vio_row(void);
-LIBVIO_API int              vio_col(void);
+LIBVIO_API int              vio_column(void);
 
 LIBVIO_API void             vio_define_winattr_native(int obj, uint16_t attributes);
 LIBVIO_API void             vio_define_winattr(int obj, int fg, int bg, uint16_t attributes);
