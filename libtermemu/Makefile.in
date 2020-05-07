@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2020/05/07 10:33:27 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2020/05/07 10:58:22 cvsuser Exp $
 # libtermemu makefile.
 #
 #
@@ -97,13 +97,10 @@ MKKEYS_OBJS=\
 	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(MKKEYS_CSOURCE)))
 
 KBTEST_CSOURCE=\
-	termemukbtest.c \
-	termemu_tsm.c termemu_vio.c termemu_cio.c termemu_keysym.c termemu_keymap.c termemu_keyexec.c \
-	tsm_screen.c tsm_unicode.c tsm_vte.c tsm_vte_charsets.c \
-	shl_htable.c shl_ring.c
+	termemukbtest.c
 
 KBTEST_OBJS=\
-	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(KBTEST_CSOURCE)))
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(KBTEST_CSOURCE) $(CSOURCES)))
 
 TSKS=		$(D_BIN)/mkkeys$(E)		\
 		$(D_BIN)/kbtest$(E)

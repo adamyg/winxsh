@@ -7,6 +7,9 @@
 
 #if !defined(HAVE_INET_NTOP) && \
 	(!defined(_MSC_VER) || (_MSC_VER < 1500)) /*FIXME*/
+	
+#pragma comment(lib, "Ws2_32.lib")
+
 /*
 //  NAME
 //  
