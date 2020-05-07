@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.9 2020/05/07 11:51:04 cvsuser Exp $
+# $Id: Makefile.in,v 1.10 2020/05/07 19:44:11 cvsuser Exp $
 # libtermemu makefile.
 #
 #
@@ -50,7 +50,7 @@ RM=		@RM@
 # Common flags
 
 ARFLAGS=	rcv
-XFLAGS=		
+XFLAGS=
 COPT=		@CFLAGS@
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
@@ -61,7 +61,7 @@ CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 CNFLAGS=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 YFLAGS=		-d
 LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS) @LIBS@
+LXFLAGS=	$(LDLIBS)
 
 RMFLAGS=	-f
 
@@ -82,7 +82,7 @@ CSOURCES=\
 	tsm_screen.c tsm_unicode.c tsm_vte.c tsm_vte_charsets.c \
 	shl_htable.c shl_ring.c
 
-VPATH=		./tsm
+VPATH=		./libtsm
 LIBOBJS=\
 	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
@@ -105,6 +105,8 @@ KBTEST_OBJS=\
 TSKS=		$(D_BIN)/mkkeys$(E)		\
 		$(D_BIN)/kbtest$(E)
 
+LDLIBS=		-L$(D_LIB) -llibw32_static
+
 ############################################################
 
 all:			$(LIBRARY) $(TSKS)
@@ -113,7 +115,7 @@ $(LIBRARY):		$(D_OBJ)/.created $(LIBOBJS)
 		$(RM) $(RMFLAGS) $@
 		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 		$(RANLIB) $@
-		
+
 $(D_BIN)/mkkeys$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/mkkeys$(E):	$(D_OBJ)/.created $(MKKEYS_OBJS)
 		$(CC) $(LDFLAGS) -o $@ $(MKKEYS_OBJS) $(LXFLAGS) @LDMAPFILE@
@@ -133,3 +135,4 @@ $(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
 
 #end
+
