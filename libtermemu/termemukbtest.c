@@ -75,9 +75,21 @@ struct record {
 	int key;
 };
 
+#if !defined(ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+    // When writing with WriteFile or WriteConsole, characters are parsed for VT100 and similar control
+    // character sequences that control cursor movement, color/font mode, and other operations that can
+    // also be performed via the existing Console APIs.
+#endif
+#if !defined(DISABLE_NEWLINE_AUTO_RETURN)
+#define DISABLE_NEWLINE_AUTO_RETURN 0x0008
+    // When writing with WriteFile or WriteConsole, this adds an additional state to end-of-line wrapping
+    // that can delay the cursor move and buffer scroll operations.
+#endif
+
 #define VKS_DONE	0x01			// VK key status
 #define VKS_SHIFT	0x02
-#define	VKS_CTRL	0x04
+#define VKS_CTRL	0x04
 #define VKS_ALT		0x08
 #define VKS_APPS	0x10
 #define VKS_PRESS	0x40
@@ -100,7 +112,7 @@ static void write_cb(struct tsm_vte *vte, const char *u8, size_t len, void *data
 static void translation(const termemu_event_t *evt, const unsigned char *esc);
 static const char *latin1name(unsigned value);
 
-static int  ctrl_break = 0;			// TODO: atomic op
+static int ctrl_break = 0;			// TODO: atomic op
 static void *keymap = NULL;			// keyboard translation table
 static struct record events[5000];		// recorded events
 static unsigned recorded;			// records
@@ -123,8 +135,8 @@ main(int argc, char *argv[])
 {
 	struct tsm_screen *screen = NULL;
 	struct tsm_vte *vte = NULL;
-	struct iobuf iobuf;
-	DWORD consolemode;
+	struct iobuf iobuf = {0};
+	DWORD consolemode = 0, oconsolemode = 0;
 	BYTE vkstatus[256*3 /*vk,VK+,ascii*/] = {0};
 	const char *keytrans[8] = {NULL}, *exportfile = NULL;
 	int transnum = 0, keypadmode = 0, automode = -1;
@@ -164,11 +176,8 @@ main(int argc, char *argv[])
 		}
 	argv += optind;
 	if ((argc -= optind) > 0) {
-		Usage("unexcepted argument(s) <%s ...>", argv[0]);
+		Usage("unexpected argument(s) <%s ...>", argv[0]);
 	}
-
-	console = GetStdHandle(STD_INPUT_HANDLE);
-	oconsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	(void) tsm_screen_new(&screen, NULL, NULL);
 	(void) tsm_vte_new(&vte, screen, write_cb, &iobuf, NULL, NULL);
@@ -177,8 +186,17 @@ main(int argc, char *argv[])
 		parse_keytrans(keytrans[i]);
 	}
 
-	GetConsoleMode(console, &consolemode);
-	SetConsoleMode(console, ENABLE_WINDOW_INPUT /*TODO: MOUSE*/);
+	console = GetStdHandle(STD_INPUT_HANDLE);
+	oconsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	if (! GetConsoleMode(console, &consolemode) ||
+		    ! GetConsoleMode(oconsole, &oconsolemode)) {
+		Usage("console expected");
+	}
+
+	SetConsoleMode(console, ENABLE_WINDOW_INPUT);
+	SetConsoleMode(oconsole, oconsolemode | \
+		ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN);
 	SetConsoleCtrlHandler(HandlerRoutine, TRUE);
 
 	ConsoleClear(oconsole);			// prime display
@@ -188,7 +206,7 @@ main(int argc, char *argv[])
 	while (! ctrl_break && esc < 3) {	// foreach(key)
 		const KEY_EVENT_RECORD *key = &ir.Event.KeyEvent;
 		termemu_event_t evt = {0};
-                int cio = 1;
+		int cio = 1;
 
 		if (automode >= 0) {		// auto-generate key sequences
 			if (-1 == (automode = termemu_cio_keyauto(automode, &ir, &evt))) {
@@ -200,8 +218,13 @@ main(int argc, char *argv[])
 				break;		// eof or Ctrl-Break
 			}
 
-			if (!count || ir.EventType != KEY_EVENT || !key->bKeyDown)
+			if (WINDOW_BUFFER_SIZE_EVENT == ir.EventType) {
+				ConsoleClear(oconsole);
+				KeyboardStatus(oconsole, vkstatus);
+				continue;
+			} else if (!count || ir.EventType != KEY_EVENT || !key->bKeyDown) {
 				continue;	// ignore non-key down events
+			}
 
 			cio = termemu_cio_keyevent(key, &evt);
 		}
@@ -241,6 +264,8 @@ main(int argc, char *argv[])
 		ConsoleClearEOL(oconsole);
 		printf("\n\n");
 	}
+
+	SetConsoleMode(oconsole, oconsolemode);
 	SetConsoleMode(console, consolemode);
 
 	if (exportfile) {
@@ -353,8 +378,8 @@ KeyboardPush(HANDLE console, BYTE *status, const termemu_event_t *evt)
 		switch(vkkey) {
 		case VK_CAPITAL	+0x0ff:
 		case VK_SCROLL	+0x0ff:
-    		case VK_NUMLOCK	+0x0ff:
-    		case VK_APPS	+0x0ff:
+		case VK_NUMLOCK	+0x0ff:
+		case VK_APPS	+0x0ff:
 		case VK_SHIFT	+0x0ff:
 		case VK_CONTROL	+0x0ff:
 		case VK_MENU	+0x0ff:
@@ -426,7 +451,7 @@ KeyboardStatus(HANDLE console, BYTE *status)
 		    {','},{'.'},{'/'},{VK(SHIFT),L"RSH"},{EK(UP),L"\u25B2"},{EK(DELETE),L"Del"},
 		    {VK(NUMPAD1),L"1"},{VK(NUMPAD2),L"2"},{VK(NUMPAD3),L"3"},{EK(RETURN),L"CR"},
 		    {0}};
-  	static const struct row row6[] = {
+	static const struct row row6[] = {
 		{VK(CONTROL),L"LC"},{NK()},{VK(MENU),L"Alt"},{' ',L"               <SPACE>                "},
 		    {EK(MENU),L"AGr"},{VK(APPS),L"\u2261"},{VK(CONTROL),L"RC"},{EK(LEFT),L"\u25C4"},{EK(DOWN),L"\u25BC"},{EK(RIGHT),L"\u25BA"},
 		    {VK(NUMPAD0),L"0"},{-1},{VK(DECIMAL),L"."},
@@ -571,6 +596,10 @@ static BOOL WINAPI
 HandlerRoutine(DWORD dwCtrlType)
 {
 	switch(dwCtrlType) {
+        case 3: // 3 is reserved!
+        case 4: // 4 is reserved!
+		assert(false);
+		break;
 	case CTRL_BREAK_EVENT: // Ctrl-Break
 		++ctrl_break;			// exit main-loop
 		SetEvent(GetStdHandle(STD_INPUT_HANDLE));
@@ -856,8 +885,8 @@ latin1name(unsigned value)
 	case 0xfd: return "yacute";		// ! ý !
 	case 0xfe: return "thorn";		// ! þ !
 	case 0xff: return "ydiaeresis"; 	// !   !
-//#endif
 	}
 	return NULL;
 }
+
 /*end*/

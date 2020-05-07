@@ -38,6 +38,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <libssh2.h>
 #include "../libtermemu/compat.h"
 #include "../libtermemu/termemu_tsm.h"
