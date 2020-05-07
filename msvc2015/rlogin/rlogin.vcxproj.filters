@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\libemu">
+      <UniqueIdentifier>{34277234-4e98-4ef7-b6d1-540a6c9e5b42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\libemu">
+      <UniqueIdentifier>{be3a9fcf-4513-4bdd-8526-59c2474a51e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Source Files\libemu\libtsm">
+      <UniqueIdentifier>{2b86b811-695a-4cb6-97b2-c6c7dc67b758}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\librcmd\getport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\librcmd\rcmd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogin\rlogin.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\compat_strtonum.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\shl_ring.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\termemu_cio.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\termemu_keyexec.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\termemu_keymap.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\termemu_tsm.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\termemu_vio.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\libtsm\tsm_screen.c">
+      <Filter>Source Files\libemu\libtsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\libtsm\tsm_unicode.c">
+      <Filter>Source Files\libemu\libtsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\libtsm\tsm_vte.c">
+      <Filter>Source Files\libemu\libtsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\libtsm\tsm_vte_charsets.c">
+      <Filter>Source Files\libemu\libtsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\libtsm\shl_htable.c">
+      <Filter>Source Files\libemu\libtsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\compat_inet_ntop.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libtermemu\compat_inet_pton.c">
+      <Filter>Source Files\libemu</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\librcmd\getport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\librcmd\pathnames.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\librcmd\rcmd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogin\termios.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\compat.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\compat_stdbool.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\compat_stdint.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\config.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\keymap.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\tsm\libtsm.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\tsm\libtsm_int.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\tsm\shl_array.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\tsm\shl_htable.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\tsm\shl_llog.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\shl_ring.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\termemu_cio.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\termemu_keymap.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\termemu_tsm.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\termemu_vio.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\termios.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libtermemu\vk_table.h">
+      <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\rlogin\rlogin_man.txt" />
+  </ItemGroup>
+</Project>

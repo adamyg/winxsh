@@ -1,0 +1,12 @@
+! exported keymap
+xterm.VT100.translations: #override \n\
+<Key>Escape : string("\033") \n\
+<Key>Left : string("\033[D") \n\
+<Key>Up : string("\033[A") \n\
+<Key>Right : string("\033[C") \n\
+<Key>Down : string("\033[B") \n\
+<Key>2 : string("2") \n\
+<Key>3 : string("3") \n\
+<Key>4 : string("4") \n\
+<Key>5 : string("5") \n\
+<Key>6 : string("6")
