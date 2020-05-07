@@ -3,7 +3,7 @@
 /*
  * compat stdint.h
  *
- * Copyright (c) 2015 - 2018, Adam Young.
+ * Copyright (c) 2015 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

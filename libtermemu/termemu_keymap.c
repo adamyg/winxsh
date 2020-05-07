@@ -46,7 +46,7 @@
 #ifdef BUILD_HAVE_XKBCOMMON
 #include <xkbcommon/xkbcommon-keysyms.h>
 #else
-#include "tsm/external/xkbcommon-keysyms.h"
+#include "libtsm/external/xkbcommon-keysyms.h"
 #endif
 
 #include "termemu_keymap.h"			/* public interface */

@@ -45,8 +45,9 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "tsm/libtsm.h"
-#include "tsm/libtsm_int.h"
+#include "libtsm/libtsm.h"
+#include "libtsm/libtsm_int.h"
+
 #include "shl_ring.h"
 
 #include "termemu_keymap.h"

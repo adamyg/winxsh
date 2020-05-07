@@ -2,7 +2,7 @@
 /*
  * libtermemu console keyboard test application
  *
- * Copyright (c) 2015 - 2018, Adam Young.
+ * Copyright (c) 2015 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -47,12 +47,12 @@
 #include <getopt.h>
 #include <assert.h>
 
-#include "tsm/libtsm.h"
-#include "tsm/libtsm_int.h"
+#include "libtsm/libtsm.h"
+#include "libtsm/libtsm_int.h"
 #ifdef BUILD_HAVE_XKBCOMMON
 #include <xkbcommon/xkbcommon-keysyms.h>
 #else
-#include "tsm/external/xkbcommon-keysyms.h"
+#include "libtsm/external/xkbcommon-keysyms.h"
 #endif
 
 #include "termemu_keysym.h"			// key-symbol database.

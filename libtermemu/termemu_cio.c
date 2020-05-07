@@ -38,12 +38,12 @@
 #include <windows.h>
 #include <assert.h>
 
-#include "tsm/libtsm.h" 			// libtsm interfaces
-#include "tsm/libtsm_int.h"
+#include "libtsm/libtsm.h" 			// libtsm interfaces
+#include "libtsm/libtsm_int.h"
 #ifdef BUILD_HAVE_XKBCOMMON
 #include <xkbcommon/xkbcommon-keysyms.h>
 #else
-#include "tsm/external/xkbcommon-keysyms.h"
+#include "libtsm/external/xkbcommon-keysyms.h"
 #endif
 
 #include "termemu_keymap.h"			// evt structure.
