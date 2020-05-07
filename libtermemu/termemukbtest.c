@@ -24,6 +24,10 @@
  * License for more details.
  * ==end==
  */
+ 
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500

@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.6 2020/04/29 13:06:10 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2020/05/07 10:33:27 cvsuser Exp $
 # libtermemu makefile.
 #
 #
@@ -88,12 +88,42 @@ LIBOBJS=\
 
 LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
 
-all:			$(LIBRARY)
+############################################################
+
+MKKEYS_CSOURCE=\
+	termemumkkeys.c
+
+MKKEYS_OBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(MKKEYS_CSOURCE)))
+
+KBTEST_CSOURCE=\
+	termemukbtest.c \
+	termemu_tsm.c termemu_vio.c termemu_cio.c termemu_keysym.c termemu_keymap.c termemu_keyexec.c \
+	tsm_screen.c tsm_unicode.c tsm_vte.c tsm_vte_charsets.c \
+	shl_htable.c shl_ring.c
+
+KBTEST_OBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(KBTEST_CSOURCE)))
+
+TSKS=		$(D_BIN)/mkkeys$(E)		\
+		$(D_BIN)/kbtest$(E)
+
+############################################################
+
+all:			$(LIBRARY) $(TSKS)
 
 $(LIBRARY):		$(D_OBJ)/.created $(LIBOBJS)
 		$(RM) $(RMFLAGS) $@
 		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
 		$(RANLIB) $@
+		
+$(D_BIN)/mkkeys$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/mkkeys$(E):	$(D_OBJ)/.created $(MKKEYS_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(MKKEYS_OBJS) $(LXFLAGS) @LDMAPFILE@
+
+$(D_BIN)/kbtest$(E):	MAPFILE=$(basename $@).map
+$(D_BIN)/kbtest$(E):	$(D_OBJ)/.created $(KBTEST_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(KBTEST_OBJS) $(LXFLAGS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)
