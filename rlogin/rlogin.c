@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.13 2020/05/13 16:16:30 cvsuser Exp $")
+__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.14 2020/05/13 18:55:55 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -88,6 +88,8 @@ __CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.13 2020/05/13 16:16:30 cvsuser Exp $"
 #include "../libtermemu/termios.h"
 #include "../libtermemu/termemu_tsm.h"
 
+#include "../rlogind/winsize.h"
+
 #include <libw32_version.h>
 #include <buildinfo.h>
 
@@ -112,12 +114,6 @@ static int ctrlbreak;
 static u_char escapechar = '~';
 static WCHAR oldtitle[256];
 
-struct winsize {
-	unsigned short ws_row;		/* rows, in characters */
-	unsigned short ws_col;		/* columns, in characters */
-	unsigned short ws_xpixel;	/* horizontal size, pixels */
-	unsigned short ws_ypixel;	/* vertical size, pixels */
-};
 static struct winsize winsize;
 
 static void		doit(void);
@@ -641,20 +637,6 @@ oob(void)
  *			server in the future if the window size changes. This command is normally sent by the server immediately
  *			after the connection is established.
  */
-#if !defined(TIOCPKT_DATA)
-#define TIOCPKT_DATA		0x00	/* data packet */
-#define TIOCPKT_FLUSHREAD	0x01	/* flush packet */
-#define TIOCPKT_FLUSHWRITE	0x02	/* flush packet */
-#define TIOCPKT_STOP		0x04	/* stop output */
-#define TIOCPKT_START		0x08	/* start output */
-#define TIOCPKT_NOSTOP		0x10	/* no more ^S, ^Q */
-#define TIOCPKT_DOSTOP		0x20	/* now do ^S ^Q */
-#define TIOCPKT_IOCTL		0x40	/* state change of pty driver */
-#endif
-#ifndef TIOCPKT_WINDOW
-#define TIOCPKT_WINDOW		0x80
-#endif
-
 	while (recv(rem, &mark, 1, MSG_OOB) < 0) {
 		switch (errno) {
 		case EWOULDBLOCK:
