@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.3 2020/04/29 11:54:25 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.5 2020/05/11 21:52:12 cvsuser Exp $")
 
 /*
  * win32 socket () system calls
  * Light weight replacement functions, which maintain the global errno.
  *
- * Copyright (c) 2007, 2012 - 2018 Adam Young.
+ * Copyright (c) 2007, 2012 - 2020 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -61,7 +61,7 @@ static SOCKET
 nativehandle(int fd)
 {
     if (fd >= 0)
-	return (SOCKET)fd;
+        return (SOCKET)fd;
     return INVALID_SOCKET;
 }
 
@@ -80,14 +80,14 @@ retry:;
     if ((s = socket(af, type, protocol)) == INVALID_SOCKET) {
         if (0 == done++) {
             if (WSAGetLastError() == WSANOTINITIALISED && 0 == w32_sockinit()) {
-		goto retry;			/* hide winsock initialisation */
+                goto retry;                     /* hide winsock initialisation */
             }
         }
         w32_sockerror();
         ret = -1;
     } else {
         SetHandleInformation((HANDLE)s, HANDLE_FLAG_INHERIT, 0);
-	assert((int)s < 0x7fffffff);
+        assert((int)s < 0x7fffffff);
     }
     return (int)s;
 }
@@ -106,7 +106,7 @@ w32_connect_native(int fd, const struct sockaddr *name, socklen_t namelen)
     if ((osf = nativehandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
     } else if (connect(osf, name, namelen) != 0) {
-	w32_sockerror();
+        w32_sockerror();
         ret = -1;
     }
     return ret;
@@ -218,6 +218,8 @@ w32_accept_native(int fd, struct sockaddr *addr, int *addrlen)
              *  by child processes by default, so disable.
              */
             SetHandleInformation((HANDLE)s, HANDLE_FLAG_INHERIT, 0);
+            assert((int)s < 0x7fffffff);
+            ret = (int)s;
         }
     }
     return ret;
@@ -407,6 +409,24 @@ w32_sockread_native(int fd, void *buf, unsigned int nbyte)
 
 
 /*
+ *  sockclose() system call
+ */
+LIBW32_API int
+w32_sockclose_native(int fd)
+{
+    SOCKET osf;
+    int ret;
+
+#undef closesocket
+    if ((osf = nativehandle(fd)) == (SOCKET)INVALID_SOCKET) {
+        ret = -1;
+    } else if ((ret = closesocket(osf)) == -1 /*SOCKET_ERROR*/) {
+        w32_sockerror();
+    }
+    return ret;
+}
+
+/*
  *  shutdown() system call
  */
 LIBW32_API int
@@ -418,11 +438,13 @@ w32_shutdown_native(int fd, int how)
 #undef shutdown
     if ((osf = nativehandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
-    } else if ((ret = shutdown((SOCKET)osf, how)) == -1) {
+    } else if ((ret = shutdown((SOCKET)osf, how)) == -1 /*SOCKET_ERROR*/) {
         w32_sockerror();
     }
     return ret;
 }
 
 /*end*/
+
+
 

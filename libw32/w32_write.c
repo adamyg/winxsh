@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.9 2020/04/29 19:33:09 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.10 2020/05/13 19:14:54 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -44,6 +44,7 @@ __CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.9 2020/04/29 19:33:09 cvsuse
 #include <unistd.h>
 
 #pragma comment(lib, "Ws2_32.lib")
+
 
 /*
 //  NAME

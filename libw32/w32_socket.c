@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.11 2020/04/29 11:54:25 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.12 2020/05/11 21:50:50 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -406,6 +406,25 @@ w32_sockread_fd(int fd, void *buf, unsigned int nbyte)
 
 
 /*
+ *  sockclose() system call
+ */
+LIBW32_API int
+w32_sockclose_fd(int fd)
+{
+    SOCKET osf;
+    int ret;
+
+#undef closesocket
+    if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
+        ret = -1;
+    } else if ((ret = closesocket(osf)) == -1 /*SOCKET_ERROR*/) {
+        w32_sockerror();
+    }
+    return ret;
+}
+
+
+/*
  *  shutdown() system call
  */
 LIBW32_API int
@@ -417,7 +436,7 @@ w32_shutdown_fd(int fd, int how)
 #undef shutdown
     if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
-    } else if ((ret = shutdown((SOCKET)osf, how)) == -1) {
+    } else if ((ret = shutdown(osf, how)) == -1 /*SOCKET_ERROR*/) {
         w32_sockerror();
     }
     return ret;
@@ -438,4 +457,3 @@ w32_sockhandle(int fd)
 }
 
 /*end*/
-

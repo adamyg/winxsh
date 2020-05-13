@@ -1,7 +1,7 @@
 #ifndef LIBW32_SYS_TIME_H
 #define LIBW32_SYS_TIME_H
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_sys_time_h,"$Id: time.h,v 1.4 2020/04/29 11:54:27 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_sys_time_h,"$Id: time.h,v 1.5 2020/05/13 19:14:54 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
@@ -118,7 +118,7 @@ __BEGIN_DECLS
 #define ITIMER_VIRTUAL  1               /* Decrements in process virtual time. */
 #define ITIMER_PROF     2               /* Decrements both in process virtual time and when the system is running on behalf of the process. */
 
-LIBW32_API int          getitimer(int which, struct itimerval *);
+LIBW32_API int          getitimer(int which, struct itimerval *value);
 LIBW32_API int          setitimer(int which, const struct itimerval *value, struct timeval *ovalue);
 
 #if defined(_WINSOCKAPI_) || defined(_WINSOCK2API_)

@@ -1,7 +1,7 @@
 #ifndef LIBW32_GETOPT_H_INCLUDED
 #define LIBW32_GETOPT_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_getopt_h,"$Id: getopt.h,v 1.5 2020/04/29 11:54:24 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_getopt_h,"$Id: getopt.h,v 1.6 2020/05/13 19:14:54 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
@@ -65,4 +65,3 @@ LIBW32_API int          getopt_long(int argvc, char * const *argv, const char *o
 __END_DECLS
 
 #endif /*LIBW32_GETOPT_H_INCLUDED*/
-

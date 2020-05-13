@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_errno_c,"$Id: w32_errno.c,v 1.6 2020/04/29 11:54:25 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_errno_c,"$Id: w32_errno.c,v 1.7 2020/05/13 19:14:54 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -40,11 +40,11 @@ __CIDENT_RCSID(gr_w32_errno_c,"$Id: w32_errno.c,v 1.6 2020/04/29 11:54:25 cvsuse
 #include <time.h>
 
 /*
- *  Mapping for the first 255 system error messages (ie. base error codes),
- *  with all others are mapped to EIO.
+ *  Mapping for the first 499 system error messages (ie. base error codes), with all others are mapped to EIO.
  *
- *  Note, the follow represent a 'general' error code mapping, logic may require
- *  explicit mapping when error conditions are being replied upon.
+ *      https://docs.microsoft.com/en-us/windows/desktop/debug/system-error-codes--0-499-
+ *
+ *  Note, the follow represent a 'general' error code mapping, logic may require explicit mapping when error conditions are being replied upon.
  */
 static const int    xlaterrno[] = {
  /* errno              Win32          Mnemonic                                 Description */

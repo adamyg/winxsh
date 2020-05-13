@@ -1,14 +1,14 @@
 #ifndef LIBW32_SYS_SOCKET_H_INCLUDED
 #define LIBW32_SYS_SOCKET_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_sys_socket_h,"$Id: socket.h,v 1.8 2020/04/29 11:54:27 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_sys_socket_h,"$Id: socket.h,v 1.10 2020/05/13 19:14:54 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 <sys/socket.h>
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -77,6 +77,8 @@ LIBW32_API int          w32_sockwrite_fd(int fd, const void *buffer, unsigned in
 LIBW32_API int          w32_sockwrite_native(int fd, const void *buffer, unsigned int cnt);
 LIBW32_API int          w32_sockread_fd(int fd, void *buf, unsigned int nbyte);
 LIBW32_API int          w32_sockread_native(int fd, void *buf, unsigned int nbyte);
+LIBW32_API int          w32_sockclose_fd(int fd);
+LIBW32_API int          w32_sockclose_native(int fd);
 LIBW32_API int          w32_shutdown_fd(int fd, int flags);
 LIBW32_API int          w32_shutdown_native(int fd, int flags);
 
@@ -146,6 +148,9 @@ LIBW32_API int          w32_poll_native(struct pollfd *fds, int cnt, int timeout
 #if !defined(LIBW32_SYS_POLL_H_INCLUDED)
 #define poll(a,b,c)             w32_poll_fd(a,b,c)
 #endif
+#define sockread(a,b,c)         w32_sockread_fd(a,b,c)
+#define sockwrite(a,b,c)        w32_sockwrite_fd(a,b,c)
+#define sockclose(a)            w32_sockclose_fd(a)
 
 #elif defined(WIN32_SOCKET_MAP_NATIVE)
 /*
@@ -170,6 +175,9 @@ LIBW32_API int          w32_poll_native(struct pollfd *fds, int cnt, int timeout
 #if !defined(LIBW32_SYS_POLL_H_INCLUDED)
 #define poll(a,b,c)             w32_poll_native(a,b,c)
 #endif /*SOCKET_MAPCALLS*/
+#define sockread(a,b,c)         w32_sockread_native(a,b,c)
+#define sockwrite(a,b,c)        w32_sockwrite_native(a,b,c)
+#define sockclose(a)            w32_sockclose_native(a)
 
 #endif /*WIN32_SOCKET_MAP_FD|NATIVE*/
 

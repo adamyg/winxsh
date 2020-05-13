@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.4 2020/04/29 11:54:26 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.5 2020/05/13 19:14:54 cvsuser Exp $")
 
 /*
  * win32 socket file-descriptor support
@@ -196,4 +196,3 @@ w32_issockfd(int fd, SOCKET *s)
 }
 
 /*end*/
-
