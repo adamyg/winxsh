@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.11 2020/05/09 15:07:19 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * slogin, windows console ssh client (libssh2 based).

@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(options_test_c,"$Id: options_test.c,v 1.9 2020/05/09 15:07:19 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win slogin

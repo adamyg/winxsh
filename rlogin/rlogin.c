@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.13 2020/05/13 16:16:30 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogin
@@ -51,7 +54,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *  __RCSID("$NetBSD: rlogin.c,v 1.43 2013/03/02 18:37:19 wiz Exp $");
+ * $NetBSD: rlogin.c,v 1.43 2013/03/02 18:37:19 wiz Exp $;
  */
 
 #include <sys/cdefs.h>
@@ -105,6 +108,7 @@ static int eight, rem;
 static struct termios deftty;
 
 static int noescape;
+static int ctrlbreak;
 static u_char escapechar = '~';
 static WCHAR oldtitle[256];
 
@@ -128,17 +132,19 @@ static int		reader(void);
 static void		sigwinch(void);
 static void		get_window_size(struct winsize *);
 static void		sendwindow(void);
+static void		sendbreak(void);
 static void		stop(int);
 static void		usage(void);
 static void		version(void);
 static void		writer(void);
 static void		writeroob(void);
 
-#define OPTIONS         "468dEe:k:N:i:l:np:t:V"
+#define OPTIONS		"468dEe:K:N:i:l:np:t:V"
 
 static const struct option long_options[] = {
 	{ "usage",   no_argument, NULL, 1000 },
-	{ "version", no_argument, NULL, 'V' },
+	{ "break",   no_argument, NULL, 1001 },
+	{ "version", no_argument, NULL, 'V'  },
 	{ NULL }
 	};
 
@@ -198,7 +204,10 @@ main(int argc, char *argv[])
 				escapechar = getescape(optarg);
 			}
 			break;
-		case 'k':   //key translation tables
+		case 1001:  //enable ctrl-break
+			ctrlbreak = 1;
+			break;
+		case 'K':   //key translation tables
 			if (NULL == keytrans[0]) keytrans[0] = optarg;
 			else if (NULL == keytrans[1]) keytrans[1] = optarg;
 			else if (NULL == keytrans[2]) keytrans[2] = optarg;
@@ -227,14 +236,20 @@ main(int argc, char *argv[])
 			if (term[0]) errx(1, "multiple -t options specified.");
 			strncpy(term, optarg, sizeof(term)-1);
 			break;
+#if defined(CRYPT)          //WinRlogind only.
+		case 'x':
+			doencrypt = 1;
+			des_set_key(cred.session, schedule);
+			break;
+#endif //CRYPT
 		case 'V':   //version
 			version();
-		case 1000:   
+		case 1000:
 		case '?':
 		default:
 			usage();
 		}
-        }
+	}
 	optind += argoff;
 	argc -= optind;
 	argv += optind;
@@ -266,8 +281,8 @@ main(int argc, char *argv[])
 	if (!user)
 		user = name;
 
-	if (w32_sockinit() == -1)
-		err(1, "winsock initialisation" );
+	if (-1 == w32_sockinit())
+		err(1, "winsock initialisation");
 	if (sp == NULL)
 		sp = getservbyname("login", "tcp");
 	if (sp == NULL)
@@ -392,26 +407,34 @@ writeroob(void)
  * writer: write to remote: 0 -> line.
  *
  *  Client Escapes
- *	Normally everything we type to the Rlogin client is sent to the server. Occasionally, however,
- *	we want to talk directly to the Rlogin client program itself, and not have what we type sent to
- *	the server. This is done by typing a tilde (~) as the first character of a line, followed by
- *	one of the following four characters:
+ *      Normally everything we type to the Rlogin client is sent to the server. Occasionally, however,
+ *      we want to talk directly to the Rlogin client program itself, and not have what we type sent to
+ *      the server. This is done by typing a tilde (~) as the first character of a line, followed by
+ *      one of the following four characters:
  *
- *	    o A period terminates the client.
- *	    o The end-of-file character (often Control-D) terminates the client.
- *	    o The job control suspend character (often Control-Z) suspends the client.
- *	    o The job-control delayed-suspend character (often Control-Y) suspends only the client input.
- *		Everything we type is now interpreted by whatever program we run on the client host, but
- *		anything sent to the Rlogin client by the Rlogin server is output to our terminal.
- *		This can be used when we start a long running job on the server and we want to know when
- *		it outputs something, but we want to continue running other programs on the client.
+ *          o A period terminates the client.
+ *          o The end-of-file character (often Control-D) terminates the client.
+ *          o The job control suspend character (often Control-Z) suspends the client.
+ *          o The job-control delayed-suspend character (often Control-Y) suspends only the client input.
+ *              Everything we type is now interpreted by whatever program we run on the client host, but
+ *              anything sent to the Rlogin client by the Rlogin server is output to our terminal.
+ *              This can be used when we start a long running job on the server and we want to know when
+ *              it outputs something, but we want to continue running other programs on the client.
  *
- *	The last two commands are supported only if the client Unix system supports job control.
+ *      The last two commands are supported only if the client Unix system supports job control.
  *
  *  Examples:
- *	~.				terminate
- *	~^Z				suspend rlogin process.
- *	~<delayed-suspend char> 	suspend rlogin process, but leave reader alone.
+ *      ~.                              Terminate
+ *      ~^Z                             Suspend rlogin process.
+ *      ~<delayed-suspend char>         Suspend rlogin process, but leave reader alone.
+ *
+ *  Extension:
+ *      ~B                              Send a break to the remote system; WinRlogind only.
+ *
+ *  Todo:
+ *      ~?                              Display a ist of escape characters.
+ *      ~V                              Decrease the verbosity (loglevel).
+ *      ~v                              Increase the verbosity (loglevel).
  */
 static void
 writer(void)
@@ -448,7 +471,7 @@ writer(void)
 			if (bol) {
 				bol = 0;
 				if (icnt == 1) {/* only on single character keys */
-					if (!noescape && c == escapechar) {
+					if (!noescape && c == escapechar) { //default: '~'
 						local = 1;
 						continue;
 					}
@@ -460,6 +483,10 @@ writer(void)
 						echo((int)c);
 						terminate = 1;
 						break;		//terminate (. and EOF)
+					}
+					if (ctrlbreak && 'B' == c /*FIXME*/) {
+						sendbreak();
+						continue;	//consume
 					}
 					if (CCEQ(deftty.c_cc[VSUSP], c)) {
 						bol = 1;
@@ -576,6 +603,15 @@ sendwindow(void)
 	wp->ws_ypixel = htons(winsize.ws_ypixel);
 	(void)w32_write(rem, obuf, sizeof(obuf));
 }
+
+
+static void
+sendbreak(void)
+{
+	char oobdata = (char)0377;
+	(void)send(rem, &oobdata, 1, MSG_OOB);
+}
+
 
 /*
  * reader: read from remote: line -> 1
