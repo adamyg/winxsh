@@ -44,16 +44,22 @@ static const char *progname = NULL;
 LIBW32_API void
 setprogname(const char *name)
 {
+    const char *p1 = strrchr(name, '\\'),
+        *p2 = strrchr(name, '/');
     char *p;
-    if ((p = strrchr(name, '/')) || (p = strrchr(name, '\\'))) {
-        name = p + 1; //consume leading path.
+
+    if (p1 || p2) { //last component.
+        name = (p1 > p2 ? p1 : p2) + 1;  //consume leading path.
     }
+
     free((char *)progname);
     progname = _strdup(name); //clone buffer.
-    if ((p = strrchr(progname, '.')) &&
+
+    if (NULL != (p = strrchr(progname, '.')) &&
             (0 == stricmp(p, ".exe") || 0 == stricmp(p, ".com"))) {
         *p = 0; //consume trailing exe/com extension.
     }
+
     for (p = (char *)progname; *p; ++p) { //hide case issues.
         *p = (char)tolower(*p);
     }

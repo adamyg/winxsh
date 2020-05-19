@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(compat_inet_ntop_c,"$Id: compat_inet_ntop.c,v 1.5 2020/05/15 00:21:25 cvsuser Exp $")
+
 /*
  *  inet_ntop --- compat interface
  */
@@ -112,4 +115,3 @@ void __native_inet_ntop_available(void)
 }
 
 #endif
-

@@ -269,7 +269,7 @@ LIBW32_API struct passwd *
 getpwnam(const char *name)
 {
     fillin();
-    if (strcmp(pw.pw_name, name) == 0) {
+    if (0 == strcmp(pw.pw_name, name)) {
         return &pw;
     }
     return NULL;
@@ -307,4 +307,3 @@ fillin(void)
 }
 
 /*end*/
-

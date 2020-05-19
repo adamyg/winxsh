@@ -26,8 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	__RCSID("$NetBSD: rcmd.c,v 1.69.2.1 2014/12/01 13:43:14 martin Exp $");
+ * $NetBSD: rcmd.c,v 1.69.2.1 2014/12/01 13:43:14 martin Exp $
  */
+
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
@@ -35,9 +39,10 @@
 #ifndef WIN32_SOCKET_MAP_NATIVE
 #define WIN32_SOCKET_MAP_NATIVE
 #endif
-//#define DO_TRACE
 
+#ifndef _BSD_SOURCE
 #define _BSD_SOURCE
+#endif
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
@@ -59,6 +64,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#if defined(HAVE_SYSLOG)
+#include "syslog.h"
+#endif
 
 #include "pathnames.h"
 #include "rcmd.h"
@@ -157,7 +166,9 @@ orcmd_af(const char **ahost, u_int rport, const char *locuser, const char *remus
 	_DIAGASSERT(cmd != NULL);
 	/* fd2p may be NULL */
 
-	snprintf(pbuf, sizeof(pbuf), "%u", ntohs(rport));
+	(void) snprintf(pbuf, sizeof(pbuf), "%u", ntohs(rport));
+        pbuf[sizeof(pbuf) - 1] = 0;
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = af;
 	hints.ai_socktype = SOCK_STREAM;
@@ -293,7 +304,10 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 		if (s2 < 0)
 			goto bad;
 		listen(s2, 1);
-		(void)snprintf(num, sizeof(num), "%d", lport);
+
+		(void) snprintf(num, sizeof(num), "%d", lport);
+		num[sizeof(num) - 1] = 0;
+
 		if (w32_write(s, num, strlen(num) + 1) != (int) (strlen(num) + 1)) {
 			warn("rcmd: write (setting up stderr)");
 			(void)w32_close(s2);
@@ -540,7 +554,7 @@ bindresvport_last(const int port)
 #endif
 
 	/* Open shared memory region */
-	if (pport == NULL) {
+	if (NULL == pport) {
 		int created = 0;		/* local creation */
 
 		if (NULL == (hFileMapping =
@@ -560,6 +574,12 @@ bindresvport_last(const int port)
 						/* Initial value; -1 as 1023 can be rejected */
 		}
 	}
+	if (NULL == pport) {
+#if defined(DO_TRACE)
+	        printf("bindresvport_last() = -1\n");
+#endif
+                return -1;
+        }
 
 	/* Assign (if required) and return */
 	if (port >= 0)
@@ -573,8 +593,8 @@ bindresvport_last(const int port)
 }
 
 
-#if defined(__WATCOMC__)
-#if defined(IN6ADDR_ANY_INIT)
+#if defined(__WATCOMC__) && (__WATCOMC__ < 1300)	
+#if defined(IN6ADDR_ANY_INIT)                   /* <wc20 */
 static const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #else
 static const struct in6_addr in6addr_any = {0};
@@ -635,8 +655,10 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	 *	port twice for as long as possible.  The hoops one must jump for correctly running
 	 *	Microsoft targeted products are too many to count.
 	 */
-	if (mutex == NULL) {
+	if (NULL == mutex) {
 		mutex = CreateMutex(NULL, FALSE, RCMD_MUTEXNAME);
+		if (NULL == mutex) 
+			return -1;
 	} else {
 		WaitForSingleObject(mutex, INFINITE);
 	}
@@ -663,12 +685,11 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	if (lastport >= 0) {
 		bindresvport_last(lastport);
 	}
-	(void) ReleaseMutex(mutex);
+        (void) ReleaseMutex(mutex);
 
 #if defined(DO_TRACE)
 	printf("bindresvport() = %u\n", lastport);
 #endif
-
 	return lastport;
 }
 #endif	//WIN32
@@ -830,8 +851,7 @@ iruserok_sa(const void *raddr, int rlen, int superuser, const char *ruser, const
 
 	__rcmd_errstr = NULL;
 
-	hostf = superuser ? NULL : fopen(_PATH_HEQUIV, "r");
-
+	hostf = (superuser ? NULL : fopen(_PATH_HEQUIV, "r"));
 	if (hostf) {
 		if (__ivaliduser_sa(hostf, sa, (socklen_t)rlen, luser, ruser) == 0) {
 			(void)fclose(hostf);
@@ -849,10 +869,14 @@ iruserok_sa(const void *raddr, int rlen, int superuser, const char *ruser, const
 //		(void)strlcat(pbuf, "/.rhosts", sizeof(pbuf));
 
 		const char *home;
-		if ((home = w32_gethome(0)) == NULL)
-			return (-1);
-		(void) strcpy(pbuf, home);
-		(void) strcat(pbuf, "/.rhosts");
+		if (NULL == (home = w32_gethome( 1 /*ignore environment*/ ))) {
+                        __rcmd_errstr = ".rhosts, unable to resolve home directory";
+			return -1;
+                }
+//		(void) strcpy(pbuf, home);
+//		(void) strcat(pbuf, "/.rhosts");
+		(void) snprintf(pbuf, sizeof(pbuf)-1, "%s/.rhosts", home);
+		pbuf[sizeof(pbuf) - 1] = 0;
 
 		/*
 		 * Change effective uid while opening and reading .rhosts.
@@ -887,7 +911,11 @@ iruserok_sa(const void *raddr, int rlen, int superuser, const char *ruser, const
 				isvaliduser =
 				    __ivaliduser_sa(hostf, sa, (socklen_t)rlen, luser, ruser);
 			(void)fclose(hostf);
-		}
+
+		} else {
+			__rcmd_errstr = ".rhosts not available";
+                }
+
 //		(void)seteuid(uid);
 //		(void)setegid(gid);
 
@@ -1154,11 +1182,15 @@ __gethostloop(const struct sockaddr *raddr, socklen_t salen)
 	 * either the DNS adminstrator has made a configuration
 	 * mistake, or someone has attempted to spoof us
 	 */
-//	syslog(LOG_NOTICE, "rcmd: address %s not listed for host %s",
-//		h1, res->ai_canonname ? res->ai_canonname : remotehost);
+#if defined(HAVE_SYSLOG)
+	syslog(LOG_NOTICE, "rcmd: address %s not listed for host %s",
+		h1, res->ai_canonname ? res->ai_canonname : remotehost);
+#else
 	warn("rcmd: address %s not listed for host %s",
 		h1, res->ai_canonname ? res->ai_canonname : remotehost);
+#endif
 	freeaddrinfo(res);
 	return NULL;
 }
+
 /*end*/

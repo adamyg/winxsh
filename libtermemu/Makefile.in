@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.10 2020/05/07 19:44:11 cvsuser Exp $
+# $Id: Makefile.in,v 1.11 2020/05/09 15:08:06 cvsuser Exp $
 # libtermemu makefile.
 #
 #

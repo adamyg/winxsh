@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.11 2020/05/09 15:07:19 cvsuser Exp $")
+__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.12 2020/05/15 00:19:06 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -85,12 +85,15 @@ __CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.11 2020/05/09 15:07:19 cvsuser Exp $"
 #error target ...
 #endif
 
+#ifndef WINSIZE_T
+#define WINSIZE_T
 struct winsize {
 	unsigned short ws_row;		/* rows, in characters */
 	unsigned short ws_col;		/* columns, in characters */
 	unsigned short ws_xpixel;	/* horizontal size, pixels */
 	unsigned short ws_ypixel;	/* vertical size, pixels */
 };
+#endif  //WINSIZE_T
 
 static void		ssh2_sockinit(void);
 static int		ssh2_create(const char *host, const struct options *options, const char *term, struct winsize *wp);

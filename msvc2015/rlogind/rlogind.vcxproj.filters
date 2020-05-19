@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A211}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EB11}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD11}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Source Files\NTService">
+      <UniqueIdentifier>{dba1a77c-d2b3-4c85-803e-efcd2729b063}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\NTService">
+      <UniqueIdentifier>{c2468aec-00e5-47ca-b63d-3dd99a23ab70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{12357038-7ee8-49a6-9c39-ff85c377944e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SimpleIni">
+      <UniqueIdentifier>{2da19430-d57e-434c-bb01-4df5c09f3da0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\rlogind\vis.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\librcmd\rcmd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\syslog.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\W32Poll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\ConPty.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\heapcheck.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\Session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\Service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\NTService\NTService.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\NTService\NTServiceConfig.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\NTService\NTServiceControl.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\rlogind.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rlogind\Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\rlogind\syslog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\w32support.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\vis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\rlogind.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\W32Poll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\ConPty.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\winsize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\heapcheck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\Session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\Service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTService.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTServMsg.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTServiceConfig.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTServiceControl.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\buildinfo.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\libssh2.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\libssh2_helper.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\libssh2_Sftp.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\zconf.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\zlib.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTServiceIO.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\SimpleIni\SimpleIni.h">
+      <Filter>Header Files\SimpleIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\NTService\NTServiceGetopt.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\LoggerSyslog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rlogind\SyslogDiagnosticsIO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\rlogind\NTService\NTServMsg.mc">
+      <Filter>Source Files\NTService</Filter>
+    </None>
+    <None Include="..\..\rlogind\rlogind.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\rlogind\Service.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="..\..\rlogind\NTService\NTServMsg.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\rlogind\SimpleIni\LICENCE.txt">
+      <Filter>Header Files\SimpleIni</Filter>
+    </Text>
+    <Text Include="..\..\rlogind\SimpleIni\SOURCE.txt">
+      <Filter>Header Files\SimpleIni</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

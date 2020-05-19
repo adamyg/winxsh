@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_gethostname_c,"$Id: w32_gethostname.c,v 1.3 2020/04/29 11:54:25 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_gethostname_c,"$Id: w32_gethostname.c,v 1.4 2020/05/17 19:54:57 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -36,7 +36,12 @@ __CIDENT_RCSID(gr_w32_gethostname_c,"$Id: w32_gethostname.c,v 1.3 2020/04/29 11:
  */
 
 #include "win32_internal.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <unistd.h>
+
 
 /*
 //  NAME
@@ -69,11 +74,21 @@ __CIDENT_RCSID(gr_w32_gethostname_c,"$Id: w32_gethostname.c,v 1.3 2020/04/29 11:
 LIBW32_API int
 w32_gethostname(char *name, size_t namelen)
 {
+    int done = 0, ret;
     const char *host;
 
 #undef gethostname
-    if (0 == gethostname(name, (int)namelen)) {
+retry:;
+    if (0 == (ret = gethostname(name, namelen))) {
         return 0;
+    } else {
+        if (0 == done++) {                      /* WSAStartup call must occur before using this function. */
+            if ((SOCKET_ERROR == ret && WSANOTINITIALISED == WSAGetLastError()) &&
+                    0 == w32_sockinit()) {
+                goto retry;                     /* hide winsock initialisation */
+            }
+        }
+        w32_sockerror();
     }
 
 #if (TODO)
@@ -91,4 +106,3 @@ w32_gethostname(char *name, size_t namelen)
 }
 
 /*end*/
-

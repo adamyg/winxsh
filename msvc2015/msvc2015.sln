@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mkkeys", "mkkeys\mkkeys.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libw32", "libw32\libw32.vcxproj", "{D2998A79-52C1-4CF1-A166-9AC6C0AA7E3B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rlogind", "rlogind\rlogind.vcxproj", "{C1F0E5F3-32CB-4FD5-A2DE-249FFAB9D1F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -39,6 +41,10 @@ Global
 		{D2998A79-52C1-4CF1-A166-9AC6C0AA7E3B}.Debug|Win32.Build.0 = Debug|Win32
 		{D2998A79-52C1-4CF1-A166-9AC6C0AA7E3B}.Release|Win32.ActiveCfg = Release|Win32
 		{D2998A79-52C1-4CF1-A166-9AC6C0AA7E3B}.Release|Win32.Build.0 = Release|Win32
+		{C1F0E5F3-32CB-4FD5-A2DE-249FFAB9D1F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C1F0E5F3-32CB-4FD5-A2DE-249FFAB9D1F8}.Debug|Win32.Build.0 = Debug|Win32
+		{C1F0E5F3-32CB-4FD5-A2DE-249FFAB9D1F8}.Release|Win32.ActiveCfg = Release|Win32
+		{C1F0E5F3-32CB-4FD5-A2DE-249FFAB9D1F8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

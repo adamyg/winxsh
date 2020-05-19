@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.8 2020/05/09 15:09:51 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console keyboard test application

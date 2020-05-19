@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.11 2020/04/29 13:08:25 cvsuser Exp $
+# $Id: Makefile.in,v 1.12 2020/05/17 19:53:30 cvsuser Exp $
 # libw32 makefile.
 #
 #
@@ -120,6 +120,7 @@ CSOURCES=\
 	w32_strlcat.c \
 	w32_strlcpy.c \
 	w32_time.c \
+	w32_timegm.c \
 	w32_user.c \
 	w32_util.c \
 	w32_write.c

@@ -1,3 +1,5 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(compat_strtonum_c,"$Id: compat_strtonum.c,v 1.4 2020/05/15 00:21:39 cvsuser Exp $")
 /*
  *  strtonum --- compat interface
  */
@@ -65,4 +67,3 @@ void __native_strtonum_available(void)
 }
 
 #endif
-

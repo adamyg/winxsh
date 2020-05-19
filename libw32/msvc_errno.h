@@ -1,5 +1,5 @@
 /*
- *  $Id: msvc_errno.h,v 1.1 2019/03/15 23:12:09 cvsuser Exp $
+ *  $Id: msvc_errno.h,v 1.1 2020/05/15 00:27:56 cvsuser Exp $
  *  MSVC errno filter
  */
 

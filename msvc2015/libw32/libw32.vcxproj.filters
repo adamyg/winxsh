@@ -126,6 +126,9 @@
     <ClCompile Include="..\..\libw32\w32_reparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libw32\w32_timegm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libw32\config.h">
@@ -238,6 +241,18 @@
     </ClInclude>
     <ClInclude Include="..\..\libw32\win32_ioctl.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libw32\msvc_errno.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libw32\msvc_system_error.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libw32\msvcversions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libw32\sys\queue.h">
+      <Filter>Header Files\sys</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

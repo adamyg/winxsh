@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.8 2020/04/30 21:30:28 cvsuser Exp $
+# $Id: Makefile.in,v 1.10 2020/05/19 00:51:35 cvsuser Exp $
 # winsh - top level makefile.
 #
 #
@@ -143,28 +143,40 @@ BUILDINFO=	include/buildinfo.h
 
 # Targets
 
-CLBR19=		$(shell which clbr19.dll)
-MT7R19=		$(shell which mt7r19.dll)
-
+ifeq ("wcl386","$(CC)")
+ifeq ("@TOOLCHAIN@","owc20")
+CLBRNAME=	clbr20
+MT7RNAME=	mt7r20
+PLBRNAME=	plbr20
+else
+CLBRNAME=	clbr19
+MT7RNAME=	mt7r19
+PLBRNAME=	plbr19
+endif
+LIBCLBRPATH=	$(shell which $(CLBRNAME).dll)
+LIBMT7RPATH=	$(shell which $(MT7RNAME).dll)
+LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
+endif
 
 BINS=\
-	$(D_BIN)/slogin$(E)	\
+	$(D_BIN)/slogin$(E)		\
 	$(D_BIN)/rlogin$(E)
 
 ifneq "" "$(filter mingw32 win32,@build_os@)"
 LIBS=	$(LW)w32$(A)
 endif
 LIBS+=\
-	$(LW)z$(A)		\
-	$(LW)mbedtls$(A)	\
-	$(LW)ssh2$(A)		\
+	$(LW)z$(A)			\
+	$(LW)mbedtls$(A)		\
+	$(LW)ssh2$(A)			\
 	$(LW)termemu$(A)
 
 IMPORT=
 ifeq ("wcl386","$(CC)")
 IMPORT+=\
-	$(D_BIN)/clbr19.dll	\
-	$(D_BIN)/mt7r19.dll
+	$(D_BIN)/$(CLBRNAME).dll	\
+	$(D_BIN)/$(MT7RNAME).dll	\
+	$(D_BIN)/$(PLBRNAME).dll
 endif
 
 #########################################################################################
@@ -238,13 +250,17 @@ $(LW)%$(A):		$(D_LIB)/.created $(D_OBJ)/.created
 .PHONY:
 import:				$(IMPORT)
 
-$(D_BIN)/clbr19.dll:		$(CLBR19)
-		@echo importing $(CLBR19)
+$(D_BIN)/$(CLBRNAME).dll:	$(LIBCLBRPATH)
+		@echo importing $(LIBCLBRPATH)
 		@$(CP) -f $(subst /,\,$^) $@
 
-$(D_BIN)/mt7r19.dll:		$(MT7R19)
-		@echo importing $(MT7R19)
+$(D_BIN)/$(MT7RNAME).dll:	$(LIBMT7RPATH)
+		@echo importing $(LIBMT7RPATH)
 		@$(CP) -f $^ $@
+
+$(D_BIN)/$(PLBRNAME).dll:	$(LIBPLBRPATH)
+		@echo importing $(LIBPLBRPATH)
+		@$(CP) -f $(subst /,\,$^) $@
 
 install:		all
 		-mkdir -p $(BINDIR)

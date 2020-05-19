@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(termemu_tsm_c,"$Id: termemu_tsm.c,v 1.11 2020/05/15 00:21:52 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
@@ -108,22 +111,24 @@ termemu_exit(void)
 	tsm_vte_unref(term->vte);
 	tsm_screen_unref(term->screen);
 	vio_restore();				// TODO: optional and/or export screen buffer.
-	free(term);
+        free(term);
+	term = NULL;
 }
 
 
 int
 termemu_size(int *rows, int *cols)
 {
-	int t_rows, t_cols;
+	int t_rows = -1, t_cols = -1;
 	if (term) {
 		t_rows = term->rows;
 		t_cols = term->cols;
 	} else {
-		CONSOLE_SCREEN_BUFFER_INFO scr;
-		GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scr);
-		t_rows = (scr.srWindow.Bottom - scr.srWindow.Top) + 1;
-		t_cols = (scr.srWindow.Right - scr.srWindow.Left) + 1;
+                CONSOLE_SCREEN_BUFFER_INFO scr = {0};
+		if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scr)) {
+		        t_rows = (scr.srWindow.Bottom - scr.srWindow.Top) + 1;
+		        t_cols = (scr.srWindow.Right - scr.srWindow.Left) + 1;
+		}
 	}
 	if (rows) *rows = t_rows;
 	if (cols) *cols = t_cols;
@@ -330,7 +335,7 @@ mouseevt(const DWORD dwEventFlags, const DWORD dwButtonState)
 static int
 xkb_key_get(int block, void (*sigwinch)(void))
 {
-	HANDLE console = GetStdHandle(STD_INPUT_HANDLE);
+	HANDLE console = GetStdHandle(STD_INPUT_HANDLE); //XXX: cache
 	INPUT_RECORD k = {0};
 	DWORD count;
 

@@ -1,3 +1,12 @@
+Tue May 19 21:12:16 2020 adamy
+
+	* rlogind - beta ConPTY based service.
+
+		WARNING: Limited login validation, pty's shall be created under the service identity.
+		  Hence if running under the default Service account, shall have system rights.
+
+	* rlogin - ctrl-break extension; WinRlogind only.
+
 Thu Apr 30 23:08:57 2020 adamy
 
 	* BUILD 56; release

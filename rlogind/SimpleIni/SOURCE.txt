@@ -1,0 +1,10 @@
+
+Source: https://github.com/brofield/simpleini
+Author: Brodie Thiesfield <code@jellycan.com>
+Site:   http://code.jellycan.com/simpleini/
+
+Cross-platform C++ library providing a simple API to read and write INI-style configuration files 
+
+Note: Minor tweaks allowing WATCOMC usage, see ifdef's.
+
+2019/02/01

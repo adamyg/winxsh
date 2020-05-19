@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(compat_inet_pton_c,"$Id: compat_inet_pton.c,v 1.4 2020/05/15 00:21:25 cvsuser Exp $")
+
 /*
  *  inet_pton --- compat interface
  */
@@ -114,4 +117,3 @@ void __native_inet_pton_available(void)
 }
 
 #endif
-

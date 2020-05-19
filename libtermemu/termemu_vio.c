@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.13 2020/05/15 00:21:10 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver

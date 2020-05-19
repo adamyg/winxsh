@@ -1,3 +1,6 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.9 2020/05/09 15:08:06 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver

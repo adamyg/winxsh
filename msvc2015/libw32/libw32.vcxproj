@@ -115,6 +115,7 @@
     <ClCompile Include="..\..\libw32\w32_strlcat.c" />
     <ClCompile Include="..\..\libw32\w32_strlcpy.c" />
     <ClCompile Include="..\..\libw32\w32_time.c" />
+    <ClCompile Include="..\..\libw32\w32_timegm.c" />
     <ClCompile Include="..\..\libw32\w32_user.c" />
     <ClCompile Include="..\..\libw32\w32_util.c" />
     <ClCompile Include="..\..\libw32\w32_write.c" />
@@ -127,10 +128,13 @@
     <ClInclude Include="..\..\libw32\getopt.h" />
     <ClInclude Include="..\..\libw32\libw32.h" />
     <ClInclude Include="..\..\libw32\libw32_version.h" />
+    <ClInclude Include="..\..\libw32\msvcversions.h" />
     <ClInclude Include="..\..\libw32\msvc\inttypes.h" />
     <ClInclude Include="..\..\libw32\msvc\stdbool.h" />
     <ClInclude Include="..\..\libw32\msvc\stdint.h" />
     <ClInclude Include="..\..\libw32\msvc\utime.h" />
+    <ClInclude Include="..\..\libw32\msvc_errno.h" />
+    <ClInclude Include="..\..\libw32\msvc_system_error.hpp" />
     <ClInclude Include="..\..\libw32\netdb.h" />
     <ClInclude Include="..\..\libw32\package.h" />
     <ClInclude Include="..\..\libw32\poll.h" />
@@ -141,6 +145,7 @@
     <ClInclude Include="..\..\libw32\sys\pack1.h" />
     <ClInclude Include="..\..\libw32\sys\param.h" />
     <ClInclude Include="..\..\libw32\sys\poll.h" />
+    <ClInclude Include="..\..\libw32\sys\queue.h" />
     <ClInclude Include="..\..\libw32\sys\select.h" />
     <ClInclude Include="..\..\libw32\sys\socket.h" />
     <ClInclude Include="..\..\libw32\sys\time.h" />
