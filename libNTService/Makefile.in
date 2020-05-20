@@ -1,6 +1,6 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2020/05/20 21:14:40 cvsuser Exp $
-# rlogind Makefile
+# $Id: Makefile.in,v 1.1 2020/05/20 22:01:24 cvsuser Exp $
+# libNTService makefile.
 #
 #
 # Copyright (c) 2020, Adam Young.
@@ -32,10 +32,10 @@ top_builddir=	@top_builddir@
 
 # File extensions
 
-C=		.c
-E=
 O=		.o
 H=		.h
+A=		.a
+LP=		lib
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
@@ -44,11 +44,14 @@ XCLEAN=
 
 CC=		@CC@
 CXX=		@CXX@
+AR=		@AR@
+RANLIB=		@RANLIB@
 RM=		@RM@
 RC=		@RC@
 
 # Common flags
 
+ARFLAGS=	rcv
 XFLAGS=
 COPT=		@CFLAGS@
 CXXOPT=		@CXXFLAGS@
@@ -58,11 +61,11 @@ endif
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
 LDEBUG=		@LDEBUG@
-CINCLUDE=	-I$(D_INC) @CINCLUDE@ -DWIN32_SOCKET_MAP_NATIVE
-CEXTRA=		@DEFS@
-CPPFEXTRA	@DEFS@
+CINCLUDE=	-I$(D_INC) @CINCLUDE@ -I.
+CEXTRA=		@DEFS@ -D_WIN32_WINNT=0x601
 CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 CXXFLAGS=	$(CDEBUG) $(CXXOPT) $(CWARN) $(CINCLUDE) $(CXXEXTRA) $(XFLAGS)
+YFLAGS=		-d
 LDFLAGS=	$(LDEBUG) @LDFLAGS@
 LXFLAGS=	$(LDLIBS)
 
@@ -72,64 +75,53 @@ RMFLAGS=	-f
 
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/rlogind
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/libtermemu
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
 
 ############################################################
 
-TARGET=		rlogind$(E)
-
-VPATH=		../librcmd ../libNTService
+LIBROOT=	NTService
 
 CPPSOURCES=\
-	rlogind.cpp\
-	Service.cpp\
 	NTService.cpp\
 	NTServiceConfig.cpp\
-	NTServiceControl.cpp\
-	Session.cpp\
-	ConPty.cpp\
-	W32Poll.cpp\
-	Logger.cpp
-
-CSOURCES=\
-	rcmd.c\
-	syslog.c\
-	vis.c
+	NTServiceControl.cpp
 
 RESOURCES=\
-	Service.rc\
 	NTServMsg.rc
 
-OBJS+=		$(addprefix $(D_OBJ)/,$(subst .cpp,$(O),$(CPPSOURCES)))
-OBJS+=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
-OBJS+=		$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
+VPATH=		.
+LIBOBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES))) \
+	$(addprefix $(D_OBJ)/,$(subst .cpp,$(O),$(CPPSOURCES))) \
+	$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
 
-LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static -llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
+LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
 
-all:		$(D_BIN)/$(TARGET)
+############################################################
 
-$(RESOURCES):		../include/buildinfo.h
+all:			$(LIBRARY) $(TSKS)
 
-$(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
-$(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS) $(RESOURCES)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LXFLAGS) @LDMAPFILE@
+$(LIBRARY):		$(D_OBJ)/.created $(LIBOBJS)
+		$(RM) $(RMFLAGS) $@
+		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
+		$(RANLIB) $@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)
-		@echo "do not delete" > $@
+		@echo "do not create" > $@
 
 clean:
-		-@$(RM) $(RMFLAGS) $(BAK) $(D_BIN)/$(TARGET) $(TARGET) $(OBJS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(BAK) $(LIBRARY) $(LIBOBJS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 
-$(D_OBJ)/%$(O):		%$(C)
+$(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
 		
 $(D_OBJ)/%$(O):		%.cpp
 		$(CXX) $(CXXFLAGS) -o $@ -c $<
-		
-$(D_OBJ)/%.res: 	%.rc
-		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
-	
+
+$(D_OBJ)/%.res:		%.rc
+		$(RC) -nologo -Fo$@ -I. -I../include $<
+
 #end
+
