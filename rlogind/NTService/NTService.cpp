@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.7 2020/05/19 20:08:34 cvsuser Exp $")
+__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.8 2020/05/20 20:19:10 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -58,9 +58,9 @@ extern "C" _WCRTLINK extern int asctime_s(char *__s, size_t __maxsize, const str
 #else
 #pragma warning(disable:4091) // typedef ': ignored on left of '' when no variable is declared)
 #include <dbghelp.h>
+#include <comdef.h>
 #endif
 #include <psapi.h>
-#include <comdef.h>
 
 #include <string>
 
@@ -1603,33 +1603,29 @@ bool CNTService::ShowUser()
                 return false;
         }
 
-        if (! ::GetTokenInformation(hToken, TokenUser, NULL, 0, &dwLength)) {
-                if (ERROR_INSUFFICIENT_BUFFER != GetLastError() ||
-                            NULL == (ptu = (PTOKEN_USER)
-                                HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwLength))) {
-                        goto error;
-                }
+        if (! ::GetTokenInformation(hToken, TokenUser, NULL, 0, &dwLength) &&
+                        ERROR_INSUFFICIENT_BUFFER == GetLastError()) {
+                if (NULL != (ptu = (PTOKEN_USER)
+                                HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, dwLength)) &&
+                            ::GetTokenInformation(hToken, TokenUser, ptu, dwLength, &dwLength)) {
 
-                if (! ::GetTokenInformation(hToken, TokenUser, ptu, dwLength, &dwLength)) {
-                        goto error;
+                        char lpName[256] = {0}, lpDomain[256] = {0};
+                        DWORD dwSize = sizeof(lpName);
+                        SID_NAME_USE SidType;
+
+                        if (::LookupAccountSid(NULL, ptu->User.Sid, lpName, &dwSize, lpDomain, &dwSize, &SidType)) {
+                                ServiceTrace("Process: %u, running as <%s\\%s>",
+                                    (unsigned) GetProcessId(hProcess), lpDomain, lpName);
+                                ret = true;
+                        }
                 }
         }
 
-        char  lpName[256] = {0}, lpDomain[256] = {0};
-        DWORD dwSize = sizeof(lpName);
-        SID_NAME_USE SidType;
-
-        if (::LookupAccountSid(NULL, ptu->User.Sid, lpName, &dwSize, lpDomain, &dwSize, &SidType)) {
-                ServiceTrace("Process: %u, running as <%s\\%s>",
-                    (unsigned) GetProcessId(hProcess), lpDomain, lpName);
-                ret = true;
-        }
-
-    error:;
-        if (!ret) {
+        if (! ret) {
                 ServiceTrace("Process: %u, running as <Unknown> : %s",
                     (unsigned) GetProcessId(hProcess), StrError());
         }
+
         if (ptu != NULL) {
                 ::HeapFree(GetProcessHeap(), 0, (LPVOID)ptu);
         }
