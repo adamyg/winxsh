@@ -50,7 +50,9 @@ __CPRAGMA_ONCE
 #endif //EADDRINUSE != 10048
 #endif //__MAKEDEPEND__
 
-#if defined(_MSC_VER) || defined(__MAKEDEPEND__)
+	/* Check for (MSVC && !WATCOMC), at times we masquerade WC as MSVC */
+#if (defined(_MSC_VER) && !defined(__WATCOMC__)) || \
+	defined(__MAKEDEPEND__)
 #include "msvc_errno.h"
 #endif //EADDRINUSE
 
@@ -65,7 +67,7 @@ __CPRAGMA_ONCE
 #include <errno.h>
 
 #if defined(EWOULDBLOCK)                        /* _CRT_NO_POSIX_ERROR_CODES not available */
-#if (_MSC_VER == 1600)
+#if (_MSC_VER == 1600) && !defined(__WATCOMC__)
 #include "msvc_errno.h"
 #endif
 #endif
@@ -96,7 +98,7 @@ __CPRAGMA_ONCE
 #define EOWNERDEAD      133                     /* Owner dead. */
 #define ETIME           137                     /* Stream ioctl timeout. */
 #define EPROTO          134
-#if defined(_MSC_VER)
+#if (defined(_MSC_VER) && !defined(__WATCOMC__))
 #define ETXTBSY         139                     /* Text file busy; OWC=33. */
 #endif
 

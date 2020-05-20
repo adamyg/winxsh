@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
 /* 
  * win32 unix types
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -137,7 +137,9 @@ typedef int pid_t;                              /* process identifier */
 
 typedef long suseconds_t;                       /* sys/types.h */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && \
+	!defined(__WATCOMC__)
+		/* check for !WATCOMC, at times we masquerade WC as MSVC */
 #if !defined(uid_t) && !defined(gid_t)
 typedef int uid_t;
 typedef int gid_t;

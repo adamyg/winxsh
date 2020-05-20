@@ -1,0 +1,303 @@
+# -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
+# $Id: Makefile.in,v 1.1 2020/05/20 22:13:10 cvsuser Exp $
+# libssh makefile.
+#
+#
+# Copyright (c) 2020, Adam Young.
+# All rights reserved.
+#
+# This file is part of the WinRSH/WinSSH project.
+#
+# The WinRSH/WinSSH project is free software: you can redistribute it
+# and/or modify it under the terms of the WinRSH/WinSSH project License.
+#
+# Redistributions of source code must retain the above copyright
+# notice, and must be distributed with the license document above.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, and must include the license document above in
+# the documentation and/or other materials provided with the
+# distribution.
+#
+# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# License for more details.
+# ==end==
+#
+
+@SET_MAKE@
+ROOT=		@abs_top_builddir@
+top_builddir=	@top_builddir@
+
+# File extensions
+
+E=
+O=		.o
+H=		.h
+A=		.a
+LP=		lib
+
+CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
+XCLEAN=
+
+# Compilers, programs
+
+CC=		@CC@
+AR=		@AR@
+RANLIB=		@RANLIB@
+RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
+RC=		@RC@
+
+# Common flags
+
+ARFLAGS=	rcv
+XFLAGS=
+COPT=		@CFLAGS@
+CXXOPT=		@CXXFLAGS@
+ifeq "" "$(CXXOPT)"
+CXXOPT=		$(COPT)
+endif
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+LDEBUG=		@LDEBUG@
+CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@
+CEXTRA=		@DEFS@
+CFLAGS=		$(CPPFLAGS) $(CDEBUG) $(COPT) $(CWARN) $(CEXTRA) $(CINCLUDE) $(XFLAGS)
+CXXFLAGS=	$(CPPFLAGS) $(CDEBUG) $(CXXOPT) $(CWARN) $(CEXTRA) $(CINCLUDE) $(XFLAGS)
+YFLAGS=		-d
+LDFLAGS=	$(LDEBUG) @LDFLAGS@
+LDLIBS=		-L$(D_LIB) @LIBS@ @LIBM@ @EXTRALIBS@
+
+RMFLAGS=	-f
+
+# Directories
+
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
+D_INC=		$(ROOT)/include
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/libssh
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+
+############################################################
+
+# Targets
+
+SSHLIB=		$(D_LIB)/$(LP)ssh_static$(A)
+SSHDLL=		$(D_LIB)/$(LP)ssh.la
+
+VERSION=	0.9.4
+##VERSIONSPEC=	$(subst .,:,$(VERSION))
+VERSIONSPEC=	4:8:5
+	# Source:  0.9.4
+	# Library: 4.8.5
+
+VERPACKED=	libssh-$(VERSION).gr.tgz
+
+SSHBASE=	./libssh-$(VERSION)
+SSHSRC=		$(SSHBASE)/src
+SSHINCLUDE=	$(SSHBASE)/include
+
+CINCLUDE+=	-I$(subst /,\,$(SSHINCLUDE))
+CEXTRA+=	-D_WIN32_WINNT=0x601
+
+LDLIBS+=	libmbedcrypto_static.lib
+LDLIBS+=	libz_static.lib
+
+VPATH+=		$(SSHSRC) $(SSHBASE)/win32
+
+#############################################################################
+
+# Source: libssh-0.9.4/src/CMakeLists.txt
+
+CSOURCES=\
+	agent.c\
+	auth.c\
+	base64.c\
+	bignum.c\
+	buffer.c\
+	callbacks.c\
+	channels.c\
+	client.c\
+	config.c\
+	connect.c\
+	connector.c\
+	curve25519.c\
+	dh.c\
+	ecdh.c\
+	error.c\
+	getpass.c\
+	init.c\
+	kdf.c\
+	kex.c\
+	known_hosts.c\
+	knownhosts.c\
+	legacy.c\
+	log.c\
+	match.c\
+	messages.c\
+	misc.c\
+	options.c\
+	packet.c\
+	packet_cb.c\
+	packet_crypt.c\
+	pcap.c\
+	pki.c\
+	pki_container_openssh.c\
+	poll.c\
+	session.c\
+	scp.c\
+	socket.c\
+	string.c\
+	threads.c\
+	wrapper.c\
+	external/bcrypt_pbkdf.c\
+	external/blowfish.c\
+	external/chacha.c\
+	external/poly1305.c\
+	chachapoly.c\
+	config_parser.c\
+	token.c\
+	pki_ed25519_common.c
+
+#(DEFAULT_C_NO_DEPRECATION_FLAGS)
+CSOURCES+=\
+	known_hosts.c
+
+#CMAKE_USE_WIN32_THREADS_INIT
+CSOURCES+=\
+	threads/noop.c\
+	threads/winlocks.c\
+
+#WITH_MBEDTLS
+CSOURCES+=\
+	threads/mbedtls.c\
+	libmbedcrypto.c\
+	mbedcrypto_missing.c\
+	pki_mbedcrypto.c\
+	ecdh_mbedcrypto.c\
+	dh_key.c\
+	pki_ed25519.c\
+	external/ed25519.c\
+	external/fe25519.c\
+	external/ge25519.c\
+	external/sc25519.c
+
+#WITH_SFTP
+CSOURCES+=\
+	sftp.c
+
+#WITH_SERVER
+CSOURCES+=\
+	sftpserver.c\
+	server.c\
+	bind.c\
+	bind_config.c
+
+#WITH_GEX
+CSOURCES+=\
+	dh-gex.c
+
+#WITH_ZLIB
+CSOURCES+=\
+	gzip.c
+
+#WITH_GSSAPI AND GSSAPI_FOUND
+#CSOURCES+=\
+#	gssapi.c
+
+#!WITH_NACL && !HAVE_OPENSSL_ED2551
+CSOURCES+=\
+	external/curve25519_ref.c
+
+CSOURCES+=\
+	compat_strnlen.c
+
+#############################################################################
+
+LIBOBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+
+DLLOBJS=\
+	$(subst $(O),.lo,$(LIBOBJS))
+ifeq ("mingw32","@build_os@")
+DLLOBJS+=	$(D_OBJ)/libssh_res.o
+else ifeq ("win32","@build_os@")
+DLLOBJS+=	$(D_OBJ)/libssh.res
+endif
+
+LIBS=		$(SSHLIB)
+DLLS=		$(SSHDLL)
+TSKS=
+
+# Rules
+
+##all:			source unpacked
+all:			unpacked
+unpacked:		object $(LIBS) $(DLLS) $(TSKS) installheaders
+
+ifdef SSHDEBUG 		# enable LIBSSH run-time diagnostics
+CEXTRA		+= -DLIBSSHDEBUG
+endif
+CEXTRA		+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
+
+$(SSHLIB):		CEXTRA += -DLIBSSH_STATIC
+$(SSHLIB):		$(LIBOBJS)
+		$(RM) $(RMFLAGS) $@ >/dev/null 2>&1
+		$(AR) $(ARFLAGS) $@ $^
+		$(RANLIB) $@
+
+$(SSHDLL):		CEXTRA += -DLIBSSH_EXPORTS -D_WINDLL
+##$(SSHDLL):		LIBDEF=-export-symbols libssh.def
+$(SSHDLL):		$(DLLOBJS)
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
+			-rpath $(D_LIB) -bindir $(D_BIN) $(LIBDEF) -o $@ $^ $(LDLIBS)
+
+source:			.unpacked.$(VERSION)
+		$(MAKE) unpacked
+
+.unpacked.$(VERSION):	$(VERPACKED)
+		@echo "do not delete, managed file" > $@
+		@echo "unpacking source $VERPACKED"
+		@gzip -c -d $(VERPACKED) | tar -xvf -
+
+.PHONY:		object
+object:			$(D_OBJ)/.created $(D_OBJ)/external/.created $(D_OBJ)/threads/.created
+
+.PHONY:		installheaders
+installheaders:		Makefile \
+			../include/.created \
+			../include/libssh/.created
+		@echo publishing libssh headers ...
+		-cp $(SSHINCLUDE)/libssh/callbacks.h   ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/libssh.h      ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/ssh2.h        ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/legacy.h      ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/libsshpp.hpp  ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/sftp.h        ../include/libssh
+		-cp $(SSHINCLUDE)/libssh/server.h      ../include/libssh
+
+%/.created:
+		-@mkdir $(@D)
+		@echo "do not delete, managed directory" > $@
+
+clean:
+		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(LIBOBJS) >/dev/null 2>&1
+		-@$(RM) ../include/libssh/*.h* >/dev/null 2>&1
+
+$(D_OBJ)/%$(O):		%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%.lo:		%.c
+		$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%.res:		%.rc
+		$(RC) -fo $@ $<
+
+$(D_OBJ)/%_res.o:	%.rc
+		$(RC) -o $@ $<
+
+#end

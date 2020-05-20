@@ -1,0 +1,6 @@
+libssh-0.9.4/
+ref/
+.unpacked.*
+Makefile
+*.err
+
