@@ -94,13 +94,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libNTService\NTService.cpp" />
+    <ClCompile Include="..\..\libNTService\NTServiceConfig.cpp" />
+    <ClCompile Include="..\..\libNTService\NTServiceControl.cpp" />
     <ClCompile Include="..\..\librcmd\rcmd.c" />
     <ClCompile Include="..\..\rlogind\ConPty.cpp" />
     <ClCompile Include="..\..\rlogind\heapcheck.c" />
     <ClCompile Include="..\..\rlogind\Logger.cpp" />
-    <ClCompile Include="..\..\rlogind\NTService\NTService.cpp" />
-    <ClCompile Include="..\..\rlogind\NTService\NTServiceConfig.cpp" />
-    <ClCompile Include="..\..\rlogind\NTService\NTServiceControl.cpp" />
     <ClCompile Include="..\..\rlogind\rlogind.cpp" />
     <ClCompile Include="..\..\rlogind\Service.cpp" />
     <ClCompile Include="..\..\rlogind\Session.cpp" />
@@ -121,18 +121,18 @@
     <ClInclude Include="..\..\include\libssh2_Sftp.h" />
     <ClInclude Include="..\..\include\zconf.h" />
     <ClInclude Include="..\..\include\zlib.h" />
+    <ClInclude Include="..\..\libNTService\NTService.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceConfig.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceControl.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceGetopt.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceIO.h" />
+    <ClInclude Include="..\..\libNTService\NTServMsg.h" />
     <ClInclude Include="..\..\rlogind\config.h" />
     <ClInclude Include="..\..\rlogind\ConPty.h" />
     <ClInclude Include="..\..\rlogind\heapcheck.h" />
     <ClInclude Include="..\..\rlogind\Logger.h" />
     <ClInclude Include="..\..\rlogind\SyslogDiagnosticsIO.h" />
     <ClInclude Include="..\..\rlogind\LoggerSyslog.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTService.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceGetopt.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceIO.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTServMsg.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceConfig.h" />
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceControl.h" />
     <ClInclude Include="..\..\rlogind\rlogind.h" />
     <ClInclude Include="..\..\rlogind\Service.h" />
     <ClInclude Include="..\..\rlogind\Session.h" />
@@ -144,13 +144,10 @@
     <ClInclude Include="..\..\rlogind\winsize.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\rlogind\NTService\NTServMsg.mc">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\rlogind\rlogind.ini" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\rlogind\NTService\NTServMsg.rc" />
+    <ResourceCompile Include="..\..\libNTService\NTServMsg.rc" />
     <ResourceCompile Include="..\..\rlogind\Service.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../..;../../rlogind/NTService</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../include;../../rlogind/NTService</AdditionalIncludeDirectories>

@@ -24,12 +24,12 @@
 
       c. Run the `makelib.pl' perl script by typing:
 
-         o MSVC
+         o MSVC, 2015+ or greater
 
-            perl makelib.pl [--gnuwin32=<path-gnuwin32-bin>] vc[2008|2010|2015|2019]
+            perl makelib.pl [--gnuwin32=<path-gnuwin32-bin>] vc[2015|2017|2019]
 
 
-         o OpenWatcom 1.9 or 2.0 (beta at your caution)
+         o OpenWatcom 1.9 or 2.0 (beta at your caution).
 
             perl makelib.pl owc
 
@@ -40,6 +40,6 @@
 
                                  -------
 
-$Id: INSTALL.txt,v 1.1 2020/04/30 21:30:14 cvsuser Exp $
+$Id: INSTALL.txt,v 1.2 2020/05/20 20:07:05 cvsuser Exp $
 
 

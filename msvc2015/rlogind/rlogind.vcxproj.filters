@@ -51,20 +51,20 @@
     <ClCompile Include="..\..\rlogind\Service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\rlogind\NTService\NTService.cpp">
-      <Filter>Source Files\NTService</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rlogind\NTService\NTServiceConfig.cpp">
-      <Filter>Source Files\NTService</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rlogind\NTService\NTServiceControl.cpp">
-      <Filter>Source Files\NTService</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\rlogind\rlogind.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\rlogind\Logger.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libNTService\NTService.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libNTService\NTServiceConfig.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libNTService\NTServiceControl.cpp">
+      <Filter>Source Files\NTService</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,18 +101,6 @@
     <ClInclude Include="..\..\rlogind\Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTService.h">
-      <Filter>Header Files\NTService</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTServMsg.h">
-      <Filter>Header Files\NTService</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceConfig.h">
-      <Filter>Header Files\NTService</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceControl.h">
-      <Filter>Header Files\NTService</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\buildinfo.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
@@ -131,14 +119,8 @@
     <ClInclude Include="..\..\include\zlib.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceIO.h">
-      <Filter>Header Files\NTService</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\rlogind\SimpleIni\SimpleIni.h">
       <Filter>Header Files\SimpleIni</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rlogind\NTService\NTServiceGetopt.h">
-      <Filter>Header Files\NTService</Filter>
     </ClInclude>
     <ClInclude Include="..\..\rlogind\Logger.h">
       <Filter>Header Files</Filter>
@@ -149,11 +131,26 @@
     <ClInclude Include="..\..\rlogind\SyslogDiagnosticsIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTService.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceConfig.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceControl.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceGetopt.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceIO.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServMsg.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\rlogind\NTService\NTServMsg.mc">
-      <Filter>Source Files\NTService</Filter>
-    </None>
     <None Include="..\..\rlogind\rlogind.ini">
       <Filter>Resource Files</Filter>
     </None>
@@ -162,7 +159,7 @@
     <ResourceCompile Include="..\..\rlogind\Service.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ResourceCompile Include="..\..\rlogind\NTService\NTServMsg.rc">
+    <ResourceCompile Include="..\..\libNTService\NTServMsg.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.13 2020/05/19 20:11:32 cvsuser Exp $")
+__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.14 2020/05/20 21:14:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -418,6 +418,8 @@ Session::doit(struct sockaddr_storage *fromp)
         //LogonUserA()
         //      attach_shell_as()
         //              CreateProcessAsUser()
+        //              or CreateProcessWithLogon()
+        //                      WaitForInputIdle() [optional]
         //
 
         pty_->attach_shell();           /* standard shell; without login XXX/FIXME */

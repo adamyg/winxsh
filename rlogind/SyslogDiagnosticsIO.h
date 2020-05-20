@@ -28,7 +28,7 @@
  * ==end==
  */
 
-#include "NTService/NTServiceIO.h"              // NTService::IDiagnostics
+#include "../libNTService/NTServiceIO.h"        // NTService::IDiagnostics
 
 #include "syslog.h"
 

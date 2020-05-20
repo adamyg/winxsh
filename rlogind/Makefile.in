@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.6 2020/05/19 20:09:26 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2020/05/20 21:14:40 cvsuser Exp $
 # rlogind Makefile
 #
 #
@@ -81,7 +81,7 @@ XFLAGS=
 
 TARGET=		rlogind$(E)
 
-VPATH=		../librcmd ./NTService
+VPATH=		../librcmd ../libNTService
 
 CPPSOURCES=\
 	rlogind.cpp\
@@ -131,6 +131,6 @@ $(D_OBJ)/%$(O):		%.cpp
 		$(CXX) $(CXXFLAGS) -o $@ -c $<
 		
 $(D_OBJ)/%.res: 	%.rc
-		$(RC) -nologo -Fo$@ -I../include -I./NTService $<
+		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
 	
 #end

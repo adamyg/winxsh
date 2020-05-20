@@ -30,7 +30,7 @@
 #if defined(_MSC_VER)
 #include <msvc_system_error.hpp>
 #endif
-#include "NTService/NTService.h"
+#include "../libNTService/NTService.h"
 #include "SimpleIni/SimpleIni.h"
 
 #include "Logger.h"

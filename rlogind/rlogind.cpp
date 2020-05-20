@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.12 2020/05/19 20:09:58 cvsuser Exp $")
+__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.14 2020/05/20 21:14:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -87,8 +87,8 @@ __CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.12 2020/05/19 20:09:58 cvsuser E
 
 #include "rlogind.h"                            // public interface
 
-#include "NTService/NTServiceConfig.h"          // CNTServiceConfig 
-#include "NTService/NTServiceControl.h"         // CNTServiceControl
+#include "../libNTService/NTServiceConfig.h"    // CNTServiceConfig
+#include "../libNTService/NTServiceControl.h"   // CNTServiceControl
 
 static bool             isconsole();
 static int              console_width();
@@ -274,7 +274,7 @@ main(int argc, char *argv[])
         // Service entry
 
         if (verb) {
-                service.LogMessage("unexpected command line argument");
+                service.LogMessage("unexpected command line argument <%s>", verb);
         }
 
         service.Start(options);
