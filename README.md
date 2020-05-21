@@ -34,7 +34,7 @@ Plus a native Win32 'rlogind' service.
 
 ### Distributions
 
-Latest builds can be found at the links:
+Latest builds:
 
    * https://sourceforge.net/projects/winssh
 
