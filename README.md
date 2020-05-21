@@ -21,9 +21,9 @@ Plus a native Win32 'rlogind' service.
        Note: Limited login validation occurs, pty's shall be created under the service identity.
        Hence if running under the default Service account, shall have system rights.
 
-       See for an series of articles detailng recent developments
+       See for [Introducing the windows pseudo console ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty) 
+       series of articles detailing recent developments.
 
-https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/
 
 ### Project Samples
 
@@ -36,13 +36,13 @@ https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-
 
 Latest builds can be found at the links:
 
-   https://sourceforge.net/projects/winssh
+   * https://sourceforge.net/projects/winssh
 
-   https://sourceforge.net/projects/winrsh
+   * https://sourceforge.net/projects/winrsh
 
 Source:
 
-   https://github.com/adamyg/winxsh
+   * https://github.com/adamyg/winxsh
 
 Last Updated: 21/05/2020
 
