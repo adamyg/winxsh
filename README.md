@@ -6,14 +6,14 @@
 
 Lean Win32 native console clients with a built-in VT220/xterm-color256 terminal emulator.
 
-   o slogin is a Windows console based SSH2 client, using LIBSSH2.
+   * slogin is a Windows console based SSH2 client, using LIBSSH2.
 
-   o rlogin is a RSH/RLOGIN client.
+   * rlogin is a RSH/RLOGIN client.
 
 
 Plus a native Win32 'rlogind' service.
 
-   o rlogind is a RSH/RLOGIN service utilising ConPTY's
+   * rlogind is a RSH/RLOGIN service utilising ConPTY's
 
        This service is an investigation into the recently released Window's 10 Pseudo Console (ConPTY)
        infrustructure and API, in addition to enhanced console UTF-8 and VT functionality.
@@ -25,7 +25,11 @@ Plus a native Win32 'rlogind' service.
 
 https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty/
 
-### Prerequisites
+### Project Samples
+
+[256 color](https://github.com/adamyg/winxsh/blob/master/docs/ssh_colors256.png?raw=true)
+
+[Midnight Commander](https://github.com/adamyg/winxsh/blob/master/docs/ssh_mc.png?raw=true)
 
 
 ### Distributions
@@ -40,7 +44,7 @@ Source:
 
    https://github.com/adamyg/winxsh
 
-Last Updated: 19/05/2020
+Last Updated: 21/05/2020
 
 -end-
 
