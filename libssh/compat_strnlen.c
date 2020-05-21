@@ -1,5 +1,8 @@
+#include <edidentifier.h>
+__CIDENT_RCSID(compat_strnlen_c,"$Id: compat_strnlen.c,v 1.2 2020/05/21 00:40:36 cvsuser Exp $")
+
 //
-//
+//  strnlen -- library compat
 //
 
 #include "config.h"
@@ -20,6 +23,15 @@ strnlen(const char *str, size_t maxlen)
 	return (size_t)(cp - str);
 }
 
-#endif	//__WATCOMC__
+
+#else
+extern void __stdlibrary_has_strnlen(void);
+
+void
+__stdlibrary_has_strnlen(void)
+{
+}
+
+#endif
 
 //end

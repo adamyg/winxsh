@@ -296,7 +296,9 @@ extern /*LIBW32_API*/ const char * gai_strerror(int ecode);
 /* #undef HAVE_GCC_VOLATILE_MEMORY_PROTECTION */
 
 /* #undef HAVE_COMPILER__FUNC__ */
-    //#define HAVE_COMPILER__FUNC__ 1
+#if defined(__WATCOMC__)
+#define HAVE_COMPILER__FUNC__ 1
+#endif
 #define HAVE_COMPILER__FUNCTION__ 1
 
 /* #undef HAVE_GCC_BOUNDED_ATTRIBUTE */
