@@ -27,9 +27,9 @@ https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-
 
 ### Project Samples
 
-[256 color](https://github.com/adamyg/winxsh/blob/master/docs/ssh_colors256.png?raw=true)
+![256 color](https://github.com/adamyg/winxsh/blob/master/docs/ssh_colors256.png?raw=true)
 
-[Midnight Commander](https://github.com/adamyg/winxsh/blob/master/docs/ssh_mc.png?raw=true)
+![Midnight Commander](https://github.com/adamyg/winxsh/blob/master/docs/ssh_mc.png?raw=true)
 
 
 ### Distributions
