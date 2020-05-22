@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.10 2020/05/11 21:48:35 cvsuser Exp $
+# $Id: makelib.pl,v 1.11 2020/05/20 20:06:47 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -188,6 +188,26 @@ my %x_environment   = (
             MFCCXXOPT       => '-Zc:wchar_t- -Zc:forScope -Gm',
             MFCCINCLUDE     => '-I$(MFCDIR)/inc/atl71 -I$(MFCDIR)/inc/mfc42',
             MFCLIBS         => '/LIBPATH:$(MFCDIR)\lib\atl\i386 /LIBPATH:$(MFCDIR)\lib\mfc\i386'
+            },
+
+       'vc1800'        => {    # 2013, Visual Studio 18
+            TOOLCHAIN       => 'vs120',
+            TOOLCHAINEXT    => '.vs120',
+            CC              => 'cl',
+            COMPILERPATH    => '%VCINSTALLDIR%/bin',
+            VSWITCH         => '',
+            VPATTERN        => undef,
+            OSWITCH         => '-Fo',
+            LSWITCH         => '',
+            XSWITCH         => '-Fe',
+            AR              => 'lib',
+            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
+            CFLAGS          => '-nologo -Zi -RTC1 -MDd -fp:precise',
+            CXXFLAGS        => '-nologo -Zi -RTC1 -MDd -EHsc -fp:precise',
+            CWARN           => '-W3',
+            CXXWARN         => '-W3',
+            LDEBUG          => '-nologo -Zi -RTC1 -MDd',
+            LDMAPFILE       => '-MAP:$(MAPFILE)',
             },
 
        'vc1900'        => {    # 2015, Visual Studio 19
@@ -900,6 +920,7 @@ main()
     elsif ('vc14' eq $cmd)      { $o_version = 1400; $cmd = 'vc'  } elsif ('vc2005' eq $cmd) { $o_version = 1400; $cmd = 'vc' }
     elsif ('vc15' eq $cmd)      { $o_version = 1400; $cmd = 'vc'  } elsif ('vc2008' eq $cmd) { $o_version = 1500; $cmd = 'vc' }
     elsif ('vc16' eq $cmd)      { $o_version = 1600; $cmd = 'vc'  } elsif ('vc2010' eq $cmd) { $o_version = 1600; $cmd = 'vc' }
+    elsif ('vc18' eq $cmd)      { $o_version = 1800; $cmd = 'vc'  } elsif ('vc2013' eq $cmd) { $o_version = 1800; $cmd = 'vc' }
     elsif ('vc19' eq $cmd)      { $o_version = 1900; $cmd = 'vc'  } elsif ('vc2015' eq $cmd) { $o_version = 1900; $cmd = 'vc' }
     elsif ('vc1910' eq $cmd)    { $o_version = 1910; $cmd = 'vc'  } elsif ('vc2017' eq $cmd) { $o_version = 1910; $cmd = 'vc' }
     elsif ('vc1920' eq $cmd)    { $o_version = 1920; $cmd = 'vc'  } elsif ('vc2019' eq $cmd) { $o_version = 1920; $cmd = 'vc' }
