@@ -37,11 +37,11 @@ __CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.3 2020/04/29 11:54:25 cvsu
 #include <stdlib.h>
 #include <string.h>
 
-int     opterr = 1,                             /* if error message should be printed */
+LIBW32_API int      opterr = 1,                 /* if error message should be printed */
         optind = 1,                             /* index into parent argv vector */
         optopt = '?',                           /* character checked for validity */
         optreset = 0;                           /* reset getopt */
-char *  optarg = NULL;                          /* argument associated with option */
+LIBW32_API char *   optarg = NULL;              /* argument associated with option */
 
 static const char *__progname = "";             /* derived progname */
 

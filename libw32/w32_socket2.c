@@ -446,5 +446,3 @@ w32_shutdown_native(int fd, int how)
 
 /*end*/
 
-
-

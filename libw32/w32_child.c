@@ -944,8 +944,9 @@ Getpath(const char *src, char *dst, unsigned maxlen)
      *  If we copied something and stopped because of a ';', skip ';'
      *  before returning
      */
-    while (*src == ';')
+    while (*src == ';') {
         ++src;
+    }
 
     /*
      *  Store a terminating null.

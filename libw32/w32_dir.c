@@ -277,10 +277,6 @@ w32_chdir(const char *path)
 }
 
 
-
-
-
-
 /*
 //  NAME
 //
@@ -426,25 +422,39 @@ w32_root_unc(const char *path)
     return 0;
 }
 
+
+/*
+ *  w32_shortcut_expand ---
+ *      expand embedded shortcuts.
+ */
 LIBW32_API BOOL
 w32_shortcut_expand(const char *name, char *buf, size_t buflen, unsigned flags)
 {
     const size_t length = strlen(name);
     char *t_name;
     BOOL ret = 0;
+
     if (length > 4 && NULL != (t_name = malloc(length + 1 /*nul*/))) {
         char *cursor, *end;
         int dots = 0;
+
         (void) memcpy(t_name, name, length + 1 /*nul*/);
+
         for (cursor = t_name + length, end = cursor; --cursor >= t_name;) {
             if ('.' == *cursor) {                   // extension
                 if (1 == ++dots) {                  // last/trailing
                     if (0 == WIN32_STRNICMP(cursor, ".lnk", 4) && (cursor + 4) == end) {
+                        //
+                        //  <shortcut>.lnk
+                        //      - attempt expansion, allowing one within any given path.
                         const size_t trailing = length - (end - t_name);
                         const char term = *end;
                         int t_ret;
+
                         assert((0 == trailing && 0 == term) || (trailing && ('/' == term || '\\' == term)));
+
                         if (flags & (term ? SHORTCUT_COMPONENT : SHORTCUT_TRAILING)) {
+
                             *end = 0;               // remove trailing component.
                             if ((t_ret = w32_readlink(t_name, buf, buflen)) > 0) {
                                 if (buflen > (t_ret + trailing)) {
@@ -458,6 +468,7 @@ w32_shortcut_expand(const char *name, char *buf, size_t buflen, unsigned flags)
                         break;  //done
                     }
                 }
+
             } else if ('/' == *cursor || '\\' == *cursor) {
                 end  = cursor;                      // new component.
                 dots = 0;
