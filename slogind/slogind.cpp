@@ -1,0 +1,7 @@
+// slogind placeholder
+
+void 
+main()
+{
+}
+
