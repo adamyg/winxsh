@@ -97,6 +97,7 @@
     <ClCompile Include="..\..\libNTService\NTService.cpp" />
     <ClCompile Include="..\..\libNTService\NTServiceConfig.cpp" />
     <ClCompile Include="..\..\libNTService\NTServiceControl.cpp" />
+    <ClCompile Include="..\..\libNTService\NTServiceReg.cpp" />
     <ClCompile Include="..\..\librcmd\rcmd.c" />
     <ClCompile Include="..\..\rlogind\ConPty.cpp" />
     <ClCompile Include="..\..\rlogind\heapcheck.c" />
@@ -126,6 +127,7 @@
     <ClInclude Include="..\..\libNTService\NTServiceControl.h" />
     <ClInclude Include="..\..\libNTService\NTServiceGetopt.h" />
     <ClInclude Include="..\..\libNTService\NTServiceIO.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceReg.h" />
     <ClInclude Include="..\..\libNTService\NTServMsg.h" />
     <ClInclude Include="..\..\rlogind\config.h" />
     <ClInclude Include="..\..\rlogind\ConPty.h" />

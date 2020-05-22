@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2020/05/20 21:14:40 cvsuser Exp $
+# $Id: Makefile.in,v 1.8 2020/05/22 02:21:05 cvsuser Exp $
 # rlogind Makefile
 #
 #
@@ -86,6 +86,7 @@ CPPSOURCES=\
 	rlogind.cpp\
 	Service.cpp\
 	NTService.cpp\
+	NTServiceReg.cpp\
 	NTServiceConfig.cpp\
 	NTServiceControl.cpp\
 	Session.cpp\

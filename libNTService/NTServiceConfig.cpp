@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.4 2020/05/18 21:30:40 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.6 2020/05/22 12:49:41 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -31,9 +31,11 @@ __CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.4 2020/05/18 2
 #include <tchar.h>
 #include <strsafe.h>
 
-#pragma	comment(lib, "advapi32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 #include "NTServiceConfig.h"                    // public header
+#include "NTServiceGetOpt.h"                    // argument parsing
+#include "NTServiceReg.h"                       // registry
 #include "NTService.h"                          // NTSERVICE_CMD_xxx
 
 
@@ -41,12 +43,19 @@ __CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.4 2020/05/18 2
 // Purpose:
 //  Service attribute control.
 //
-CNTServiceConfig::CNTServiceConfig(const char *svcname, NTService::IDiagnostics &diags) :
-        diags_(diags), svcName_(svcname) {
+CNTServiceConfig::CNTServiceConfig(const char *svcname, const char *coname, NTService::IDiagnostics &diags) :
+        diags_(diags), svcName_(svcname), coName_(coname ? coname : "") {
 }
 
 
 CNTServiceConfig::~CNTServiceConfig() {
+}
+
+
+NTService::IDiagnostics &
+CNTServiceConfig::diags() const
+{
+        return diags_;
 }
 
 
@@ -113,21 +122,28 @@ int CNTServiceConfig::ExecuteCommand(int argc, const char * const *argv, unsigne
                 Delete();
                 return 1;
 
-//TODO
-//      } else if (0 == (filter & 0x010) && 0 == _stricmp(cmd, "set")) {
-                // Set variable
+        } else if (0 == (filter & 0x100) && 0 == _stricmp(cmd, "list")) {
+                if (argc > 1) {
+                    return NTSERVICE_CMD_UNEXPECTED_ARG;
+                }
 
-//      } else if (0 == (filter & 0x010) && 0 == _stricmp(cmd, "clear")) {
+                CNTServiceReg registry(svcName_.c_str(), diags_, coName_.c_str());
+                if (registry.Open()) {
+                        registry.List();
+                }
+                return 1;
+
+//      } else if (0 == (filter & 0x100) && 0 == _stricmp(cmd, "export")) {
+                // Export configuration; to an ini.
+
+        } else if (0 == (filter & 0x200) && 0 == _stricmp(cmd, "set")) {
+                return SetAttribute(argc, argv);
+
+//      } else if (0 == (filter & 0x400) && 0 == _stricmp(cmd, "clear")) {
                 // Clear a variable
 
-//      } else if (0 == (filter & 0x010) && 0 == _stricmp(cmd, "list")) {
-                // List variables
-
-//      } else if (0 == (filter & 0x010) && 0 == _stricmp(cmd, "import")) {
+//      } else if (0 == (filter & 0x400) && 0 == _stricmp(cmd, "import")) {
                 // Import configuration; from an ini.
-
-//      } else if (0 == (filter & 0x010) && 0 == _stricmp(cmd, "export")) {
-                // Export configuration; to an ini.
 
         } else if (0 == (filter & 0x100) && 0 == _stricmp(cmd, "help")) {
                 if (argc > 1) {                 // Note: uninstall perferred
@@ -144,12 +160,73 @@ int CNTServiceConfig::ExecuteCommand(int argc, const char * const *argv, unsigne
                 if (0 == (filter & 0x008))
                         diags_.finfo("  updatedesc <desc>   - Updates the service description to 'desc'.");
                 if (0 == (filter & 0x010))
-                        diags_.finfo("  delete              - Deletes a service from the SCM database (uninstall advised).");
+                        diags_.finfo("  delete              - Deletes the service from the SCM database (uninstall advised).");
+                if (0 == (filter & 0x100))
+                        diags_.finfo("  list                - Displays a list of current configuration attributes.");
+//              if (0 == (filter & 0x100))
+//                      diags_.finfo("  export              - Export the current configuration.");
+                if (0 == (filter & 0x200))
+                        diags_.finfo("  set                 - Set a configuration attribute value.");
+                if (0 == (filter & 0x400))
+                        diags_.finfo("  clear               - Delete an existing configuration attribute.");
+//              if (0 == (filter & 0x400))
+//                      diags_.finfo("  import              - Import an attribute set.");
 
                 return NTSERVICE_CMD_HELP;
         }
 
         return NTSERVICE_CMD_UNKNOWN;
+}
+
+
+namespace {
+        const char *ServiceTypeDesc(DWORD st) {
+                switch (st) {
+                case SERVICE_FILE_SYSTEM_DRIVER:
+                        return "File system driver service";
+                case SERVICE_KERNEL_DRIVER:
+                        return "Driver service";
+                case SERVICE_WIN32_OWN_PROCESS:
+                        return "Service that runs in its own process";
+                case SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS:
+                        return "Service that runs in its own process, interactive";
+                case SERVICE_WIN32_SHARE_PROCESS:
+                        return "Service that shares a process with other services";
+                case SERVICE_WIN32_SHARE_PROCESS | SERVICE_INTERACTIVE_PROCESS:
+                        return "Service that shares a process with other services, interactive";
+                }
+                return "Unknown service type";
+        }
+
+        const char *StartTypeDesc(DWORD st) {
+                switch (st) {
+                case SERVICE_AUTO_START:
+                        return "A service started automatically by the service control manager during system startup";
+                case SERVICE_BOOT_START:
+                        return "A device driver started by the system loader. This value is valid only for driver services";
+                case SERVICE_DEMAND_START:
+                        return "A service started by the service control manager when a process calls the StartService function";
+                case SERVICE_DISABLED:
+                        return "A service that cannot be started. Attempts to start the service result in the error code ERROR_SERVICE_DISABLED";
+                case SERVICE_SYSTEM_START:
+                        return "A device driver started by the IoInitSystem function. This value is valid only for driver services";
+                }
+                return "Unknown start type";
+        }
+
+        const char *ErrorControlDesc(DWORD ec) {
+                switch (ec) {
+                case SERVICE_ERROR_CRITICAL:
+                        return "The startup program logs the error in the event log, if possible. If the last-known good configuration is being started, the startup operation fails. Otherwise, the system is restarted with the last-known good configuration";
+                case SERVICE_ERROR_IGNORE:
+                        return "The startup program ignores the error and continues the startup operation";
+                case SERVICE_ERROR_NORMAL:
+                        return "The startup program logs the error in the event log and continues the startup operation";
+                case SERVICE_ERROR_SEVERE:
+                        return "The startup program logs the error in the event log. If the last-known good configuration is being started, the startup operation continues. Otherwise, the system is restarted with the last-known-good configuration";
+                }
+                return "Unknown error control";
+        }
 }
 
 
@@ -206,7 +283,7 @@ void CNTServiceConfig::Query()
                 if( ERROR_INSUFFICIENT_BUFFER == dwError )
                 {
                         cbBufSize = dwBytesNeeded;
-                        lpsc = (LPQUERY_SERVICE_CONFIG) LocalAlloc(LMEM_FIXED, cbBufSize);
+                        lpsc = (LPQUERY_SERVICE_CONFIG) ::LocalAlloc(LMEM_FIXED, cbBufSize);
                 }
                 else
                 {
@@ -223,17 +300,17 @@ void CNTServiceConfig::Query()
 
         if( !::QueryServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, NULL,  0, &dwBytesNeeded))
         {
-            dwError = ::GetLastError();
-            if( ERROR_INSUFFICIENT_BUFFER == dwError )
-            {
-                    cbBufSize = dwBytesNeeded;
-                    lpsd = (LPSERVICE_DESCRIPTION) LocalAlloc(LMEM_FIXED, cbBufSize);
-            }
-            else
-            {
-                    diags_.ferror("QueryCNTServiceConfig2 failed (%d)", dwError);
-                    goto cleanup;
-            }
+                dwError = ::GetLastError();
+                if( ERROR_INSUFFICIENT_BUFFER == dwError )
+                {
+                        cbBufSize = dwBytesNeeded;
+                        lpsd = (LPSERVICE_DESCRIPTION) ::LocalAlloc(LMEM_FIXED, cbBufSize);
+                }
+                else
+                {
+                        diags_.ferror("QueryCNTServiceConfig2 failed (%d)", dwError);
+                        goto cleanup;
+                }
         }
 
         if (! ::QueryServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, (LPBYTE) lpsd, cbBufSize, &dwBytesNeeded) )
@@ -243,22 +320,24 @@ void CNTServiceConfig::Query()
         }
 
         // Print the configuration information.
-
-        diags_.finfo("%s configuration:", svcName_.c_str());
-        diags_.finfo("  Type: 0x%x", lpsc->dwServiceType);
-        diags_.finfo("  Start Type: 0x%x", lpsc->dwStartType);
-        diags_.finfo("  Error Control: 0x%x", lpsc->dwErrorControl);
-        diags_.finfo("  Binary path: %s", lpsc->lpBinaryPathName);
-        diags_.finfo("  Account: %s", lpsc->lpServiceStartName);
+                diags_.finfo("%s configuration:", svcName_.c_str());
+                diags_.finfo("  Type:          0x%x (%s)", lpsc->dwServiceType, ServiceTypeDesc(lpsc->dwServiceType));
+                diags_.finfo("  Start Type:    0x%x (%s)", lpsc->dwStartType, StartTypeDesc(lpsc->dwStartType));
+                diags_.finfo("  Error Control: 0x%x (%s)", lpsc->dwErrorControl, ErrorControlDesc(lpsc->dwErrorControl));
+                diags_.finfo("  Binary path:   %s", lpsc->lpBinaryPathName);
+                diags_.finfo("  Account:       %s", lpsc->lpServiceStartName);
 
         if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, "") != 0)
-                diags_.finfo("  Description: %s", lpsd->lpDescription);
+                diags_.finfo("  Description:   %s", lpsd->lpDescription);
+
         if (lpsc->lpLoadOrderGroup != NULL && lstrcmp(lpsc->lpLoadOrderGroup, "") != 0)
-                diags_.finfo("  Load order group: %s", lpsc->lpLoadOrderGroup);
+                diags_.finfo("  Load group:    %s", lpsc->lpLoadOrderGroup);
+
         if (lpsc->dwTagId != 0)
-                diags_.finfo("  Tag ID: %d", lpsc->dwTagId);
+                diags_.finfo("  Tag ID:        %d", lpsc->dwTagId);
+
         if (lpsc->lpDependencies != NULL && lstrcmp(lpsc->lpDependencies, "") != 0)
-                diags_.finfo("  Dependencies: %s", lpsc->lpDependencies);
+                diags_.finfo("  Dependencies:  %s", lpsc->lpDependencies);
 
         ::LocalFree(lpsc);
         ::LocalFree(lpsd);
@@ -488,7 +567,7 @@ void CNTServiceConfig::Delete()
 
         // Get a handle to the SCM database.
 
-        schSCManager = OpenSCManager(
+        schSCManager = ::OpenSCManager(
                 NULL,                           // local computer
                 NULL,                           // ServicesActive database
                 SC_MANAGER_ALL_ACCESS);         // full access rights
@@ -528,4 +607,101 @@ void CNTServiceConfig::Delete()
         ::CloseServiceHandle(schSCManager);
 }
 
+
+//
+// Purpose:
+//   Set a configuration attribute
+//
+// Parameters:
+//   None
+//
+// Return value:
+//   None
+//
+
+int CNTServiceConfig::SetAttribute(int argc, const char * const *argv)
+{
+        using namespace NTService;
+
+#define SETOPTIONS "SDH"
+
+        static struct Getopt::Option long_options[] = {
+                { "string",         Getopt::argument_none,      NULL, 'S' }, //-S,--string
+                { "dword",          Getopt::argument_none,      NULL, 'D' }, //-D,--dword
+                { "help",           Getopt::argument_none,      NULL, 'H' }, //-H,--help
+                { NULL }
+                };
+
+        Getopt options(diags(), SETOPTIONS, long_options, argv[0]);
+        DWORD dwType = REG_NONE;
+        int base = 0;
+
+        while (EOF != options.shift(argc, argv)) {
+                switch (options.optret()) {
+                case 'S':   //-S
+                        dwType = REG_SZ;
+                        break;
+                case 'D':   //-D
+                        dwType = REG_DWORD;
+                        break;
+                case 'H':   //-H,--help
+                        goto set_help;
+                default:
+                        return NTSERVICE_CMD_INVALID_ARGS;
+                }
+        }
+
+        argv += options.optind();
+        argc -= options.optind();
+
+        if (1 == argc && 0 == _stricmp("help", argv[0])) {
+    set_help:;
+                diags().finfo("  config set [arguments] <key> <value>.");
+                diags().finfo("      -S,--string                     String element");
+                diags().finfo("      -D,--dword                      DWORD element");
+                diags().finfo("      -H,--help                       Command line help");
+                return NTSERVICE_CMD_HELP;
+        } else if (argc < 2) {
+                return NTSERVICE_CMD_MISSING_ARG;
+        } else if (argc > 2) {
+                return NTSERVICE_CMD_UNEXPECTED_ARG;
+        }
+
+        // Parse key and value
+
+        const char *key = argv[0], *value = argv[1];
+
+        if (REG_NONE == dwType) {               // dword:000000001
+                if (0 == _strnicmp("dword:", value, 6)) {
+                        dwType = REG_DWORD;
+                        value += 6;
+                        base = 16;
+                }
+        }
+
+        // Assign
+
+        if (REG_DWORD == dwType) {              // DWORD
+                char *end = 0;
+                unsigned long dwValue = strtoul(value, &end, base);
+                if (!end || *end) {
+                        return NTSERVICE_CMD_INVALID_ARGS;
+                }
+
+                CNTServiceReg registry(svcName_.c_str(), diags_, coName_.c_str());
+                if (registry.Open() && registry.Set(key, dwValue)) {
+                        return 2;
+                }
+
+        } else {                                // otherwise SZ
+                CNTServiceReg registry(svcName_.c_str(), diags_, coName_.c_str());
+                if (registry.Open() && registry.Set(key, value)) {
+                        return 2;
+                }
+        }
+
+        return 0;       //error
+}
+
 //end
+

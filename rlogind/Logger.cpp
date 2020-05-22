@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Logger_cpp, "$Id: Logger.cpp,v 1.5 2020/05/19 20:09:19 cvsuser Exp $")
+__CIDENT_RCSID(Logger_cpp, "$Id: Logger.cpp,v 1.6 2020/05/22 12:42:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -272,8 +272,8 @@ Logger::BufferCursor::assign_nl(const void *buffer, size_t buflen)
 //  Logger implementation
 
 class Logger::LoggerImpl {
-    BOOST_DELETED_FUNCTION(LoggerImpl(const LoggerImpl &));
-    BOOST_DELETED_FUNCTION(LoggerImpl& operator=(const LoggerImpl &));
+    BOOST_DELETED_FUNCTION(LoggerImpl(const LoggerImpl &))
+    BOOST_DELETED_FUNCTION(LoggerImpl& operator=(const LoggerImpl &))
 
 public:
     // Intrusive queue

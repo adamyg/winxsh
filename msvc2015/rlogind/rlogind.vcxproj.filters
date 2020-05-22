@@ -66,6 +66,9 @@
     <ClCompile Include="..\..\libNTService\NTServiceControl.cpp">
       <Filter>Source Files\NTService</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libNTService\NTServiceReg.cpp">
+      <Filter>Source Files\NTService</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\rlogind\syslog.h">
@@ -147,6 +150,9 @@
       <Filter>Header Files\NTService</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libNTService\NTServMsg.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceReg.h">
       <Filter>Header Files\NTService</Filter>
     </ClInclude>
   </ItemGroup>

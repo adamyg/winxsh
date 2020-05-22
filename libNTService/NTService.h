@@ -9,20 +9,9 @@
 #include <Winsvc.h>
 
 #include "NTServiceIO.h"
+#include "NTServiceReg.h"
 
 #define SERVICE_CONTROL_USER    128         // User control message base.
-
-#define HKEY_LENGTH             1024
-
-#define HKEY_NT_SERVICE         "SYSTEM\\CurrentControlSet\\Services"
-#define HKEY_NT_LOG_EVENT       "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
-
-#define HKEY_APPLICATION_PATH   "SYSTEM\\Software"
-    /*  "<HKEY_LOCAL_MACHINE\\SYSTEM\\Software\\[<company\\]<service>"
-     *
-     *  An alternative ''legacy'' location is:
-     *      "SYSTEM\\CurrentControlSet\\Services\\<service>\\Parameters"
-     */
 
 #define NTSERVICE_CMD_HELP      -1              // Help.
 #define NTSERVICE_CMD_MISSING_ARG -2            // Missing argument.
@@ -62,6 +51,7 @@ public:
     bool            SetVersion(unsigned major, unsigned minor, unsigned release = 0);
     bool            SetDescription(const char *description);
     bool            SetCompany(const char *szCompany, bool reopen = false);
+    const char *    GetCompany() const;
 
     bool            SetConsoleMode(bool state, bool trap = true);
     bool            GetConsoleMode() const;
@@ -92,10 +82,13 @@ public:
     void            LogMessage(const char *fmt, ...);
     void            LogError(bool assystem, const char *fmt, ...);
 
-    bool            ConfigSet(const char *csKey, const char *szValue);
-    bool            ConfigSet(const char *csKey, DWORD dwValue);
-    int             ConfigGet(const char *csKey, char *szBuffer, size_t size, unsigned flags = 0);
-    bool            ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags = 0);
+    virtual bool    ConfigOpen(bool create = true);
+    virtual void    ConfigClose();
+    virtual bool    ConfigUpdateProfile();
+    virtual bool    ConfigSet(const char *csKey, const char *szValue);
+    virtual bool    ConfigSet(const char *csKey, DWORD dwValue);
+    virtual int     ConfigGet(const char *csKey, char *szBuffer, size_t size, unsigned flags = 0);
+    virtual bool    ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags = 0);
 
     static const char *DefaultServiceName(const char *arg0, char *buf, size_t buflen);
 
@@ -106,18 +99,6 @@ protected:
     void            SetDiagnostics(NTService::IDiagnostics &diags);
     bool            ConsoleStart();
     bool            ServiceStart();
-
-#define CFG_WARN                0x0001          // generate warning if omitted.
-#define CFG_CONVERT             0x0002          // convert string to numeric and numeric to string.
-
-    virtual bool    CfgOpen(bool create = true);
-//  virtual bool    CfgDump();
-    virtual void    CfgClose();
-    virtual bool    CfgUpdateProfile();
-    virtual bool    CfgSetValue(HKEY key, const char *csKey, const char *szValue);
-    virtual bool    CfgSetValue(HKEY key, const char *csKey, DWORD dwValue);
-    virtual bool    CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize, unsigned flags = 0);
-    virtual bool    CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags = 0);
 
     virtual void    ServiceTrace(const char *fmt, ...);
 
@@ -141,10 +122,10 @@ private:
 private:
     // Data members
     NTService::IDiagnostics *diags_;
+    CNTServiceReg   registry_;                  // registry implementation; TODO: IRegistry_
     char            m_szServiceName[128];       // note: system limit is 256.
-    char            m_szCompany[128];
     char            m_szModule[256];            // binary path.
-    char            m_szDescription[128];
+    char            m_szDescription[256];
     char            m_szStrError[256];          // last StrError() result.
     unsigned        m_iMajorVersion;
     unsigned        m_iMinorVersion;
@@ -156,7 +137,6 @@ private:
     SERVICE_STATUS  m_Status;
     DWORD           m_dwControlsAccepted;
     DWORD           m_dwCheckPoint;
-    HKEY            m_hRegistry;
     bool            m_bIsRunning;
     bool            m_bRunAsConsole;
     bool            m_bConsoleTrap;

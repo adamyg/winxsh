@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.7 2020/05/19 20:11:11 cvsuser Exp $")
+__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.8 2020/05/22 02:21:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -139,7 +139,7 @@ Service::OnInit()
                 ::Sleep(30 * 1000);             // debugger/start delay.
         }
 
-        if (! CfgOpen() || !ConfigLogger()) {
+        if (! ConfigOpen() || !ConfigLogger()) {
                 return false;                   // fatal
         }
 
@@ -385,7 +385,7 @@ Service::ResolveRelative(const char *path)
 
 //virtual
 bool
-Service::CfgOpen(bool create /*= true*/)
+Service::ConfigOpen(bool create /*= true*/)
 {
         if (inifile_) return true;
         if (options_->ini_file) {
@@ -403,13 +403,13 @@ Service::CfgOpen(bool create /*= true*/)
                 delete inifile;
                 return false;
         }
-        return CNTService::CfgOpen();
+        return CNTService::ConfigOpen();
 }
 
 
 //virtual
 void
-Service::CfgClose()
+Service::ConfigClose()
 {
         if (inifile_) {
                 if (inifile_->SaveFile(options_->ini_file) < 0) {
@@ -417,41 +417,45 @@ Service::CfgClose()
                 }
                 delete inifile_, inifile_ = 0;
         }
-        CNTService::CfgClose();
+        CNTService::ConfigClose();
 }
  
 
 //virtual
 bool
-Service::CfgSetValue(HKEY key, const char *csKey, const char *szValue)
+Service::ConfigSet(const char *csKey, const char *szValue)
 {
         if (options_->ini_file) {
                 const char *sep;
                 if (NULL != (sep = strchr(csKey, '\\'))) {
                         //TODO: sections
+                        assert(sep);
+                        return false;
                 }
         }
-        return CNTService::CfgSetValue(key, csKey, szValue);
+        return CNTService::ConfigSet(csKey, szValue);
 }
 
  
 //virtual
 bool
-Service::CfgSetValue(HKEY key, const char *csKey, DWORD dwValue)
+Service::ConfigSet(const char *csKey, DWORD dwValue)
 {   
         if (options_->ini_file) {
                 const char *sep;
                 if (NULL != (sep = strchr(csKey, '\\'))) {
                         //TODO: sections
+                        assert(sep);
+                        return false;
                 }
         }
-        return CNTService::CfgSetValue(key, csKey, dwValue);
+        return CNTService::ConfigSet(csKey, dwValue);
 }
 
 
 //virtual
-bool
-Service::CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize, unsigned flags)
+int
+Service::ConfigGet(const char *csKey, char *szBuffer, size_t dwSize, unsigned flags)
 {   
         if (options_->ini_file) {
                 const char *sep;
@@ -463,6 +467,7 @@ Service::CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize
 
                 if (NULL != (sep = strchr(csKey, '\\'))) {
                         //TODO: sections
+                        assert(sep);
                 } else {
                         const char *pszValue = inifile_->GetValue("", csKey, NULL /*default*/);
                         if (pszValue) {
@@ -481,13 +486,13 @@ Service::CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize
                 }
                 return false;
         }
-        return CNTService::CfgGetValue(key, csKey, szBuffer, dwSize, flags);
+        return CNTService::ConfigGet(csKey, szBuffer, dwSize, flags);
 }
 
 
 //virtual
 bool
-Service::CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags)
+Service::ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags)
 {
         if (options_->ini_file) {
                 const char *sep;
@@ -497,6 +502,7 @@ Service::CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags
 
                 if (NULL != (sep = strchr(csKey, '\\'))) {
                         //TODO: sections
+                        assert(sep);
                 } else {
                         const char *pszValue = inifile_->GetValue("", csKey, NULL /*default*/);
                         if (pszValue) {
@@ -515,7 +521,7 @@ Service::CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags
                 }
                 return false;
         }
-        return CNTService::CfgGetValue(key, csKey, dwValue, flags);
+        return CNTService::ConfigGet(csKey, dwValue, flags);
 }
 
 //end

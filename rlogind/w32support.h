@@ -76,12 +76,14 @@
 #define BOOST_NOEXCEPT_OR_NOTHROW throw()
 #define BOOST_NOEXCEPT_IF(Predicate)
 #define BOOST_NOEXCEPT_EXPR(Expression) false
+#define BOOST_OUTCOME_NODISCARD
 #else
 #define BOOST_DELETED_FUNCTION(_f) _f = delete;
 #define BOOST_NOEXCEPT noexcept
 #define BOOST_NOEXCEPT_OR_NOTHROW noexcept
 #define BOOST_NOEXCEPT_IF(Predicate) noexcept((Predicate))
 #define BOOST_NOEXCEPT_EXPR(Expression) noexcept((Expression))
+#define BOOST_OUTCOME_NODISCARD [[nodiscard]]   /* alt SAL _Must_inspect_result_ */
 #endif
 #endif  //BOOST_DELETED_FUNCTION
 
@@ -97,7 +99,7 @@
     }
     static void* operator new (size_t _Size, std::nothrow_t const&) {
         return malloc(_Size);                  /* see: opnew.cpp/rtlibrary */
-            // Note: OpenWatcom (1.9 or 2.0) throw std::bad_alloc.
+            // Note: OpenWatcom (1.9 or 2.0) wont throw std::bad_alloc.
     }
     static void* operator new [] (size_t _Size, std::nothrow_t const&) {
         return malloc(_Size);

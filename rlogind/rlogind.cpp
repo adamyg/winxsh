@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.14 2020/05/20 21:14:40 cvsuser Exp $")
+__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.15 2020/05/22 02:21:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -240,7 +240,7 @@ main(int argc, char *argv[])
                 assert(verb == argv[0]);
 
                 if (0 == strcasecmp(verb, "config")) {
-                        CNTServiceConfig service(service_name, diags);
+                        CNTServiceConfig service(service_name, service.GetCompany(), diags);
                         ret = service.ExecuteCommand(argc - 1, argv + 1);
 
                 } else if (0 == strcasecmp(verb, "control")) {

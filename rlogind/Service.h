@@ -50,12 +50,12 @@ public:
 
 protected:
         static  std::string ResolveRelative(const char *path);
-        virtual bool CfgOpen(bool create = true);
-        virtual void CfgClose();
-        virtual bool CfgSetValue(HKEY key, const char *csKey, const char *szValue);
-        virtual bool CfgSetValue(HKEY key, const char *csKey, DWORD dwValue);
-        virtual bool CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize, unsigned flags = 0);
-        virtual bool CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags = 0);
+        virtual bool ConfigOpen(bool create = true);
+        virtual void ConfigClose();
+        virtual bool ConfigSet(const char *csKey, const char *szValue);
+        virtual bool ConfigSet(const char *csKey, DWORD dwValue);
+        virtual int ConfigGet(const char *csKey, char *szBuffer, size_t dwSize, unsigned flags = 0);
+        virtual bool ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags = 0);
 
 protected:
         void AttachLogger();

@@ -90,7 +90,7 @@ extern /*LIBW32_API*/ const char * gai_strerror(int ecode);
 #undef HAVE_UNISTD_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
-    #define HAVE_STDINT_H 1
+#define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <openssl/aes.h> header file. */
     /* #undef HAVE_OPENSSL_AES_H */
@@ -328,7 +328,7 @@ extern /*LIBW32_API*/ const char * gai_strerror(int ecode);
     /* #undef DEBUG_PACKET */
 
 /* Define to 1 if you want to enable pcap output support (experimental) */
-    #define WITH_PCAP 1
+#define WITH_PCAP 1
 
 /* Define to 1 if you want to enable calltrace debug output */
     /* #undef DEBUG_CALLTRACE */

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.8 2020/05/20 20:19:10 cvsuser Exp $")
+__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.10 2020/05/22 12:49:41 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -70,13 +70,12 @@ CNTService* CNTService::__serviceInstance = NULL;
         //  WARNING: This limits the application to only one CNTService object.
 
 CNTService::CNTService(const char* szServiceName, NTService::IDiagnostics &diags) :
-                diags_(&diags),
+                diags_(&diags), registry_(szServiceName, diags),
                 m_iMajorVersion(1), m_iMinorVersion(0), m_iReleaseVersion(0),
                 m_hStopEvent(NULL), m_hEventSource(NULL),
                 m_hServiceStatus(NULL), m_Status(),
                 m_dwCheckPoint(0),
                 m_dwControlsAccepted(0),
-                m_hRegistry(0),
                 m_bIsRunning(false),
                 m_bRunAsConsole(false),
                 m_bConsoleTrap(false),
@@ -85,7 +84,6 @@ CNTService::CNTService(const char* szServiceName, NTService::IDiagnostics &diags
         char t_szServiceName[sizeof(m_szServiceName)];
 
         memset(m_szServiceName, 0, sizeof(m_szServiceName));
-        memset(m_szCompany, 0, sizeof(m_szCompany));
         memset(m_szDescription, 0, sizeof(m_szDescription));
 
         assert(NULL == __serviceInstance);
@@ -195,6 +193,7 @@ CNTService::diags() const
 void            
 CNTService::SetDiagnostics(NTService::IDiagnostics &diags)
 {
+    registry_.SetDiagnostics(diags);
     diags_ = &diags;
 }
 
@@ -306,7 +305,7 @@ void CNTService::InstallArgumentsUsage()
         diags().finfo("      --grant                         Grant public access");
         diags().finfo("      --auto                          Auto start");
         diags().finfo("      --manual                        Manual start");
-        diags().finfo("      --help                          Command line helpt");
+        diags().finfo("      -H,--help                       Command line help");
 }
 
 
@@ -315,7 +314,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
 {
         using namespace NTService;
 
-#define OPTIONS "P:U:D:C:g"
+#define OPTIONS "P:U:D:C:gH"
 
         static struct Getopt::Option long_options[] = {
                 { "account",        Getopt::argument_required,  NULL, 'U' }, //-U,--account=<user>
@@ -326,7 +325,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                 { "arg",            Getopt::argument_required,  NULL, 'A' }, //-A,--arg "argument=value"
                 { "auto",           Getopt::argument_none,      NULL, 100 }, //--auto
                 { "manual",         Getopt::argument_none,      NULL, 101 }, //--manual
-                { "help",           Getopt::argument_none,      NULL, 102 }, //--help
+                { "help",           Getopt::argument_none,      NULL, 'H' }, //-H,--help
                 { NULL }
                 };
 
@@ -375,7 +374,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                 case 101:   //--manual
                         arguments.auto_start = false;
                         break;
-                case 102:   //--help
+                case 'H':   //-H,--help
                         goto install_help;
                 default:
                         return NTSERVICE_CMD_INVALID_ARGS;
@@ -678,89 +677,58 @@ bool CNTService::IsAdmin() const
 // Registry runtime
 
 //virtual
-bool CNTService::CfgOpen(bool create)
+bool CNTService::ConfigOpen(bool create)
 {
-        HKEY  parentKey = HKEY_LOCAL_MACHINE, subKey = 0;
-        char  csKey[HKEY_LENGTH];
-        DWORD dwRet = 0;
-
-        if (m_hRegistry)                        // open?
+        if (registry_.is_open())                // open?
                 return true;
-
-        if (m_szCompany[0]) {                   // "Software\<company>\<service>"
-                (void)snprintf(csKey, sizeof(csKey)-1, HKEY_APPLICATION_PATH "\\%s\\%s",
-                        m_szCompany, m_szServiceName);
-        } else {                                // "Software\<service>"
-                (void)snprintf(csKey, sizeof(csKey)-1, HKEY_APPLICATION_PATH "\\%s",
-                        m_szServiceName);
-        }
-        csKey[sizeof(csKey) - 1] = 0;
-
-        if ((dwRet = ::RegOpenKeyEx(parentKey, csKey, 0,
-                        KEY_READ | KEY_WRITE, &subKey)) == ERROR_SUCCESS) {
-                m_hRegistry = subKey;
-                CfgUpdateProfile();
+        if (registry_.Open(create)) {
+                ConfigUpdateProfile();
                 return true;
         }
-
-        if (create) {                           // optional creation
-                if ((dwRet = ::RegCreateKeyEx(parentKey, csKey, 0, "", 0,
-                                KEY_READ | KEY_WRITE, NULL, &subKey, &dwRet)) == ERROR_SUCCESS) {
-                        m_hRegistry = subKey;
-                        CfgUpdateProfile();
-                        return true;
-                }
-        }
-
-        diags().ferror("Unable to open <%s> registry, error %u (%s)", csKey, (unsigned)dwRet, StrError(dwRet));
         return false;
 }
 
 
 //virtual
-void CNTService::CfgClose()
+void CNTService::ConfigClose()
 {
-        if (m_hRegistry) {
-                ::RegCloseKey(m_hRegistry);
-                m_hRegistry = 0;
-        }
+        registry_.Close();
 }
 
 
 //virtual
-bool CNTService::CfgUpdateProfile()
+bool CNTService::ConfigUpdateProfile()
 {
         char  version[32] = {0}, now[32] = {0};
-        HKEY  subkey = NULL;
+        HKEY  hSubkey = NULL;
         DWORD dwRet;
 
         //  Statistics/
         //      Version
-        //      LastStarted
-        //      LastRuning
+        //      LastStart
+        //      LastRun
         //      LastError
         //      Status
         //
-        if (! m_hRegistry) {                    // open?
+        if (! registry_.is_open()) {            // open?
                 return true;
         }
                                                 // open/create
-        if (::RegCreateKeyEx(m_hRegistry, "Statistics", 0, "", 0,
-                        KEY_READ | KEY_WRITE, NULL, &subkey, &dwRet) == ERROR_SUCCESS) {
+        if (::RegCreateKeyEx(registry_.RootKey(), "Statistics", 0, "", 0,
+                        KEY_READ | KEY_WRITE, NULL, &hSubkey, &dwRet) == ERROR_SUCCESS) {
 
                 const time_t curtime = time(NULL);
                 (void) snprintf(version, sizeof(version) - 1, "%u.%u.%u",
                         m_iMajorVersion, m_iMinorVersion, m_iReleaseVersion);
                 asctime_s(now, sizeof(now), gmtime(&curtime));
 
-                CfgSetValue(subkey, "Version", version);
+                CNTServiceReg::SetValue(hSubkey, diags(), "Version", version);
                 if (! m_bIsRunning) {
-                        CfgSetValue(subkey, "LastStarted", now);
+                        CNTServiceReg::SetValue(hSubkey, diags(), "LastStart", now);
                 } else {
-                        CfgSetValue(subkey, "LastRunning", now);
+                        CNTServiceReg::SetValue(hSubkey, diags(), "LastRun", now);
                 }
-
-                ::RegCloseKey(subkey);
+                CNTServiceReg::Close(hSubkey);
         }
         return true;
 }
@@ -768,181 +736,29 @@ bool CNTService::CfgUpdateProfile()
 
 bool CNTService::ConfigSet(const char *csKey, const char *szValue)
 {
-        return CfgSetValue(0, csKey, szValue);
+        return registry_.Set(csKey, szValue);
 }
 
 
 bool CNTService::ConfigSet(const char *csKey, DWORD dwValue)
 {
-        return CfgSetValue(0, csKey, dwValue);
+        return registry_.Set(csKey, dwValue);
 }
 
 
-int  CNTService::ConfigGet(const char *csKey, char *szBuffer, size_t dwSize, unsigned flags)
+int CNTService::ConfigGet(const char *csKey, char *szBuffer, size_t dwSize, unsigned flags)
 {
         size_t t_dwSize = dwSize;
-        if (CfgGetValue(0, csKey, szBuffer, t_dwSize, flags)) {
+        if (registry_.Get(csKey, szBuffer, t_dwSize, flags)) {
                 return (int)t_dwSize;           // limit of 64k; overflow not possible.
         }
-        return -1;
+        return 0;
 }
 
 
 bool CNTService::ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags)
 {
-        return CfgGetValue(0, csKey, dwValue, flags);
-}
-
-
-//virtual
-bool CNTService::CfgGetValue(HKEY key, const char *csKey, char *szBuffer, size_t &dwSize, unsigned flags)
-{
-        if (!key) key = m_hRegistry;            // system default
-        if (!key) return false;
-
-        assert(csKey);
-        if (!csKey) return false;
-
-        assert(szBuffer && dwSize);
-        if (!szBuffer || !dwSize) return false;
-
-        DWORD t_dwSize, dwType, t_dwResult = 0;
-        LSTATUS status;
-
-        t_dwSize = dwSize, dwType = 0;
-        if ((status = ::RegQueryValueEx(key, csKey, NULL,
-                            &dwType, (BYTE *) szBuffer, &t_dwSize)) == ERROR_SUCCESS && REG_DWORD == dwType) {
-                if (t_dwSize >= dwSize) t_dwSize = dwSize - 1;
-                szBuffer[t_dwSize] = 0;
-                dwSize = t_dwSize;
-                return true;
-        }
-
-        if (ERROR_MORE_DATA == status) {        // overflow
-                diags().fwarning("parameter <%s> too large", csKey);
-
-        } else if (ERROR_FILE_NOT_FOUND == status || ERROR_PATH_NOT_FOUND == status) {
-                if (CFG_WARN & flags) {         // missing
-                        diags().fwarning("parameter <%s> does not exist", csKey);
-                }
-
-        } else if (/*ERROR_SUCCESS == status &&*/ dwType && REG_SZ != dwType) {
-                if (CFG_CONVERT & flags) {      // attempt conversion
-                        if (REG_DWORD == dwType) {
-                                t_dwSize = sizeof(t_dwResult);
-                                if ((status = ::RegQueryValueEx(key, csKey, NULL,
-                                                    &dwType, (BYTE *) &t_dwResult, &t_dwSize)) == ERROR_SUCCESS && REG_DWORD == dwType) {
-                                        const int ret = snprintf(szBuffer, dwSize, "%lu", (unsigned long)t_dwResult);
-                                        if (ret > 0 && (size_t)ret < dwSize) {
-                                                dwSize = (size_t)ret;
-                                                return true;
-                                        }
-                                }
-                        }
-                }
-                diags().fwarning("parameter <%s> should be a string", csKey);
-
-        } else {
-                diags().ferror("unable to retrieve parameter <%s>: %u (%s)", csKey, (unsigned)status, StrError(status));
-        }
-
-        dwSize = 0;
-        return false;
-}
-
-
-//virtual
-bool CNTService::CfgGetValue(HKEY key, const char *csKey, DWORD &dwValue, unsigned flags)
-{
-        if (!key) key = m_hRegistry;            // system default
-        if (!key) return false;
-
-        assert(csKey);
-        if (!csKey) return false;
-
-        char t_szResult[64];
-        DWORD dwSize, dwType, t_dwResult = 0;
-        LSTATUS status;
-
-        dwSize = sizeof(DWORD), dwType = 0;
-        if ((status = ::RegQueryValueEx(key, csKey, NULL,
-                            &dwType, (BYTE *) &t_dwResult, &dwSize)) == ERROR_SUCCESS && REG_DWORD == dwType) {
-                dwValue = t_dwResult;
-                return true;
-        }
-
-        if (ERROR_FILE_NOT_FOUND == status || ERROR_PATH_NOT_FOUND == status) {
-                if (CFG_WARN & flags) {         // missing
-                        diags().fwarning("parameter <%s> does not exist", csKey);
-                }
-
-        } else if (/*(ERROR_SUCCESS == status || ERROR_MORE_DATA == status) &&*/ dwType && REG_DWORD != dwType) {
-                if (CFG_CONVERT & flags) {      // attempt conversion
-                        if (REG_SZ == dwType) {
-                                dwSize = sizeof(t_szResult);
-                                if ((status = ::RegQueryValueEx(key, csKey, NULL,
-                                                    &dwType, (BYTE *) t_szResult, &dwSize)) == ERROR_SUCCESS && REG_SZ == dwType) {
-                                        char *end = 0;
-                                        unsigned long ret = strtoul(t_szResult, &end, 10);
-                                        if (end && 0 == *end) {
-                                                dwValue = (DWORD)ret;
-                                                return true;
-                                        }
-                                }
-                        }
-                }
-                diags().fwarning("parameter <%s> should be a numeric", csKey);
-
-        } else {
-                diags().ferror("unable to retrieve parameter <%s>: %u (%s)", csKey, (unsigned)status, StrError(status));
-        }
-
-        return true;
-}
-
-
-//virtual
-bool CNTService::CfgSetValue(HKEY key, const char *csKey, const char *szValue)
-{
-        DWORD dwSize, dwRet;
-
-        if (!key) key = m_hRegistry;            // system default
-        if (!key || !szValue) return false;
-
-        assert(csKey);
-        if (!csKey) return false;
-
-        //  Note: If szKey is NULL or an empty string, "",
-        //  the function sets the type and data for the key's unnamed or default value.
-        //
-        dwSize = strlen(szValue) + 1 /*nul*/;
-        if ((dwRet = ::RegSetValueExA(key, csKey, NULL,
-                            REG_SZ, (const BYTE *)szValue, dwSize)) != ERROR_SUCCESS) {
-                diags().ferror("Unable to update <%s>, error %u (%s)", csKey, (unsigned)dwRet, StrError(dwRet));
-                return false;
-        }
-        return true;
-}
-
-
-//virtual
-bool CNTService::CfgSetValue(HKEY key, const char *csKey, DWORD dwValue)
-{
-        DWORD dwSize, dwRet;
-
-        if (!key) key = m_hRegistry;            // system default
-        if (!key) return false;
-
-        assert(csKey);
-        if (!csKey) return false;
-
-        dwSize = sizeof(dwValue);
-        if ((dwRet = ::RegSetValueExA(key, csKey, NULL,
-                            REG_DWORD, (const BYTE *)dwValue, dwSize)) != ERROR_SUCCESS) {
-                diags().ferror("Unable to update <%s>, error %u (%s)", csKey, (unsigned)dwRet, StrError(dwRet));
-                return false;
-        }
-        return true;
+        return registry_.Get(csKey, dwValue, flags);
 }
 
 
@@ -1008,7 +824,7 @@ void CNTService::LogEvent(WORD wType, DWORD dwID, const char* pszS1, const char*
 
 bool CNTService::SetVersion(unsigned major, unsigned minor, unsigned release /*= 0*/)
 {
-        if (m_bIsRunning || m_hRegistry) {      // open?
+        if (m_bIsRunning || registry_.is_open()) {
                 return false;
         }
         m_iMajorVersion = major;
@@ -1021,7 +837,7 @@ bool CNTService::SetVersion(unsigned major, unsigned minor, unsigned release /*=
 bool CNTService::SetDescription(const char *szDescription)
 {
         if (!szDescription) return false;
-        if (m_bIsRunning || m_hRegistry) {      // open?
+        if (m_bIsRunning || registry_.is_open()) {
                 return false;
         }
 
@@ -1036,21 +852,13 @@ bool CNTService::SetDescription(const char *szDescription)
 bool CNTService::SetCompany(const char *szCompany, bool reopen /*=false*/)
 {
         if (!szCompany) return false;
-        if (m_hRegistry && !reopen) {           // open?
-                return false;
-        }
+        return registry_.SetCompany(szCompany, reopen);
+}
 
-        reopen = false;
-        if (m_hRegistry) {
-                CfgClose();
-                reopen = true;
-        }
 
-        assert(strlen(szCompany) < sizeof(m_szCompany));
-        strncpy(m_szCompany, szCompany, sizeof(szCompany) - 1);
-        m_szCompany[sizeof(m_szCompany) - 1] = 0;
-
-        return (reopen ? CfgOpen() : true);
+const char * CNTService::GetCompany() const
+{
+        return registry_.GetCompany();
 }
 
 
@@ -1101,7 +909,7 @@ bool CNTService::ConsoleStart()
         m_bIsRunning = true;
 
         if (OnInit()) {
-                CfgUpdateProfile();             // required ??
+                ConfigUpdateProfile();          // required ??
                 ServiceRun();                   // generally overridden
                 OnShutdown();
         }
@@ -1167,7 +975,7 @@ void CNTService::ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv)
                 pService->m_Status.dwWin32ExitCode = 0;
                 pService->m_Status.dwCheckPoint = 0;
                 pService->m_Status.dwWaitHint = 0;
-                pService->CfgUpdateProfile();
+                pService->ConfigUpdateProfile();
                 pService->ServiceRun();
         }
 
@@ -1369,7 +1177,7 @@ bool CNTService::OnInit()
                         m_szServiceName, m_iMajorVersion, m_iMinorVersion);
         }
     //  ServiceTrace("NTService::OnInit()");
-        if (! CfgOpen()) {
+        if (! ConfigOpen()) {
                 return false;
         }
         ShowUser();
