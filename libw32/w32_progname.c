@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_progname_c,"$Id: w32_progname.c,v 1.5 2020/04/29 19:33:08 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_progname_c,"$Id: w32_progname.c,v 1.6 2020/06/01 00:09:51 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*

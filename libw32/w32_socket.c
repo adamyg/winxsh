@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.12 2020/05/11 21:50:50 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.13 2020/06/01 00:12:04 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*

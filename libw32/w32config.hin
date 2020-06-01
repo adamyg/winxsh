@@ -1,10 +1,10 @@
 #ifndef WIN32_CONFIG_H_INCLUDED
 #define WIN32_CONFIG_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_config_h, "$Id: w32config.hin,v 1.8 2020/04/29 19:33:09 cvsuser Exp $")
+__CIDENT_RCSID(gr_config_h, "$Id: w32config.hin,v 1.9 2020/06/01 00:10:47 cvsuser Exp $")
 __CPRAGMA_ONCE
 /* -*- mode: c; set-indent: 4; -*- */
-/* $Id: w32config.hin,v 1.8 2020/04/29 19:33:09 cvsuser Exp $
+/* $Id: w32config.hin,v 1.9 2020/06/01 00:10:47 cvsuser Exp $
  * Machine configuration.
  *
  * System dependent <config.h> configuration template,
@@ -116,6 +116,7 @@ __CPRAGMA_ONCE
 #undef HAVE_STDLIB_H
 #undef HAVE_STDIO_H
 #undef HAVE_LIMITS_H
+#undef HAVE_MATH_H
 
 /* AC_HEADER_DIRENT */
 #undef HAVE_DIRENT_H
@@ -408,6 +409,10 @@ __CPRAGMA_ONCE
 #undef HAVE_BCMP
 #undef HAVE_BZERO
 
+#undef HAVE_EXPLICIT_BZERO
+#undef HAVE_MEMSET_S
+#undef HAVE_SECUREZEROMEMORY
+
 #undef HAVE_MEMCMP
 #undef HAVE_MEMSET
 #undef HAVE_MEMMOVE
@@ -418,6 +423,7 @@ __CPRAGMA_ONCE
 
 #undef HAVE_CHOWN
 #undef HAVE_CHROOT
+#undef HAVE_MKTEMP
 #undef HAVE_MKSTEMP
 #undef HAVE_SELECT
 #undef HAVE_POLL
@@ -471,6 +477,9 @@ __CPRAGMA_ONCE
 #undef HAVE___ISBLANK
 #undef HAVE_ISCSYM
 #undef HAVE___ISCSYM
+
+#undef HAVE_GETW
+#undef HAVE_PUTW
 
 #undef HAVE_DECL_TZNAME
 #undef HAVE_GETLOGIN

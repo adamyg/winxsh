@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.11 2020/05/20 20:06:47 cvsuser Exp $
+# $Id: makelib.pl,v 1.12 2020/06/01 00:08:06 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -646,7 +646,8 @@ my @x_headers       = (
         'dirent.h',
         'dlfcn.h',                              # dlopen()
         'pwd.h',
-        'grp.h'
+        'grp.h',
+        'getopt.h'
         );
 
 my @x_decls         = (     #stdint/intypes.h
@@ -725,8 +726,10 @@ my @x_functions     = (
         'putenv',
         'setenv',
         'rename',
-        'bcopy', 'bcmp', 'bzero',
+        'bcopy', 'bcmp', 'bzero', 'explicit_bzero',
         'memcmp', 'memset', 'memmove',
+            'memset_s',                         # __STDC_WANT_LIB_EXT1__
+            'SecureZeroMemory',
         'memccpy', '_memccpy',                  # bsd/msvc
         'index', 'rindex',                      # bsd
         'strcasecmp', '__strcasecmp', 'stricmp',
@@ -740,6 +743,7 @@ my @x_functions     = (
         'strtof', 'strtold', 'strtoll',
         'strverscmp', '__strverscmp',
         'mkdtemp',                              # bsd/linux
+        'getw', 'putw',
         'err',                                  # bsd/linux: err, warn etc
              'setprocname', 'getprocname',
         'setproctitle',                         # bsd
@@ -775,7 +779,9 @@ my @x_functions     = (
         'nearbyintf',
         'va_copy', '__va_copy',                 # c99/gnu
         'opendir',
+        'mktemp', 'mkstemp',
         'findfirst', '_findfirst',              # msvc
+        'getopt', 'getopt_long'                 # bsd/compat
         );
 
 my @x_commands      = (
@@ -788,7 +794,11 @@ my @x_commands      = (
 
 our $PACKAGE        = undef;
 our $PACKAGE_PATH   = $x_libw32;
-our $PACKAGE_H      = 'package.h';
+our $PACKAGE_H      = undef;    # defunct, use PACKAGE_FILE
+our $PACKAGE_FILE   = 'package.h';
+
+our $CONFIG_PATH    = $x_libw32;
+our $CONFIG_FILE    = 'w32config.h';
 
 our @x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
 our @x_libraries2   = ();   # local libraries -l<xxx> xxx.lib
@@ -861,7 +871,7 @@ sub ExportPath($);
 sub ImportDLL($$;$$);
 sub Makefile($$$);
 sub MakefileDir($);
-sub Config($$);
+sub Config($$$);
 
 exit &main();
 
@@ -950,8 +960,15 @@ main()
         foreach (@x_makefiles) {
             Makefile($cmd, $_, 'Makefile');
         }
-        Makefile($cmd, $PACKAGE_PATH, $PACKAGE_H);
-        Config($cmd, $x_libw32);
+
+        if (defined $PACKAGE_H) {
+            print "\n";
+            print "WARNING: importing legacy PACKAGE_H from <makelib.in>, replace with PACKAGE_FILE\n";
+            print "\n";
+            $PACKAGE_FILE = $PACKAGE_H;
+        }
+        Makefile($cmd, $PACKAGE_PATH, $PACKAGE_FILE);
+        Config($cmd, $CONFIG_PATH, $CONFIG_FILE);
 
         #cache
         open(CACHE, ">${cache}") or
@@ -1855,6 +1872,10 @@ EOT
     #   generic
     #
     } else {
+        if ($name =~ /_s$/) {   # enable C Library Extension 1 (MSC/WC only)
+            $config .= "\n#define __STDC_WANT_LIB_EXT1__ 1";
+        }
+
         print TMP<<EOT;
 ${config}
 #if defined(__STDC__)
@@ -2441,16 +2462,17 @@ MakefileDir($)
 #       Build a config from an underlying config.in
 #
 sub
-Config($$)              # (type, dir)
+Config($$$)             # (type, dir, file)
 {
-    my ($type, $dir) = @_;
-    my $file = 'config.h';
+    my ($type, $dir, $file) = @_;
     my $text = "";
 
     # import
-    if ($dir =~ /libw32/) {                     # override 'w32config.h'
-        $file = 'w32config.h'
-            if (-f "${dir}/w32config.hin" || "${dir}/w32config.h.in");
+    if (! -f "${dir}/{$file}") {
+        if ($dir =~ /libw32/) {                 # override 'w32config.h'
+            $file = 'w32config.h'
+                if (-f "${dir}/w32config.hin" || "${dir}/w32config.h.in");
+        }
     }
 
     printf "building: $dir/$file\n";
