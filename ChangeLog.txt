@@ -1,3 +1,7 @@
+Mon Jun  8 20:59:04 2020 adamy
+
+	* ci builds
+
 Tue May 19 21:12:16 2020 adamy
 
 	* rlogind - beta ConPTY based service.

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.12 2020/06/01 00:08:06 cvsuser Exp $
+# $Id: makelib.pl,v 1.13 2020/06/08 21:03:04 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -53,7 +53,11 @@ use Text::ParseWords;
 my $CWD                     = getcwd();
 my $BINPATH                 = '';
 my $PERLPATH                = '';
-my $BUSYBOX                 = 'busybox';
+my $BUSYBOX                 = undef;
+my $WGET                    = undef;
+my $INNO                    = undef;
+my $BISON                   = undef;
+my $FLEX                    = undef;
 my $LIBTOOL                 = '';
 my $PROGRAMFILES            = ProgramFiles();
 
@@ -160,6 +164,8 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MTd',
             LDMAPFILE       => '-MAP:$(MAPFILE)'
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
             },
 
         'vc1600'        => {    # 2010, Visual Studio 10
@@ -180,6 +186,8 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MTd',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
 
             MFCDIR          => '/tools/WinDDK/7600.16385.1',
             MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
@@ -208,13 +216,16 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MDd',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
             },
 
        'vc1900'        => {    # 2015, Visual Studio 19
             TOOLCHAIN       => 'vs140',
             TOOLCHAINEXT    => '.vs140',
             CC              => 'cl',
-            COMPILERPATH    => '%VCINSTALLDIR%/bin',
+            COMPILERPATHS   => '%VS140COMNTOOLS%/../../VC/bin|%VCINSTALLDIR%/bin',
+            COMPILERPATH    => '',
             VSWITCH         => '',
             VPATTERN        => undef,
             OSWITCH         => '-Fo',
@@ -228,6 +239,8 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MDd',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
             },
 
        # See: VsDevCmd.bat
@@ -242,10 +255,11 @@ my %x_environment   = (
        #  popd
        #
        'vc1910'        => {    # 2017, Visual Studio 19.10 -- 19.1x
-            TOOLCHAIN       => 'vs141',
-            TOOLCHAINEXT    => '.vs141',
+            TOOLCHAIN       => 'vs150',
+            TOOLCHAINEXT    => '.vs150',
             CC              => 'cl',
-            COMPILERPATH    => '%VCToolsInstallDir%/bin/Hostx86/x86',
+            COMPILERPATHS   => '%VS150COMNTOOLS%/../../VC/bin|%VCToolsInstallDir%/bin/Hostx86/x86',
+            COMPILERPATH    => '',
             VSWITCH         => '',
             VPATTERN        => undef,
             OSWITCH         => '-Fo',
@@ -259,6 +273,8 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MTd',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
 
         #   MFCDIR          => '/tools/WinDDK/7600.16385.1',
         #   MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
@@ -270,10 +286,11 @@ my %x_environment   = (
             },
 
        'vc1920'        => {    # 2019, Visual Studio 19.2x
-            TOOLCHAIN       => 'vs142',
-            TOOLCHAINEXT    => '.vs142',
+            TOOLCHAIN       => 'vs160',
+            TOOLCHAINEXT    => '.vs160',
             CC              => 'cl',
-            COMPILERPATH    => '%VCToolsInstallDir%/bin/Hostx86/x86',
+            COMPILERPATHS   => '%VS160COMNTOOLS%/../../VC/bin|%VCToolsInstallDir%/bin/Hostx86/x86',
+            COMPILERPATH    => '',
             VSWITCH         => '',
             VPATTERN        => undef,
             OSWITCH         => '-Fo',
@@ -287,6 +304,8 @@ my %x_environment   = (
             CXXWARN         => '-W3',
             LDEBUG          => '-nologo -Zi -RTC1 -MTd',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
+                        # -Fm:  if positioned before /link
+                        # -MAP: if positioned afer /link
             },
 
         'wc1300'        => {    # Watcom 11
@@ -365,7 +384,7 @@ my %x_environment   = (
                 #   (2) Avoid changing the call convention from #r/#s, otherwise runtime library issues.
                 #
             CFLAGS          => '-q -6r -j -ei -d2  -hw -db -of+ -zlf -bt=nt -bm -br -aa -sg',
-            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',	  
+            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
             LDEBUG          => '-q -6r -d2 -hw -db -bt=nt -bm -br',
@@ -378,7 +397,7 @@ my %x_environment   = (
             MFCCINCLUDE     => '-I$(MFCDIR)/inc/atl71 -I$(MFCDIR)/inc/mfc42',
             MFCLIBS         => '/LIBPATH:$(MFCDIR)\lib\atl\i386 /LIBPATH:$(MFCDIR)\lib\mfc\i386'
             },
-	    
+
         'owc2000'       => {    # Open Watcom 2.0
             TOOLCHAIN       => 'owc20',
             TOOLCHAINEXT    => '.owc20',
@@ -435,7 +454,7 @@ my %x_environment   = (
                 #   (2) Avoid changing the call convention from #r/#s, otherwise runtime library issues.
                 #
             CFLAGS          => '-q -6r -j -ei -d2  -hw -db -of+ -zlf -bt=nt -bm -br -aa -sg',
-            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',	  
+            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
             LDEBUG          => '-q -6r -d2 -hw -db -bt=nt -bm -br',
@@ -556,6 +575,9 @@ my %x_tokens        = (
         GREP                => 'egrep',
         AWK                 => 'awk',
         SED                 => 'sed',
+        WGET                => 'wget',          # special
+        BUSYBOX             => 'busybox',       # special
+        INNO                => 'C:/Program Files (x86)/Inno Setup 5/Compil32',
         PERL                => 'perl',
         LIBTOOL             => 'libtool',
 
@@ -642,12 +664,12 @@ my @x_headers       = (
         'wincrypt.h',
         'bcrypt.h',
 
+        'getopt.h',
         'unistd.h',
         'dirent.h',
         'dlfcn.h',                              # dlopen()
         'pwd.h',
-        'grp.h',
-        'getopt.h'
+        'grp.h'
         );
 
 my @x_decls         = (     #stdint/intypes.h
@@ -784,7 +806,7 @@ my @x_functions     = (
         'getopt', 'getopt_long'                 # bsd/compat
         );
 
-my @x_commands      = (
+my @x_commands     = (     # commands explicity converted to <cmd>.exe
         'mkdir',
         'rmdir',
         'tar',
@@ -854,6 +876,7 @@ my $o_libmagic      = undef;
 #       Mainline
 #
 sub Configure($$);
+sub ExeRealpath($);
 sub LoadContrib($$$);
 sub CheckCompiler($$);
 sub CheckDecl($$);
@@ -881,7 +904,7 @@ main()
     my $o_clean         = 0;
     my $o_help          = 0;
 
-    require "makelib.in";
+    require "./makelib.in";
         die "makelib.in: PACKAGE not defined\n"
             if (! $PACKAGE);
         $x_tokens{PACKAGE}      = $PACKAGE;
@@ -890,7 +913,11 @@ main()
         = GetOptions(
                 'binpath=s'     => \$BINPATH,
                 'perlpath=s'    => \$PERLPATH,
+                'bison=s'       => \$BISON,
+                'flex=s'        => \$FLEX,
                 'busybox=s'     => \$BUSYBOX,
+                'wget=s'        => \$WGET,
+                'inno=s'        => \$INNO,
                 'version=i'     => \$o_version,
                 'icu=s'         => \$o_icu,
                 'gnuwin32=s'    => \$o_gnuwin32,
@@ -1010,7 +1037,8 @@ sub
 ProgramFiles
 {
     my $path = $ENV{ProgramFiles};
-    $path =~ s/\\/\//g;
+    $path =~ s/\\/\//g
+        if ($path);
     return $path;
 }
 
@@ -1036,17 +1064,18 @@ Options:
 
     --perlpath=<path>       PERL binary path, otherwise assumed in the path.
 
-    --gnuwin32=<path>       gnuwin32 tool installation path.
+    --gnuwin32=<path>       gnuwin32 g++ tool installation path.
+
+    --busybox=<path>        busybox-w32 installation path.
+    --bison=<path>          bison installation path.
+    --flex=<path>           flex installation path.
+    --inno=<path>           inno-setup installation path.
 
     --contib                enable local contrib libraries (default).
-
-    or --gnulibs            search and enable gnuwin32 libraries, using
-                            gnuwin32 path.
+    or --gnulibs            search and enable gnuwin32 libraries, using gnuwin32 path.
 
     --libarchive=<path>     libarchive installation path.
-
     --libmagic=<path>       libmagic installation path.
-
     --icu=<path>            ICU installation path.
 
     --version=<version      compiler version
@@ -1056,7 +1085,7 @@ Options:
     --keep                  keep temporary file images.
 
 Commands:
-    vc[14|16]           Visual Studio C/C++ Makefiles.
+    vc[20xx]            Visual Studio C/C++ Makefiles.
     wc                  Watcom C/C++, using 'cl' interface.
     owc                 Open Watcom C/C++, using a direct interface.
     dj                  DJGPP.
@@ -1088,6 +1117,42 @@ Configure($$)           # (type, version)
         $PERLPATH = realpath($PERLPATH);
         print "perlpath: ${PERLPATH}\n";
         $PERLPATH .= '/';
+    }
+
+    if ($BUSYBOX) {
+        $BUSYBOX = ExeRealpath($BUSYBOX)
+            if ($BUSYBOX ne 'busybox');
+        print "busybox:  ${BUSYBOX}\n";
+        $win_entries{BUSYBOX} = $BUSYBOX;
+    } else {
+        $BUSYBOX = 'busybox'                    # default
+            if (! defined $BUSYBOX);
+    }
+
+    if ($WGET) {
+        $WGET = ExeRealpath($WGET)
+            if ($WGET ne 'wget');
+        print "wget:     ${WGET}\n";
+        $win_entries{WGET} = $WGET;
+    }
+
+    if ($INNO) {
+        $INNO = ExeRealpath($INNO)
+            if ($INNO ne 'wget');
+        print "wget:     ${INNO}\n";
+        $win_entries{INNO} = $INNO;
+    }
+
+    if ($BISON) {                               # override
+        $BISON = ExeRealpath($BISON);
+        print "bison:    ${BISON}\n";
+        $win_entries{YACC} = "${BISON} -y";
+    }
+
+    if ($FLEX) {                                # override
+        $FLEX = ExeRealpath($FLEX);
+        print "flex:     ${FLEX}\n";
+        $win_entries{LEX} = "${FLEX}";
     }
 
     if (! $LIBTOOL) {                           # derive libtool location
@@ -1506,6 +1571,31 @@ Configure($$)           # (type, version)
 
 
 sub
+ExeRealpath($)
+{
+    my ($path) = @_;
+
+    if (-e $path) {
+        $path = realpath($path);
+
+    } elsif (-e "${path}.exe") {            # <xxx.exe
+        $path = realpath("${path}.exe");
+        $path =~ s/\.exe//;
+
+    } elsif ($path =~ /^\.[\/\\]/) {        # ./xxxx; assume a generated artifact
+        $path =~ s/^\./\$(ROOT)/;
+
+    } else {
+        print "warning: unable to resolve path <${path}>\n";
+    }
+
+    $path = "\"${path}\""                   # quote; contains spaces
+        if ($path =~ / /);
+    return $path;
+}
+
+
+sub
 LoadContrib($$$)        # (name, dir, refIncludes)
 {
     my ($name, $dir, $refIncludes) = @_;
@@ -1579,8 +1669,28 @@ CheckCompiler($$)       # (type, env)
 {
     my ($type, $env) = @_;
 
+    if ($$env{COMPILERPATH} eq '') {
+        if (exists $$env{COMPILERPATHS}) {
+            my @PATHS = split(/\|/, $$env{COMPILERPATHS});
+            foreach (@PATHS) {
+                my $path = ExpandENV($_);
+                if (-e $path && -d $path) {
+                    $$env{COMPILERPATH} = realpath($path);
+                    last;
+                }
+            }
+        }
+        $x_compiler  = $$env{COMPILERPATH}.'/'
+            if (exists $$env{COMPILERPATH});
+
+    } else {
+        $x_compiler  = ExpandENV($$env{COMPILERPATH}).'/'
+            if (exists $$env{COMPILERPATH});
+    }
+
     $x_compiler  = ExpandENV($$env{COMPILERPATH}).'/'
         if (exists $$env{COMPILERPATH});
+
     $x_compiler .= $$env{CC};
     $x_compiler =~ s/\//\\/g;
     $x_command   = "\"$x_compiler\" ";
@@ -2290,7 +2400,7 @@ Makefile($$$)           # (type, dir, file)
     $text =~ s/(\nDATADIR=[ \t]*)[^\n]+/$1\/grief/g;
     $text =~ s/-o bin -g bin//g;
 
-    $text =~ s/\Q>\/dev\/null\E/>nul/g;         # nul redirection
+    $text =~ s/\Q>\/dev\/null\E/>NUL/g;         # NUL redirection
 
     # Commands
     if ('dj' ne $type) {
@@ -2397,15 +2507,30 @@ Makefile($$$)           # (type, dir, file)
     }
 
     if ($BUSYBOX) {                             # command interface rework
-        $text =~ s/\@sh /\@\@BUSYBOX\@ sh /g;
-        $text =~ s/\-sh /-\@BUSYBOX\@ sh /g;
-        $text =~ s/shell date /shell \@BUSYBOX\@ date /g;
-        $text =~ s/shell cat /shell \@BUSYBOX\@ cat /g;
+        $text =~ s/\@sh /\@${BUSYBOX} sh /g;
+        $text =~ s/\-sh /-${BUSYBOX} sh /g;
+        $text =~ s/\-\@sh /-\@${BUSYBOX} sh /g;
+        $text =~ s/\@-sh /\@-${BUSYBOX} sh /g;
+
+        $text =~ s/shell sh /shell ${BUSYBOX} sh /g;
+        $text =~ s/shell date /shell ${BUSYBOX} date /g;
+        $text =~ s/shell cat /shell ${BUSYBOX} cat /g;
     }
+
+    # Note:
+    #   By default, busybox and some shells are built with globbing in the C runtime disabled.
+    #   Hence when run from the Windows command prompt it can behave in ways that don't conform to expectations,
+    #   as such
+    #
+    #     $(shell ls <pattern>)
+    #
+    #   hence the above cannot be exec'ed via busybox-32 as the pattern wont be expanded,
+    #
+    print "warning: encountered (shell ls), advise using \$(wildcard ..) for portability\n"
+       if ($text =~ /shell ls/);
 
     $text =~ s/\@BINPATH\@/${BINPATH}/g;
     $text =~ s/\@PERLPATH\@/${PERLPATH}/g;
-    $text =~ s/\@BUSYBOX\@/${BUSYBOX}/g;
 
     $text =~ s/(\$\(RM\)) (.*)/$1 \$(subst \/,\\,$2)/g;
     $text =~ s/(\$\(RMDIR\)) (.*)/$1 \$(subst \/,\\,$2)/g;
@@ -2582,3 +2707,4 @@ systemrcode($)          # (retcode)
 }
 
 #end
+

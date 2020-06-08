@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.8 2020/05/22 02:21:05 cvsuser Exp $
+# $Id: Makefile.in,v 1.9 2020/06/08 21:04:01 cvsuser Exp $
 # rlogind Makefile
 #
 #
@@ -58,7 +58,7 @@ endif
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
 LDEBUG=		@LDEBUG@
-CINCLUDE=	-I$(D_INC) @CINCLUDE@ -DWIN32_SOCKET_MAP_NATIVE
+CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@ -DWIN32_SOCKET_MAP_NATIVE
 CEXTRA=		@DEFS@
 CPPFEXTRA	@DEFS@
 CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
@@ -107,7 +107,8 @@ OBJS+=		$(addprefix $(D_OBJ)/,$(subst .cpp,$(O),$(CPPSOURCES)))
 OBJS+=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 OBJS+=		$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
 
-LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static -llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
+LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static \
+			-llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
 
 all:		$(D_BIN)/$(TARGET)
 
