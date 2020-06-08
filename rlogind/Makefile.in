@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.9 2020/06/08 21:04:01 cvsuser Exp $
+# $Id: Makefile.in,v 1.10 2020/06/08 21:16:48 cvsuser Exp $
 # rlogind Makefile
 #
 #
@@ -60,7 +60,7 @@ CDEBUG=		@CDEBUG@
 LDEBUG=		@LDEBUG@
 CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@ -DWIN32_SOCKET_MAP_NATIVE
 CEXTRA=		@DEFS@
-CPPFEXTRA	@DEFS@
+CPPFEXTRA=	@DEFS@
 CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 CXXFLAGS=	$(CDEBUG) $(CXXOPT) $(CWARN) $(CINCLUDE) $(CXXEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDEBUG) @LDFLAGS@
