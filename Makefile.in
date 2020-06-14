@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.11 2020/06/08 21:02:56 cvsuser Exp $
+# $Id: Makefile.in,v 1.12 2020/06/14 00:49:50 cvsuser Exp $
 # winsh - top level makefile.
 #
 #
@@ -114,13 +114,30 @@ E=		.exe
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
 
+# Configuration
+
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
+
 # Directories
 
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
 D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)
 LW=		$(D_LIB)/$(LP)
+
+D_ETC=		$(D_BIN)/etc
+D_PLUGIN=	$(D_BIN)/plugin
+D_SHARE=	$(D_BIN)/share
+D_DOC=		$(D_BIN)/doc
+D_LOCALE=	$(D_BIN)/locale
+
 # Compilers, programs
 
 CC=		@CC@
@@ -140,16 +157,37 @@ ifeq ($(INNO),) # Inno5: allowing legacy XP installations
 INNO=		"C:/Program Files (x86)/Inno Setup 5/Compil32"
 endif
 
-BUSYBOX=	$(shell which busybox 2>/dev/null)
-ifeq ($(BUSYBOX),)
 BUSYBOX=	@BUSYBOX@
+ifeq ($(BUSYBOX),busybox)
+BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
 
 # Common flags
 
+XFLAGS=
+CFLAGS=		@CFLAGS@
+CWARN=		@CWARN@
+CDEBUG=		@CDEBUG@
+CRELEASE=	@CRELEASE@
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
+
+CINCLUDE=	-I. -I$(MCSOURCE) -I$(D_INC) -I$(D_INC)/glib-2.0 @CINCLUDE@
+
+CEXTRA=		@DEFS@ -DLIBW32_DYNAMIC
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
+#########################################################################################
 # Targets
 
 ifeq ("wcl386","$(CC)")
@@ -196,12 +234,16 @@ endif
 # rules
 
 .DEFAULT:
-.PHONY:			build
+.PHONY:			build release debug
 build:			directories buildinfo libs bins import
 
-release:		build package
-new_release:		new_buildnumber
-		$(MAKE) release
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
+
+new_release:			new_buildnumber
+		$(MAKE) build
 
 #	.PHONY: package
 #	package:
@@ -245,20 +287,20 @@ new_buildnumber:
 directories:		$(D_OBJ)/.created $(D_LIB)/.created $(D_BIN)/.created $(D_INC)/.created
 
 %/.created:
-		-@mkdir $(@D)
+		-@$(PERL) ./support/mkdir_p.pl $(@D)
 		@echo "++ do not delete, managed content ++" > $@
 
 bins:			$(BINS)
 
 $(D_BIN)/%$(E):		libs
 		@echo --- building $@
-		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
+		$(MAKE) -C $(notdir $(basename $@))
 
 libs:			$(LIBS)
 
 $(LW)%$(A):		$(D_LIB)/.created $(D_OBJ)/.created
 		@echo --- bulding $@
-		$(MAKE) -C $(notdir $(basename $@)) $(MAKEFLAGS)
+		$(MAKE) -C $(notdir $(basename $@))
 
 .PHONY: import
 import:				$(IMPORT)
@@ -284,6 +326,7 @@ install:		all
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/slogin$(E) $(BINDIR)
 
 clean:
+		@echo $(BUILD_TYPE) clean
 		$(MAKE) -C libw32 clean
 		$(MAKE) -C libz clean
 		$(MAKE) -C libssh2 clean

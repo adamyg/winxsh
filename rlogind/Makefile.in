@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.10 2020/06/08 21:16:48 cvsuser Exp $
+# $Id: Makefile.in,v 1.11 2020/06/14 00:49:51 cvsuser Exp $
 # rlogind Makefile
 #
 #
@@ -44,37 +44,65 @@ XCLEAN=
 
 CC=		@CC@
 CXX=		@CXX@
+ifeq ("$(CXX)","")
+CXX=		$(CC)
+endif
 RM=		@RM@
 RC=		@RC@
+
+# Configuration
+
+ifeq ("$(BUILD_TYPE)","")	#default
+BUILD_TYPE=	debug
+MAKEFLAGS+=	BUILD_TYPE=debug
+endif
+ifneq ("$(BUILD_TYPE)","release")
+RTSUFFIX=d
+endif
+
+# Directories
+
+D_INC=		$(ROOT)/include
+D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/rlogind
+D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
 
 XFLAGS=
-COPT=		@CFLAGS@
-CXXOPT=		@CXXFLAGS@
-ifeq "" "$(CXXOPT)"
-CXXOPT=		$(COPT)
-endif
+CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
-LDEBUG=		@LDEBUG@
-CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@ -DWIN32_SOCKET_MAP_NATIVE
-CEXTRA=		@DEFS@
-CPPFEXTRA=	@DEFS@
-CFLAGS=		$(CDEBUG) $(COPT) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CXXFLAGS=	$(CDEBUG) $(CXXOPT) $(CWARN) $(CINCLUDE) $(CXXEXTRA) $(XFLAGS)
-LDFLAGS=	$(LDEBUG) @LDFLAGS@
-LXFLAGS=	$(LDLIBS)
+CRELEASE=	@CRELEASE@
+CXXFLAGS=	@CXXFLAGS@
+CXXDEBUG=	@CXXDEBUG@
+ifeq ("$(CXXDEBUG)","")
+CXXDEBUG=	$(CDEBUG)
+endif
+CXXRELEASE=	@CXXRELEASE@
+ifeq ("$(CXXRELEASE)","")
+CXXRELEASE=	$(CRELEASE)
+endif
+LDDEBUG=	@LDDEBUG@
+LDRELEASE=	@LDRELEASE@
 
+CINCLUDE=	-I. @CINCLUDE@
+CEXTRA= 	@DEFS@ -DWIN32_SOCKET_MAP_NATIVE
+
+ifeq ("$(BUILD_TYPE)","release")
+CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CXXFLAGS+=	$(CXXRELEASE) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDRELEASE) @LDFLAGS@
+else
+CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
+CXXFLAGS+=	$(CXXDEBUG) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+LDFLAGS=	$(LDDEBUG) @LDFLAGS@
+endif
+LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+
+ARFLAGS=	rcv
+YFLAGS=		-d
 RMFLAGS=	-f
-
-# Directories
-
-D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@
-D_INC=		$(ROOT)/include
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/rlogind
-D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@
-XFLAGS=
 
 ############################################################
 
@@ -110,13 +138,19 @@ OBJS+=		$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
 LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static \
 			-llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
 
-all:		$(D_BIN)/$(TARGET)
+.PHONY:			build release debug
+build:		$(D_BIN)/$(TARGET)
+
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 $(RESOURCES):		../include/buildinfo.h
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS) $(RESOURCES)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LXFLAGS) @LDMAPFILE@
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)

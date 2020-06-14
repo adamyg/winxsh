@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.6 2020/06/01 00:08:06 cvsuser Exp $
+# $Id: makelib.in,v 1.7 2020/06/14 00:49:50 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -27,6 +27,7 @@
 #
 
 $PACKAGE        = 'winsh';
+$PACKAGE_NAME   = 'WinSSH/WinRSH';
 $PACKAGE_PATH   = 'libw32';
 $PACKAGE_FILE   = 'package.h';
 

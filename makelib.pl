@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.13 2020/06/08 21:03:04 cvsuser Exp $
+# $Id: makelib.pl,v 1.14 2020/06/14 00:49:50 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -70,7 +70,9 @@ my %x_environment   = (
             CC              => 'gcc',
             CXX             => 'g++',
             AR              => 'ar',
-            CFLAGS          => '-g -fno-strength-reduce -I$(ROOT)/djgpp',
+            DEFS            => '-DHAVE_CONFIG_H',
+            CFLAGS          => '-fno-strength-reduce -I$(ROOT)/djgpp',
+            CDEBUG          => '-g',
             CWARN           => '-W -Wall -Wshadow -Wmissing-prototypes',
             },
 
@@ -85,15 +87,17 @@ my %x_environment   = (
             XSWITCH         => '-o',
             AR              => 'ar',
             RC              => 'windres -DGCC_WINDRES',
-            DEFS            => '-DHAVE_CONFIG_H -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x501',
-            CINCLUDE        => '-I$(ROOT)/libw32',
-            CFLAGS          => '-std=gnu11 -g -fno-strength-reduce',
-            CXXFLAGS        => '-std=c++11 -g -fno-strength-reduce',
+            DEFS            => '-DHAVE_CONFIG_H -D_WIN32_WINNT=0x501',
+            CINCLUDE        => '',
+            CFLAGS          => '-std=gnu11 -fno-strength-reduce',
+            CXXFLAGS        => '-std=c++11 -fno-strength-reduce',
+            CDEBUG          => '-g',
             CWARN           => '-W -Wall -Wshadow -Wmissing-prototypes',
             CXXWARN         => '-W -Wall -Wshadow',
-            LDEBUG          => '',
+            LDFLAGS         => '',
+            LDDEBUG         => '',
+            LDRELEASE       => '',
             LDMAPFILE       => '-Xlinker -Map=$(MAPFILE)',
-            LIBS            => '-lw32',
             EXTRALIBS       => '-lshlwapi -lpsapi -lole32 -luuid -lgdi32 '.
                                     '-luserenv -lnetapi32 -ladvapi32 -lshell32 -lWs2_32',
             LIBTHREAD       => '-lpthread',
@@ -109,12 +113,17 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -Yd -GZ -MTd',
-            CXXFLAGS        => '-nologo -Zi -Yd -GZ -MTd',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo -Yd -GZ @RTLIBRARY@',
+            CXXFLAGS        => '-nologo -Yd -GZ @RTLIBRARY@',
+            CDEBUG          => '-Zi -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -GZ -MTd',
+            LDFLAGS         => '-nologo -GZ @RTLIBRARY@',
+            LDDEBUG         => '-Zi',
+            LDRELEASE       => '',
             LDMAPFILE       => '-MAP:$(MAPFILE)'
             },
 
@@ -129,17 +138,21 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MTd',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MTd -EHsc',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MTd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
 
             MFCDIR          => '',
-            MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
-            MFCCXXFLAGS     => '-nologo -Zi -RTC1 -MD$(USE_DEBUG) -EHsc',
+            MFCCFLAGS       => '-nologo -RTC1 @RTLIBRARY@',
+            MFCCXXFLAGS     => '-nologo -RTC1 @RTLIBRARY@ -EHsc',
             MFCCOPT         => '-Zc:wchar_t- -Zc:forScope -Gm',
             MFCCXXOPT       => '-Zc:wchar_t- -Zc:forScope -Gm',
             MFCCINCLUDE     => '',
@@ -157,12 +170,16 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MTd',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MTd -EHsc',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MTd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
             LDMAPFILE       => '-MAP:$(MAPFILE)'
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
@@ -179,19 +196,24 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MTd',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MTd -EHsc',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MTd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
+            LDRELEASE       => '-GL',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
 
             MFCDIR          => '/tools/WinDDK/7600.16385.1',
-            MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
-            MFCCXXFLAGS     => '-nologo -Zi -RTC1 -MD$(USE_DEBUG) -EHsc',
+            MFCCFLAGS       => '-nologo -RTC1 @RTLIBRARY@',
+            MFCCXXFLAGS     => '-nologo -RTC1 @RTLIBRARY@ -EHsc',
             MFCCOPT         => '-Zc:wchar_t- -Zc:forScope -Gm',
             MFCCXXOPT       => '-Zc:wchar_t- -Zc:forScope -Gm',
             MFCCINCLUDE     => '-I$(MFCDIR)/inc/atl71 -I$(MFCDIR)/inc/mfc42',
@@ -209,12 +231,17 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MDd -fp:precise',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MDd -EHsc -fp:precise',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@ -fp:precise',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc -fp:precise',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MDd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
+            LDRELEASE       => '-GL',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
@@ -232,12 +259,17 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MDd -fp:precise',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MDd -EHsc -fp:precise',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@ -fp:precise',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc -fp:precise',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MDd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
+            LDRELEASE       => '-GL',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
@@ -266,19 +298,24 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32',
-            CFLAGS          => '-nologo -Zi -RTC1 -MDd -fp:precise',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MDd -EHsc -fp:precise',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@ -fp:precise',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc -fp:precise',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MTd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
+            LDRELEASE       => '-GL',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
 
         #   MFCDIR          => '/tools/WinDDK/7600.16385.1',
-        #   MFCCFLAGS       => '-nologo -Zi -RTC1 -MD$(USE_DEBUG)',
-        #   MFCCXXFLAGS     => '-nologo -Zi -RTC1 -MD$(USE_DEBUG) -EHsc',
+        #   MFCCFLAGS       => '-nologo -RTC1 @RTLIBRARY@',
+        #   MFCCXXFLAGS     => '-nologo -RTC1 @RTLIBRARY@ -EHsc',
         #   MFCCOPT         => '-Zc:wchar_t- -Zc:forScope -Gm',
         #   MFCCXXOPT       => '-Zc:wchar_t- -Zc:forScope -Gm',
         #   MFCCINCLUDE     => '-I$(MFCDIR)/inc/atl71 -I$(MFCDIR)/inc/mfc42',
@@ -297,12 +334,17 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32 -I$(ROOT)/libw32/msvc',
-            CFLAGS          => '-nologo -Zi -RTC1 -MDd -fp:precise',
-            CXXFLAGS        => '-nologo -Zi -RTC1 -MDd -EHsc -fp:precise',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MDd',
+            CFLAGS          => '-nologo @RTLIBRARY@ -fp:precise',
+            CXXFLAGS        => '-nologo @RTLIBRARY@ -EHsc -fp:precise',
+            CDEBUG          => '-Zi -RTC1 -Od',
+            CRELEASE        => '-O2 -GL -Gy',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -Zi -RTC1 -MTd',
+            LDFLAGS         => '-nologo @RTLIBRARY@',
+            LDDEBUG         => '-Zi -RTC1',
+            LDRELEASE       => '-GL',
             LDMAPFILE       => '-MAP:$(MAPFILE)',
                         # -Fm:  if positioned before /link
                         # -MAP: if positioned afer /link
@@ -319,12 +361,13 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-Fe',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32',
-            CFLAGS          => '-nologo -showwopts -passwopts:"-q -d2" -Yd -MTd',
-            CXXFLAGS        => '-nologo -showwopts -passwopts:"-q -d2" -Yd -MTd',
+            CINCLUDE        => '',
+            RTLIBRARY       => '-MTd',
+            CFLAGS          => '-nologo -showwopts -passwopts:"-q -d2" -Yd @RTLIBRARY@',
+            CXXFLAGS        => '-nologo -showwopts -passwopts:"-q -d2" -Yd @RTLIBRARY@',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-nologo -passwopts:"-q -d2" -MTd',
+            LDFLAGS         => '-nologo -passwopts:"-q -d2" @RTLIBRARY@',
             LDMAPFILE       => '-MAP:$(MAPFILE)'
             },
 
@@ -340,7 +383,7 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-fe=',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32',
+            CINCLUDE        => '',
 
                 # -q        Operate quietly.
                 # -6r       Register calling conventions.
@@ -360,6 +403,7 @@ my %x_environment   = (
                 #   i           -> expand intrinsic functions inline
                 #   r           -> reorder instructions for best pipeline usage
                 #   u           -> all functions must have unique addresses
+                #   x           -> max optimizations
                 #
                 # -zlf      Add default library information to objects.
                 # -aa       Allow non-constant initialisation expressions.
@@ -383,14 +427,19 @@ my %x_environment   = (
                 #   (1) Use with caution, beta undocumented feature and not 100% stable.
                 #   (2) Avoid changing the call convention from #r/#s, otherwise runtime library issues.
                 #
-            CFLAGS          => '-q -6r -j -ei -d2  -hw -db -of+ -zlf -bt=nt -bm -br -aa -sg',
-            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',
+            CFLAGS          => '-q -6r -j -ei -db -zlf -bt=nt -bm -br -aa -sg',
+            CXXFLAGS        => '-q -6r -j -ei -db -zlf -bt=nt -bm -br -cc++ -xs -xr',
+            CDEBUG          => '-d2 -hw -of+ ',
+            CXXDEBUG        => '-d1 -hw -od',   #d2/d3 under hw generates invalid symbols
+            CRELEASE        => '-ox',
+            CXXRELEASE      => '-ox',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-q -6r -d2 -hw -db -bt=nt -bm -br',
+            LDFLAGS         => '-q -6r -db -bt=nt -bm -br',
+            LDDEBUG         => '-d2 -hw',
+            LDRELEASE       => '',
             LDMAPFILE       => '-fm=$(MAPFILE)',
 
-            # not-supported
             MFCDIR          => '/tools/WinDDK/7600.16385.1',
             MFCCOPT         => '-q -j -ei -6r -d2  -hw -db -ofr -zlf -bt=nt -bm -br -aa',
             MFCCXXOPT       => '-q -j -ei -6r -d2i     -db -ofr -zlf -bt=nt -bm -br -xs -xr -cc++',
@@ -410,7 +459,7 @@ my %x_environment   = (
             LSWITCH         => '',
             XSWITCH         => '-fe=',
             AR              => 'lib',
-            CINCLUDE        => '-I$(ROOT)/libw32',
+            CINCLUDE        => '',
 
                 # -q        Operate quietly.
                 # -6r       Register calling conventions.
@@ -453,11 +502,17 @@ my %x_environment   = (
                 #   (1) Use with caution, beta undocumented feature and not 100% stable.
                 #   (2) Avoid changing the call convention from #r/#s, otherwise runtime library issues.
                 #
-            CFLAGS          => '-q -6r -j -ei -d2  -hw -db -of+ -zlf -bt=nt -bm -br -aa -sg',
-            CXXFLAGS        => '-q -6r -j -ei -d2i     -db -of+ -zlf -bt=nt -bm -br -cc++ -xs -xr',
+            CFLAGS          => '-q -6r -j -ei -db -zlf -bt=nt -bm -br -aa -sg',
+            CXXFLAGS        => '-q -6r -j -ei -db -zlf -bt=nt -bm -br -cc++ -xs -xr',
+            CDEBUG          => '-d2 -hw -of+ ',
+            CXXDEBUG        => '-d2i -hw -od',
+            CRELEASE        => '-ox',
+            CXXRELEASE      => '-ox',
             CWARN           => '-W3',
             CXXWARN         => '-W3',
-            LDEBUG          => '-q -6r -d2 -hw -db -bt=nt -bm -br',
+            LDFLAGS         => '-q -6r -db -bt=nt -bm -br',
+            LDDEBUG         => '-d2 -hw',
+            LDRELEASE       => '',
             LDMAPFILE       => '-fm=$(MAPFILE)',
 
             # not-supported
@@ -496,7 +551,7 @@ my %win_entries     = (
         LT_OBJDIR           => '.libs/',
         RC                  => 'rc',
 
-        LIBS                => '$(D_LIB)/libw32.lib',
+        LIBS                => '',
         EXTRALIBS           => 'advapi32.lib gdi32.lib'.
                                   ' shlwapi.lib shell32.lib psapi.lib ole32.lib'.
                                   ' userenv.lib user32.lib ws2_32.lib wsock32.lib',
@@ -581,17 +636,29 @@ my %x_tokens        = (
         PERL                => 'perl',
         LIBTOOL             => 'libtool',
 
+        CFLAGS              => '',
+        CXXFLAGS            => '',
+
         CDEBUG              => '',
+        CRELEASE            => '',
         CWARN               => '',
+
         CXXDEBUG            => '',
+        CXXRELEASE          => '',
         CXXWARN             => '',
+
         DEFS                => '-DHAVE_CONFIG_H',
         CINCLUDE            => '',
+        CXXINCLUDE          => '',
 
         LIBCURL_CPPFLAGS    => '',
 
         LDFLAGS             => '',
+        LDDEBUG             => '',
+        LDRELEASE           => '',
         LIBS                => '',
+        EXTRALIBS           => '',
+
         LIBENCA             => '',
         LIBSPELL            => '',
         LIBYACC             => '',
@@ -604,7 +671,6 @@ my %x_tokens        = (
         LIBBZ2              => '',
         LIBLZMA             => '',
         LIBREGEX            => '',
-        EXTRALIBS           => '',
         TERMLIB             => '',
         LIBM                => '',
         LIBX11              => '',
@@ -612,7 +678,12 @@ my %x_tokens        = (
         LIBTHREAD           => ''
         );
 
-my @x_headers       = (
+my %x_tokendefs     = (
+        CXX                 => 'CC',
+        CXXFLAGS            => 'CFLAGS'
+        );
+
+my @x_headers       = (     #headers
         'sys/types.h',
         'sys/cdefs.h',
         'sys/bsdtypes.h',
@@ -660,16 +731,19 @@ my @x_headers       = (
         'utime.h',
         'wait.h',
 
-        'windows.h',
-        'wincrypt.h',
-        'bcrypt.h',
-
         'getopt.h',
         'unistd.h',
         'dirent.h',
         'dlfcn.h',                              # dlopen()
         'pwd.h',
         'grp.h'
+        );
+
+my @x_headers2      = (     #headers; check only
+        'xthreads.h',                           # MSVC +2017, almost C11
+        'windows.h',
+        'wincrypt.h',
+        'bcrypt.h'
         );
 
 my @x_decls         = (     #stdint/intypes.h
@@ -788,6 +862,7 @@ my @x_functions     = (
         'truncate', 'ftruncate',
         'getline', 'getdelim',                  # bsd/linux
         'ctime_r', 'localtime_r', 'gmtime_r', 'asctime_r', #posix.1
+              'gmtime_s',                       # __STDC_WANT_LIB_EXT1__
               '_get_timezone',
         'mktime',
         'timegm',                               # bsd/linux extensions
@@ -816,11 +891,13 @@ my @x_commands     = (     # commands explicity converted to <cmd>.exe
 
 our $PACKAGE        = undef;
 our $PACKAGE_PATH   = $x_libw32;
-our $PACKAGE_H      = undef;    # defunct, use PACKAGE_FILE
+our $PACKAGE_H      = undef;                    # defunct, use PACKAGE_FILE
 our $PACKAGE_FILE   = 'package.h';
 
 our $CONFIG_PATH    = $x_libw32;
 our $CONFIG_FILE    = 'w32config.h';
+
+our $TOOLCHAIN      = undef;
 
 our @x_libraries    = ();   # local libraries -l<xxx> lib<xxx>.lib
 our @x_libraries2   = ();   # local libraries -l<xxx> xxx.lib
@@ -835,8 +912,6 @@ my %CONFIG_H        = (     # predefined config.h values
         IS_LITTLE_ENDIAN        => '1',         # TODO
         STDC_HEADERS            => '1',
         HAVE_EIGHTBIT           => '1',
-        HAVE_BCMP               => '1',
-        HAVE_BZERO              => '1',
         HAVE_ENVIRON            => '1',
         HAVE_SYSERRLIST         => '1'
         );
@@ -862,6 +937,7 @@ my $x_signature     = undef;
 
 my $o_keep          = 0;
 my $o_version       = undef;
+my $o_verbose       = 0;
 my $o_gnuwin32      = 'auto';
 my $o_contrib       = 1;
 my $o_gnulibs       = 0;
@@ -928,6 +1004,7 @@ main()
                 'libarchive=s'  => \$o_libarchive,
                 'libmagic=s'    => \$o_libmagic,
                 'clean'         => \$o_clean,
+                'verbose'       => sub {++$o_verbose;},
                 'keep'          => \$o_keep,
                 'help'          => \$o_help
                 );
@@ -1175,7 +1252,7 @@ Configure($$)           # (type, version)
     $x_signature = $signature;                  # active environment
     my $env = $x_environment{$signature};
 
-    if ('dj' ne $type) {                        # WIN32 profile
+    if ('dj' ne $type) {                        # WIN32 default profile
         foreach my $entry (keys %win_entries) {
             my $token = $win_entries{$entry};
 
@@ -1184,6 +1261,10 @@ Configure($$)           # (type, version)
         }
     }
 
+    # toolchain
+    $TOOLCHAIN = $$env{TOOLCHAIN};
+    $x_tokens{"INCLUDE"} = $ENV{"INCLUDE"};
+
     foreach my $entry (keys %$env) {            # target profile
         $x_tokens{$entry} = $$env{$entry};
     }
@@ -1191,6 +1272,7 @@ Configure($$)           # (type, version)
     (-d $x_tmpdir || mkdir($x_tmpdir)) or
         die "makelib: unable to access/create tmpdir <$x_tmpdir> : $!\n";
 
+    ImportConfig($type, $env);
     CheckCompiler($type, $env);
 
     # modules
@@ -1227,10 +1309,16 @@ Configure($$)           # (type, version)
     }
 
     # header
-    my @INCLUDE = split(/;/, $ENV{"INCLUDE"});
+    my @INCLUDE = ();
 
-    push @INCLUDE, @x_include;
-    foreach my $header (@x_headers) {
+    push @INCLUDE, split(/;/, $x_tokens{INCLUDE});
+    push @INCLUDE, @x_include;                  # additional search directories
+
+    print "Scanning: @INCLUDE\n"
+        if ($o_verbose);
+    my $idx = -1;
+    foreach my $header (@x_headers, @x_headers2) {
+        my $headers2 = (++$idx >= scalar @x_headers);
         my $fullpath = undef;
 
         print "header:   ${header} ...";
@@ -1241,9 +1329,13 @@ Configure($$)           # (type, version)
             if (-f $fullpath) {
                 print "[${fullpath}]";
 
-                push @HEADERS, $header;
-                push @EXTHEADERS, $header
-                    if ($include ne $x_libw32);
+                if ($headers2) {               # headers2
+                    push @EXTHEADERS, $header;
+                } else {
+                    push @HEADERS, $header;
+                    push @EXTHEADERS, $header
+                        if ($include ne $x_libw32);
+                }
                 $header =~ s/[\/.]/_/g;
                 $header = uc($header);
                 $CONFIG_H{"HAVE_${header}"} = '1';
@@ -1661,6 +1753,24 @@ LoadContrib($$$)        # (name, dir, refIncludes)
 }
 
 
+#   Function: ImportConfigurations
+#       Import the optional toolchain configuration.
+#
+sub
+ImportConfig($$)        # (type)
+{
+    my ($type, $env) = @_;
+
+    return
+        if (! -f './makeconfig.in');
+
+    require './makeconfig.pm' or
+        die "makeconfig.pm: couldn't load $@\n";
+
+    MakeConfig::Import($type, $env, \%x_tokens, $o_verbose);
+}
+
+
 #   Function: CheckCompiler
 #       Check whether the stated compiler exists.
 #
@@ -1723,37 +1833,35 @@ CheckCompiler($$)       # (type, env)
         }
     }
 
-    my @CINCLUDE = split(/ /, $$env{CINCLUDE});
-
-    foreach (@CINCLUDE) {
-        if (/^-I\$\(ROOT\)(.*)$/) {
-            push @x_include, "${CWD}$1";
-        } elsif (/^-I(.*)$/) {
-            push @x_include, $1;
-        } else {
-            push @x_include, $_;
-        }
-    }
-
-    my $includes = '';
-    $includes .=                                # <edidentifier.h>
+    my $INCLUDES = '';
+    $INCLUDES .=                                # <edidentifier.h>, required??
          (exists $$env{ISWITCH} ? $$env{ISWITCH} : '-I')."${CWD}/include ";
-    foreach (@x_include) {
-        $includes .=                            # implied
-           (exists $$env{ISWITCH} ? $$env{ISWITCH} : '-I').$_.' ';
+
+    if (defined $x_tokens{XINCLUDE}) {          # extra includes
+        my @xincludes = split(/;/, $x_tokens{XINCLUDE});
+
+        foreach my $inc (@xincludes) {
+            if ($inc) {
+                $inc =~ s/\$\(ROOT\)/${CWD}/;
+                $inc = realpath($inc)
+                    if (-d $inc);
+
+                $INCLUDES .= (exists $$env{ISWITCH} ? $$env{ISWITCH} : '-I').$inc.' ';
+                push @x_include, $inc;
+            }
+        }
     }
 
     $CONFIG_H{MAKELIB_CC_COMPILER} = "\"".basename(${x_compiler})."\"";
     $CONFIG_H{MAKELIB_CC_VERSION} = "\"${x_version}\"";
 
-    print "compiler: ${x_compiler}\n";
-    print "version:  ${x_version}\n";
-    print "command:  ${x_command}\n";
-    print "includes: ${includes}\n";
+    print "Compiler: ${x_compiler}\n";
+    print "Version:  ${x_version}\n";
+    print "Command:  ${x_command}\n";
 
     # build final command
     $x_command  .= "__FLAGS__ ";
-    $x_command  .= $includes;
+    $x_command  .= $INCLUDES;
     $x_command  .= "$$env{OSWITCH}__OBJ__ "
         if ($$env{OSWITCH} ne '');
     $x_command  .= "__LIB__ ";                  # lib's
@@ -1936,6 +2044,11 @@ $cmdparts
  */
 EOT
 
+    my $headers = '';
+    foreach my $header (@HEADERS) {
+        $headers .= "#include <$header>\n";
+    }
+
     ##############################################################################
     #   alloca -- possible intrusive
     #
@@ -1979,27 +2092,54 @@ int main(int argc, char **argv) {
 EOT
 
     ##############################################################################
+    #   va_copy, generally a macro
+    #
+    } elsif ($name =~ /va_copy$/) {
+        print TMP<<EOT;
+${config}
+#if defined(__STDC__) || defined(STDC_HEADERS)
+#include <stdarg.h>
+#endif
+${headers}
+int main(int argc, char **argv) {
+    va_list ap, ap2;
+    va_copy(ap, ap2);
+    return 0;
+}
+EOT
+
+    ##############################################################################
+    #   finite,isfinite, isinf, insan can be macros
+    #
+    } elsif ($name =~ /finite$/ || $name =~ /finitef$/ || $name =~ /is(inf|nan|nanf)$/ || $name =~ /^isnormal/) {
+        print TMP<<EOT;
+${config}
+${headers}
+int main(int argc, char **argv) {
+    double x = 0;
+    $name(x);
+    return 0;
+}
+EOT
+
+    ##############################################################################
     #   generic
     #
     } else {
-        if ($name =~ /_s$/) {   # enable C Library Extension 1 (MSC/WC only)
-            $config .= "\n#define __STDC_WANT_LIB_EXT1__ 1";
+        if ($name =~ /_s$/) {   # enable C Library Extension 1 (MSVC/WC only)
+            print TMP<<EOT;
+#define __STDC_WANT_LIB_EXT1__ 1
+EOT
         }
 
         print TMP<<EOT;
 ${config}
-#if defined(__STDC__)
+#if defined(__STDC__) || defined(STDC_HEADERS)
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #endif
-EOT
-
-    foreach my $header (@HEADERS) {
-        print TMP "#include <$header>\n";
-    }
-
-        print TMP<<EOT;
+${headers}
 typedef void (*function_t)(void);
 static function_t function;
 int main(int argc, char **argv) {
@@ -2040,7 +2180,7 @@ CheckICUFunction($)     # (type, name)
  *  ICU test application.
 $cmdparts
  */
-#if defined(__STDC__)
+#if defined(__STDC__) || defined(STDC_HEADERS)
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -2141,7 +2281,11 @@ CheckConfig()
     my $config = '';
 
     $config = "
-#if defined(__STDC__)
+#if (defined(_MSC_VER) || defined(__WATCOMC__)) && \\
+           !defined(STDC_HEADERS)
+#define STDC_HEADERS        /* VC, __STDC__ only under /Za */
+#endif
+#if defined(__STDC__) || defined(STDC_HEADERS)
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2204,16 +2348,16 @@ CheckCommand($$;$)      # (base, source, pkg)
     my $optional = '';
     my $lib = '';
 
-    if ($source =~ /\.cpp/) {
+    if ($source =~ /\.cpp/) {                   # CXX
         $flags = $$env{CXXFLAGS}.' '
             if (exists $$env{CXXFLAGS});
-    } else {
+    } else {                                    # or CC
         $flags = $$env{CFLAGS}.' '
             if (exists $$env{CFLAGS});
     }
 
     if (defined $pkg) {
-        if ('icu' eq $pkg) {
+        if ('icu' eq $pkg) {                    # FIXME, generic interface
             my @includes = split(/ /, $$env{ICUINCLUDE});
             my @libs = split(/ /, $$env{ICULIB});
 
@@ -2228,6 +2372,12 @@ CheckCommand($$;$)      # (base, source, pkg)
             }
         }
     }
+
+    while ($flags =~ /\@(.+)\@/) {              # expand @xxxx@
+        my $entry = $1;
+        $flags =~ s/\@\Q${entry}\E\@/${x_tokens{$entry}}/g;
+    }
+    $flags =~ s/\$\(.+\)//g;                    # remove $(xxxx)
 
     $cmd =~ s/__FLAGS__/$flags/g;
     $cmd =~ s/__SOURCE__/$source/g;
@@ -2260,7 +2410,7 @@ CheckExec($$;$)         # (base, cmd, [exec])
     my ($base, $cmd, $exec) = @_;
 
     print "(cd tmpdir; $cmd)\n"
-        if ($o_keep);
+        if ($o_verbose);
 
     chdir($x_tmpdir) or
         die "cannot access directory <$x_tmpdir> : $!\n";
@@ -2497,14 +2647,28 @@ Makefile($$$)           # (type, dir, file)
         }
     }
 
-    $x_tokens{CXX} = $x_tokens{CC}              # CXX=CC
-        if (!exists $x_tokens{CXX});
-    foreach my $entry (keys %x_tokens) {
-        my $quoted_entry = quotemeta($entry);
-        my $replace = $x_tokens{$entry};
-
-        $text =~ s/\@$quoted_entry\@/$replace/g;
+    foreach my $entry (keys %x_tokendefs) {
+        if (! defined $x_tokens{$entry} || ! $x_tokens{$entry}) {
+            my $parent = $x_tokens{$x_tokendefs{$entry}};
+            if ($parent) {
+                print "Defaulting CXXFLAGS = CFLAGS [${parent}]\n"
+                     if ($o_verbose);
+                $x_tokens{$entry} = $parent;   # example CXX=CC
+            }
+        }
     }
+
+    my $count;
+    do {
+        $count = 0;
+        foreach my $entry (keys %x_tokens) {
+            my $quoted_entry = quotemeta($entry);
+            my $replace = $x_tokens{$entry};
+
+            ++$count
+                if ($text =~ s/\@$quoted_entry\@/$replace/g);
+        }
+    } while ($count);
 
     if ($BUSYBOX) {                             # command interface rework
         $text =~ s/\@sh /\@${BUSYBOX} sh /g;
