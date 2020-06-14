@@ -1,6 +1,5 @@
 
-[![Website](https://img.shields.io/badge/View-Website-blue)](https://sourceforge.net/projects/winssh/)
-
+[![Website](https://img.shields.io/badge/View-Website-blue)](https://sourceforge.net/projects/winssh/) [![Build status](https://ci.appveyor.com/api/projects/status/6fq5on94pp3i87kj?svg=true&passingText=MSVC%20Passing&failingText=MSVC%20Failing&pendingText=MSVC%20Pending)](https://ci.appveyor.com/project/adamyg/winxsh-msvc/)
 
 # WinRSH/WinSSH project
 
