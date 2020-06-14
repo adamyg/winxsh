@@ -48,7 +48,7 @@
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
-#if defined(WIN32) && defined(_DEBUG)
+#if defined(_WIN32) && defined(_DEBUG)
 #define BUILD_ENABLE_DEBUG
 #endif
 

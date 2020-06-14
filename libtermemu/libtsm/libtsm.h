@@ -43,7 +43,7 @@
 #include <stdlib.h>
 
 #ifndef SHL_EXPORT
-#if defined(WIN32)
+#if defined(_WIN32)
 #define TSM_STATIC //TODO
 # if !defined(TSM_STATIC)
 #  if defined(TSM_LIBRARY)

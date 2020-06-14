@@ -72,7 +72,7 @@
 #include "compat_stdbool.h"
 #endif
 #include <string.h>
-#if defined(WIN32)
+#if defined(_WIN32)
 #include "external/wcwidth.h"
 #include "external/wcwidth.c"
 #else

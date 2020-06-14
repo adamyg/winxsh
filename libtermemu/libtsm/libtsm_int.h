@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #ifndef SHL_EXPORT
-#if defined(WIN32)
+#if defined(_WIN32)
 #define SHL_EXPORT __declspec(dllexport) 
 #else
 #define SHL_EXPORT __attribute__((visibility("default")))

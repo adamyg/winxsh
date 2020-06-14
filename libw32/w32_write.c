@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.10 2020/05/13 19:14:54 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.11 2020/06/14 00:49:51 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -36,7 +36,7 @@ __CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.10 2020/05/13 19:14:54 cvsus
  */
 
 #ifndef _WIN32_WINNT
-#define WIN32_WINNT        0x0501              /* enable xp+ features */
+#define _WIN32_WINNT 0x0501                     /* enable xp+ features */
 #endif
 
 #include "win32_internal.h"
@@ -44,7 +44,6 @@ __CIDENT_RCSID(gr_w32_write_c,"$Id: w32_write.c,v 1.10 2020/05/13 19:14:54 cvsus
 #include <unistd.h>
 
 #pragma comment(lib, "Ws2_32.lib")
-
 
 /*
 //  NAME
