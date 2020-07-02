@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.14 2020/07/02 21:31:40 cvsuser Exp $
+# $Id: Makefile.in,v 1.15 2020/07/02 23:03:22 cvsuser Exp $
 # libw32 makefile.
 #
 #
@@ -8,8 +8,9 @@
 #
 # This file is part of the WinRSH/WinSSH project.
 #
-# The WinRSH/WinSSH project is free software: you can redistribute it
-# and/or modify it under the terms of the WinRSH/WinSSH project License.
+# The applications are free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, version 3.
 #
 # Redistributions of source code must retain the above copyright
 # notice, and must be distributed with the license document above.
@@ -81,7 +82,8 @@ LDDEBUG=	@LDDEBUG@
 LDRELEASE=	@LDRELEASE@
 
 CINCLUDE=	-I$(D_INC) @CINCLUDE@ -I.
-CEXTRA=		@DEFS@
+CEXTRA=		-DHAVE_CONFIG_H=1 -D_WIN32_WINNT=0x600
+##CEXTRA=	@DEFS@
 
 ifeq ("$(BUILD_TYPE)","release")
 CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
