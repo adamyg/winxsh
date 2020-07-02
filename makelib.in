@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.9 2020/07/02 22:43:32 cvsuser Exp $
+# $Id: makelib.in,v 1.10 2020/07/02 23:55:42 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -105,11 +105,13 @@ Configure()
                 add_define('HAVE_CONFIG_H');
                 add_define('_WIN32_WINNT=0x600');       # Windows SDK
 
-                add_define('LIBW32_DYNAMIC');           # libw32 bindings
+              # add_define('LIBW32_DYNAMIC');           # libw32 bindings
+                add_define('LIBW32_STATIC');            # libw32 bindings
 
                 add_xinclude('$(ROOT)/libw32');         # Extra includes; C and compiler tests.
                 add_xinclude('$(ROOT)/libw32/msvc');    # MSVC specials
-                add_application_library('libw32.lib');
+              # add_application_library('libw32.lib');
+                add_application_library('libw32_static.lib');
         }
 
         ################################################################################
@@ -121,10 +123,13 @@ Configure()
                 add_define('HAVE_CONFIG_H');
                 add_define('_WIN32_WINNT=0x600');       # Windows SDK
 
-                add_define('LIBW32_DYNAMIC');           # libw32 bindings
+              # add_define('LIBW32_DYNAMIC');           # libw32 bindings
+                add_define('LIBW32_STATIC');            # libw32 bindings
+
 
                 add_xinclude('$(ROOT)/libw32');         # Extra includes; C and compiler tests.
-                add_application_library('libw32.lib');
+              # add_application_library('libw32.lib');
+                add_application_library('libw32_static.lib');
         }
 }
 

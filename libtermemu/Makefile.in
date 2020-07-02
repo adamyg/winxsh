@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.12 2020/06/14 00:49:50 cvsuser Exp $
+# $Id: Makefile.in,v 1.13 2020/07/02 23:55:42 cvsuser Exp $
 # libtermemu makefile.
 #
 #
@@ -122,8 +122,6 @@ KBTEST_OBJS=\
 
 TSKS=		$(D_BIN)/mkkeys$(E)		\
 		$(D_BIN)/kbtest$(E)
-
-LDLIBS=		-L$(D_LIB) -llibw32_static
 
 ############################################################
 
