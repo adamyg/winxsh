@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.8 2020/07/02 22:26:01 cvsuser Exp $
+# $Id: makelib.in,v 1.9 2020/07/02 22:43:32 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -74,7 +74,7 @@ $PACKAGE_FILE   = 'package.h';
 @OPTLIBRARIES    = ();  # optional libraries
 
 ## Makefiles
-@AKEFILES        = (    # local makefiles
+@MAKEFILES       = (    # local makefiles
         '.',
         'libw32',
         'libz',

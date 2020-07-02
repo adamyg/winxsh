@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: updateyear.pl,v 1.1 2020/04/29 11:54:24 cvsuser Exp $
+# $Id: updateyear.pl,v 1.2 2020/07/02 21:31:41 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # Update the copyright year within the specified files
 #
-# Copyright (c) 2012-2018, Adam Young.
+# Copyright (c) 2012-2020, Adam Young.
 # All Rights Reserved
 #
 
@@ -154,10 +154,12 @@ load($$)                # (file)
         chomp(); chomp();
         if ($result < 0) {
             if (/Copyright.*[ -]201\d.*Adam/i) {
-                s/2012,/2012 - 2018/ or
-		    s/ - 2017/ - 2018/ or
-		    s/ - 2016/ - 2018/ or
-		    s/ - 2015/ - 2018/;
+                  s/2012,/2012 - 2020/ or
+                    s/ - 2019/ - 2020/ or
+                    s/ - 2018/ - 2020/ or
+                    s/ - 2017/ - 2020/ or
+                    s/ - 2016/ - 2020/ or
+                    s/ - 2015/ - 2020/;
                 $result = scalar @lines;
             }
         }
@@ -192,3 +194,4 @@ trimnl($)
 }
 
 #end
+
