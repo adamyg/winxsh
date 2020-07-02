@@ -10,8 +10,9 @@
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,9 +22,10 @@
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * License for more details.
  * ==end==
  */
 
@@ -91,7 +93,7 @@
 #if defined(__cplusplus)                        /* std::nothrow() emulation */
     #include <cstddef>
     #include <cstdlib>
-#pragma warning (push)  
+#pragma warning (push)
 #pragma warning 14 9  // no reference to symbol 'operator new'
     namespace std {
         struct nothrow_t { };

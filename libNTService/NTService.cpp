@@ -1,17 +1,18 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.10 2020/05/22 12:49:41 cvsuser Exp $")
-
+__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.11 2020/07/02 21:25:08 cvsuser Exp $")
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  *
  * Copyright (c) 2020, Adam Young.
  * Based on the MSDN example service framework.
+ * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,9 +22,10 @@ __CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.10 2020/05/22 12:49:41 cvs
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * License for more details.
  * ==end==
  */
 
@@ -183,18 +185,25 @@ CNTService::DefaultServiceName(const char *arg0, char *buf, size_t buflen)
 }
 
 
-NTService::IDiagnostics &
-CNTService::diags() const
+const char *
+CNTService::ServiceName() const
 {
-    return *diags_;
+        return m_szServiceName;
 }
 
 
-void            
+NTService::IDiagnostics &
+CNTService::diags() const
+{
+        return *diags_;
+}
+
+
+void
 CNTService::SetDiagnostics(NTService::IDiagnostics &diags)
 {
-    registry_.SetDiagnostics(diags);
-    diags_ = &diags;
+        registry_.SetDiagnostics(diags);
+        diags_ = &diags;
 }
 
 
@@ -225,7 +234,7 @@ int CNTService::ExecuteCommand(int argc, const char * const *argv, unsigned filt
                 if (argc > 1) {
                         return NTSERVICE_CMD_UNEXPECTED_ARG;
                 }
-                diags().finfo("%s Version %d.%d", m_szServiceName, m_iMajorVersion, m_iMinorVersion);
+                diags().finfo("%s Version %d.%d.%d", m_szServiceName, m_iMajorVersion, m_iMinorVersion, m_iReleaseVersion);
                 diags().finfo("Service is %s installed", IsInstalled() ? "currently" : "not");
                 return 1;
 
@@ -300,8 +309,8 @@ void CNTService::InstallArgumentsUsage()
         diags().finfo("      -U,--account=<user>             Account");
         diags().finfo("      -P,--password=<xxx>             Password");
         diags().finfo("      -D,--displayname=<xxx>          Display name");
-        diags().finfo("      -C,--description=\"text\"       Description/comment text");
-        diags().finfo("      -A,--arg=\"argument[=value]\"   Service argument; none or more");
+        diags().finfo("      -C,--description=\"text\"         Description/comment text");
+        diags().finfo("      -A,--arg=\"argument[=value]\"     Service argument; none or more");
         diags().finfo("      --grant                         Grant public access");
         diags().finfo("      --auto                          Auto start");
         diags().finfo("      --manual                        Manual start");
@@ -320,7 +329,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                 { "account",        Getopt::argument_required,  NULL, 'U' }, //-U,--account=<user>
                 { "password",       Getopt::argument_required,  NULL, 'P' }, //-P,--password=<xxx>
                 { "displayname",    Getopt::argument_required,  NULL, 'D' }, //-D,--displayname=<xxx>
-                { "description",    Getopt::argument_required,  NULL, 'C' }, //-C,--description=<xxx> 
+                { "description",    Getopt::argument_required,  NULL, 'C' }, //-C,--description=<xxx>
                 { "grant",          Getopt::argument_none,      NULL, 'G' }, //-g,--grant
                 { "arg",            Getopt::argument_required,  NULL, 'A' }, //-A,--arg "argument=value"
                 { "auto",           Getopt::argument_none,      NULL, 100 }, //--auto
@@ -344,7 +353,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                         break;
                 case 'C':   //-C,--description=<xxx>
                         arguments.description = options.optarg();
-                        break;                      
+                        break;
                 case 'G':   //-g,--grant
                         arguments.grant_control = true;
                         break;
@@ -766,7 +775,7 @@ bool CNTService::ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags)
 // Application event logging
 
 void CNTService::LogMessage(const char *fmt, ...)
-{   
+{
         char message[256] = {0};
         va_list ap;
 
@@ -788,7 +797,7 @@ void CNTService::LogError(bool assystem, const char *fmt, ...)
         LogEvent(EVENTLOG_ERROR_TYPE, dwID, message);
         va_end(ap);
 }
-            
+
 
 void CNTService::LogEvent(WORD wType, DWORD dwID, const char* pszS1, const char* pszS2, const char* pszS3)
 {
@@ -813,7 +822,7 @@ void CNTService::LogEvent(WORD wType, DWORD dwID, const char* pszS1, const char*
         }
 
         if (m_bRunAsConsole) {
-                diags().ferror("LOGEVENT: %u, %u, %s %s %s", wType, dwID, 
+                diags().ferror("LOGEVENT: %u, %u, %s %s %s", wType, dwID,
                         (pszS1 ? pszS1 : ""), (pszS2 ? pszS2 : ""), (pszS3 ? pszS3 : ""));
         }
 }

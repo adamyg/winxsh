@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt_long.c,v 1.2 2020/05/17 19:54:44 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt_long.c,v 1.3 2020/07/02 21:31:42 cvsuser Exp $")
 
 /*-
  * Copyright (c) 2000 The NetBSD Foundation, Inc.
@@ -99,7 +99,7 @@ gcd(int a, int b)
 		b = c;
 		c = a % b;
 	}
-	   
+
 	return b;
 }
 
@@ -211,7 +211,7 @@ start:
 			place = EMSG;
 			if (IN_ORDER) {
 				/*
-				 * GNU extension: 
+				 * GNU extension:
 				 * return non-option as argument to option 1
 				 */
 				optarg = nargv[optind++];
@@ -256,7 +256,7 @@ start:
 	}
 	if (optchar == 'W' && oli[1] == ';') {	/* -W long-option */
 		/* XXX: what if no long options provided (called by getopt)? */
-		if (*place) 
+		if (*place)
 			return -2;
 
 		if (++optind >= nargc) {	/* no arg */
@@ -299,7 +299,7 @@ start:
 }
 
 
-//	#ifdef REPLACE_GETOPT
+#if defined(REPLACE_GETOPT)
 //	/*
 //	 * getopt --
 //	 *	Parse argc/argv argument vector.
@@ -333,7 +333,14 @@ start:
 //		}
 //		return retval;
 //	}
-//	#endif
+#endif  //REPLACE_GETOPT
+
+
+int
+__import_getopt(int nargc, char * const *nargv, const char *ostr)
+{
+	return getopt(nargc, nargv, ostr);
+}
 
 
 /*
@@ -395,7 +402,7 @@ getopt_long2(int nargc, char * const *nargv, const char *options, const struct o
 			has_equal++;
 		} else
 			current_argv_len = strlen(current_argv);
-	    
+
 		for (i = 0; long_options[i].name; i++) {
 			/* find matching long option */
 			if (strncmp(current_argv, long_options[i].name,
@@ -476,7 +483,7 @@ getopt_long2(int nargc, char * const *nargv, const char *options, const struct o
 		if (long_options[match].flag) {
 			*long_options[match].flag = long_options[match].val;
 			retval = 0;
-		} else 
+		} else
 			retval = long_options[match].val;
 		if (idx)
 			*idx = match;
@@ -486,3 +493,4 @@ getopt_long2(int nargc, char * const *nargv, const char *options, const struct o
 }
 
 //end
+

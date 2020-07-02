@@ -1,11 +1,11 @@
 #ifndef LIBW32_SYS_UTYPES_H_INCLUDED
 #define LIBW32_SYS_UTYPES_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_sys_utypes_h,"$Id: utypes.h,v 1.7 2020/06/14 00:49:51 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_sys_utypes_h,"$Id: utypes.h,v 1.9 2020/07/02 21:31:44 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
-/* 
+/*
  * win32 unix types
  *
  * Copyright (c) 1998 - 2020, Adam Young.
@@ -13,10 +13,19 @@ __CPRAGMA_ONCE
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * Redistributions of source code must retain the above copyright
+ * notice, and must be distributed with the license document above.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, and must include the license document above in
+ * the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -62,17 +71,17 @@ __CPRAGMA_ONCE
 #define _UNIXTYPES_T_DEFINED
 #if defined(_BSD_SOURCE)
 #if !defined(_BSDTYPES_DEFINED)
-typedef unsigned char   u_char;                 /* BSD compatibility */
-typedef unsigned short  u_short;
-typedef unsigned int    u_int;
-typedef unsigned long   u_long;
+typedef unsigned char u_char;                   /* BSD compatibility */
+typedef unsigned short u_short;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
 #define _BSDTYPES_DEFINED                       /* winsock[2].h and others */
 #endif /*_BSDTYPES_DEFINED*/
 #endif /*_BSD_SOURCE*/
-typedef unsigned char   uchar;                  /* Sys V compatibility */
-typedef unsigned short  ushort;
-typedef unsigned int    uint;
-typedef unsigned long   ulong;
+typedef unsigned char uchar;                    /* Sys V compatibility */
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 #endif
 
 /* [u]int8_t, [u]int16_t, [u]int32_t optional [u]int64_t */
@@ -135,11 +144,26 @@ typedef int pid_t;                              /* process identifier */
 #define HAVE_PID_T
 #endif
 
+#if !defined(HAVE_SSIZE_T)
+#ifdef _WIN64
+#define ssize_t long long
+#else
+#define ssize_t long
+#endif
+#define HAVE_SSIZE_T
+#endif
+
+#ifdef _WIN64
+typedef long long suseconds_t;                  /* sys/types.h */
+typedef unsigned useconds_t;
+#else
 typedef long suseconds_t;                       /* sys/types.h */
+typedef unsigned useconds_t;
+#endif
 
 #if defined(_MSC_VER) && \
-	!defined(__WATCOMC__)
-		/* check for !WATCOMC, at times we masquerade WC as MSVC */
+        !defined(__WATCOMC__)
+                /* check for !WATCOMC, at times we masquerade WC as MSVC */
 #if !defined(uid_t) && !defined(gid_t)
 typedef int uid_t;
 typedef int gid_t;
@@ -183,3 +207,4 @@ typedef unsigned nlink_t;                       /* link count */
 #endif
 
 #endif /*LIBW32_SYS_UTYPES_H_INCLUDED*/
+

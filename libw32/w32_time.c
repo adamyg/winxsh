@@ -1,17 +1,18 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.3 2020/04/29 11:54:26 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.4 2020/07/02 21:31:43 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 time system calls
  *
- * Copyright (c) 1998 - 2017, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,7 +22,7 @@ __CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.3 2020/04/29 11:54:26 cvsuser 
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -36,17 +37,26 @@ __CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.3 2020/04/29 11:54:26 cvsuser 
  */
 
 #include <sys/cdefs.h>
+
 #include "win32_internal.h"
 #include <win32_time.h>
+
+#include <sys/socket.h>
+
 #if defined(HAVE_SYS_UTIME_H) ||\
-	defined(__MINGW32__)
+        defined(__MINGW32__)
 #include <sys/utime.h>
 #endif
 #if defined(HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #endif
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#include <sys/timeb.h>
+#endif
 #include <time.h>
 #include <unistd.h>
+#include <assert.h>
 
 
 /*
@@ -121,34 +131,52 @@ w32_sleep (unsigned int secs)
 //
 //  DESCRIPTION
 //
-//      The  gettimeofday()  function  shall  obtain  the  current  time,
-//      expressed  as  seconds  and  microseconds  since  the  Epoch, and
-//      store  it  in  the  timeval  structure  pointed  to  by  tp.  The
-//      resolution of the system clock is unspecified.
+//      The gettimeofday() function shall obtain the current time, expressed aa seconds and 
+//      microseconds since the Epoch, and store it in the timeval structure pointed to by tp.
+//      The resolution of the system clock is unspecified.
 //
 //      If tzp is not a null pointer, the behavior is unspecified.
 //
 //  RETURN VALUE
-//
 //      The  gettimeofday()  function  shall  return 0 and no value shall
 //      be reserved to indicate an error.
 //
 //  ERRORS
-//
 //      No errors are defined.
 //
 */
+
 int
 w32_gettimeofday(
     struct timeval *tv, /*struct timezone*/ void *tz)
 {
     __CUNUSED(tz)
     if (tv) {
-        //FIXME
-        tv->tv_usec = GetTickCount() * 1000;
-        tv->tv_sec = (long)time(NULL);
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+        struct _timeb lt;
+
+        _ftime(&lt);
+        tv->tv_sec = (long)(lt.time + lt.timezone);
+        tv->tv_usec = lt.millitm * 1000;
+        assert(4 == sizeof(tv->tv_sec));
+
+#elif defined(__MINGW32__)
+#undef gettimeofday
+        return gettimeofday(tv, tz)
+ 
+#else //DEFAULT
+        FILETIME ft;
+        long long hnsec;
+ 
+        (void) GetSystemTimeAsFileTime(&ft);
+        hnsec = filetime_to_hnsec(&ft);
+        tv->tv_sec = hnsec / 10000000;
+        tv->tv_usec = (hnsec % 10000000) / 10;
+#endif
+        return 0;
     }
-    return 0;
+    errno = EINVAL;
+    return -1;
 }
 
 
@@ -255,4 +283,3 @@ w32_utime(const char *path, const struct utimbuf *times)
 }
 
 /*end*/
-

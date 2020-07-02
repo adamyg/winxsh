@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.13 2020/06/14 00:49:51 cvsuser Exp $
+# $Id: Makefile.in,v 1.14 2020/07/02 21:31:40 cvsuser Exp $
 # libw32 makefile.
 #
 #
@@ -19,7 +19,7 @@
 # the documentation and/or other materials provided with the
 # distribution.
 #
-# The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+# The applications are distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # License for more details.
@@ -118,6 +118,7 @@ CSOURCES=\
 	w32_child.c \
 	w32_close.c \
 	w32_dir.c \
+	w32_dirent.c \
 	w32_domainname.c \
 	w32_err.c \
 	w32_errno.c \
@@ -136,6 +137,7 @@ CSOURCES=\
 	w32_progname.c \
 	w32_pwd.c \
 	w32_read.c \
+	w32_readv.c \
 	w32_realpath.c \
 	w32_reparse.c \
 	w32_shell.c \
@@ -150,7 +152,8 @@ CSOURCES=\
 	w32_timegm.c \
 	w32_user.c \
 	w32_util.c \
-	w32_write.c
+	w32_write.c \
+	w32_writev.c
 
 LIBOBJS=\
 	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))

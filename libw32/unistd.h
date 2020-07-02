@@ -1,7 +1,7 @@
 #ifndef LIBW32_UNISTD_H_INCLUDED
 #define LIBW32_UNISTD_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_unistd_h,"$Id: unistd.h,v 1.9 2020/06/14 00:49:51 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_unistd_h,"$Id: unistd.h,v 1.10 2020/07/02 21:31:41 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
@@ -13,8 +13,9 @@ __CPRAGMA_ONCE
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -24,7 +25,7 @@ __CPRAGMA_ONCE
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -134,6 +135,10 @@ __CPRAGMA_ONCE
 
 #ifndef _countof
 #define _countof(__type) (sizeof(__type)/sizeof(__type[0]))
+#endif
+
+#if defined(LIBW32_UNISTD_MAP) && !defined(WIN32_UNISTD_MAP)
+#define WIN32_UNISTD_MAP 1
 #endif
 
 __BEGIN_DECLS
@@ -424,6 +429,8 @@ LIBW32_API int          WIFSTOPPED(int status);
 #endif
 
 /* <stdlib.h> */
+LIBW32_API extern char *suboptarg;
+
 LIBW32_API int          getsubopt (char **optionp, char * const *tokens, char **valuep);
 
 /* <string.h> */
@@ -506,19 +513,20 @@ LIBW32_API ssize_t      pread (int fildes, void *buf, size_t nbyte, off_t offset
 LIBW32_API ssize_t      pwrite (int fildes, const void *buf, size_t nbyte, off_t offset);
 
 #if defined(WIN32_UNISTD_MAP)
-#define open            w32_open
-#define stat(a,b)       w32_stat(a, b)
-#define lstat(a,b)      w32_lstat(a, b)
-#define fstat(a,b)      w32_fstat(a, b)
-#define read(a,b,c)     w32_read(a, b, c)
-#define write(a,b,c)    w32_write(a, b, c)
-#define close(a)        w32_close(a)
-#define link(f,t)       w32_link(f,t)
-#define unlink(p)       w32_unlink(p)
+#define open            w32_open                          /* Note: optional argument */
+#define stat(__a,__b)   w32_stat(__a, __b)
+#define lstat(__a,__b)  w32_lstat(__a, __b)
+#define fstat(__a,__b)  w32_fstat(__a, __b)
+#define read(__a,__b,__c) w32_read(__a, __b, __c)
+#define write(__a,__b,__c) w32_write(__a, __b, __c)
+#define close(__a)      w32_close(__a)
+#define link(_f,__t)    w32_link(__f,__t)
+#define unlink(__p)     w32_unlink(__p)
 #endif /*WIN32_UNISTD_MAP*/
 
 #if defined(WIN32_UNISTD_MAP) || \
-    defined(WIN32_SOCKET_MAP_FD) || defined(WIN32_SOCKET_MAP_NATIVE)
+    defined(LIBW32_SOCKET_MAP_FD) || defined(WIN32_SOCKET_MAP_FD) || \
+    defined(LIBW32_SOCKET_MAP_NATIVE) || defined(WIN32_SOCKET_MAP_NATIVE)
 #define strerror(a)     w32_strerror(a)
 	//#define g_strerror(a)   w32_strerror(a)         /* must also replace libglib version */
 #endif
@@ -536,7 +544,7 @@ LIBW32_API char *       w32_getcwdd (char drive, char *path, int size);
 #define getcwd(d,s)     w32_getcwd(d,s)
 #define utime(p,t)      w32_utime(p,t)
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
 #ifndef vsnprintf
 #define vsnprintf       _vsnprintf
 #endif

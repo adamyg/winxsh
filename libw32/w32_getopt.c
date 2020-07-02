@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.4 2020/06/01 00:11:42 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.5 2020/07/02 21:31:42 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -38,9 +38,10 @@ __CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.4 2020/06/01 00:11:42 cvsu
 #include <string.h>
 
 LIBW32_API int      opterr = 1,                 /* if error message should be printed */
-        optind = 1,                             /* index into parent argv vector */
-        optopt = '?',                           /* character checked for validity */
-        optreset = 0;                           /* reset getopt */
+                    optind = 1,                 /* index into parent argv vector */
+                    optopt = '?',               /* character checked for validity */
+                    optreset = 0;               /* reset getopt */
+
 LIBW32_API char *   optarg = NULL;              /* argument associated with option */
 
 static const char *__progname = "";             /* derived progname */
@@ -48,6 +49,7 @@ static const char *__progname = "";             /* derived progname */
 #define	BADCH	(int)'?'
 #define	BADARG	(int)':'
 #define	EMSG	""
+
 
 /*
  *  getopt --
@@ -60,9 +62,9 @@ getopt(int nargc, char * const *nargv, const char *ostr)
 	char *oli;				/* option letter list index */
 	int ret;
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32)
 	if (optind == 1 && (__progname == NULL || __progname[0] == '\0'))
-		__progname = nargv[0];		/* MSVC special */
+		__progname = nargv[0];		/* WIN32 special */
 #endif
 
 	if (optreset || !*place) {		/* update scanning pointer */

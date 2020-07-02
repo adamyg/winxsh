@@ -126,6 +126,7 @@
     <ClInclude Include="..\..\libNTService\NTServiceConfig.h" />
     <ClInclude Include="..\..\libNTService\NTServiceControl.h" />
     <ClInclude Include="..\..\libNTService\NTServiceGetopt.h" />
+    <ClInclude Include="..\..\libNTService\NTServiceIIO.h" />
     <ClInclude Include="..\..\libNTService\NTServiceIO.h" />
     <ClInclude Include="..\..\libNTService\NTServiceReg.h" />
     <ClInclude Include="..\..\libNTService\NTServMsg.h" />

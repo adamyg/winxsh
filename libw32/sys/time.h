@@ -1,22 +1,31 @@
-#ifndef LIBW32_SYS_TIME_H
-#define LIBW32_SYS_TIME_H
+#ifndef LIBW32_SYS_TIME_H_INCLUDED
+#define LIBW32_SYS_TIME_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_sys_time_h,"$Id: time.h,v 1.6 2020/05/17 19:55:19 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_sys_time_h,"$Id: time.h,v 1.8 2020/07/02 21:31:44 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 sys/time.h implementation.
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * Redistributions of source code must retain the above copyright
+ * notice, and must be distributed with the license document above.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, and must include the license document above in
+ * the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -115,15 +124,21 @@ struct itimerval {
 __BEGIN_DECLS
 
 #define ITIMER_REAL     0               /* Decrements in real time. */
-#define ITIMER_VIRTUAL  1               /* Decrements in process virtual time. */
-#define ITIMER_PROF     2               /* Decrements both in process virtual time and when the system is running on behalf of the process. */
+    //#define ITIMER_VIRTUAL  1               /* unsupported - Decrements in process virtual time. */
+    //#define ITIMER_PROF     2               /* unsupported - Decrements both in process virtual time and when the system is running on behalf of the process. */
 
 LIBW32_API int          getitimer(int which, struct itimerval *value);
-LIBW32_API int          setitimer(int which, const struct itimerval *value, struct timeval *ovalue);
+LIBW32_API int          setitimer(int which, const struct itimerval *value, struct itimerval *ovalue);
 
 #if defined(_WINSOCKAPI_) || defined(_WINSOCK2API_)
-LIBW32_API int          w32_gettimeofday(struct timeval *, /*struct timezone*/ void *);
+LIBW32_API int          w32_gettimeofday(struct timeval *, void /*struct timezone*/ *);
 LIBW32_API int          w32_select(int, fd_set *, fd_set *, fd_set *, struct timeval *timeout);
+#endif
+
+#if defined(LIBW32_UNISTD_MAP) || defined(WIN32_UNISTD_MAP)
+#if !defined(gettimeofday)
+#define gettimeofday(a,b)       w32_gettimeofday(a,b)
+#endif
 #endif
 
 #if defined(NEED_TIMEVAL) || \
@@ -146,5 +161,4 @@ LIBW32_API struct tm *  gmtime_r(const time_t *ctm, struct tm *res);
 
 __END_DECLS
 
-#endif  /*LIBW32_SYS_TIME_H*/
-
+#endif /*LIBW32_SYS_TIME_H_INCLUDED*/

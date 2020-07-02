@@ -1,17 +1,18 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.13 2020/06/01 00:12:04 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.14 2020/07/02 21:31:43 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 socket () system calls
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,7 +22,7 @@ __CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.13 2020/06/01 00:12:04 cvs
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -362,6 +363,27 @@ w32_recvfrom_fd(int fd, char *buf, int len, int flags,
     return ret;
 }
 
+
+/*
+ *  socksetblockingmode()
+ */
+LIBW32_API int         
+w32_sockblockingmode_fd(int fd, int enabled)
+{
+    SOCKET osf;
+    int ret;
+
+    if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
+        ret = -1;
+    } else {
+        u_long mode = (long)enabled;
+        if ((ret = ioctlsocket(osf, FIONBIO, &mode)) == -1 /*SOCKET_ERROR*/) {
+            w32_sockerror();
+        }
+    }
+    return ret;
+}
+ 
 
 /*
  *  sockwrite() system call; aka write() for sockets.

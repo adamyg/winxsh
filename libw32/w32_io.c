@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_io_c,"$Id: w32_io.c,v 1.8 2020/05/13 19:14:16 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_io_c,"$Id: w32_io.c,v 1.9 2020/07/02 21:31:42 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -7,13 +7,14 @@ __CIDENT_RCSID(gr_w32_io_c,"$Id: w32_io.c,v 1.8 2020/05/13 19:14:16 cvsuser Exp 
  *
  *      stat, lstat, fstat, readlink, symlink, open
  *
- * Copyright (c) 1998 - 2018, Adam Young.
+ * Copyright (c) 1998 - 2020, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -23,7 +24,7 @@ __CIDENT_RCSID(gr_w32_io_c,"$Id: w32_io.c,v 1.8 2020/05/13 19:14:16 cvsuser Exp 
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -225,8 +226,9 @@ w32_stat(const char *path, struct stat *sb)
             path = symbuf;
         }
     }
+
     if (ret < 0 || (ret = Stat(path, sb)) < 0) {
-        if (-ENOTDIR == ret) {                  // component error.
+        if (-ENOTDIR == ret) {                  // component error.                                               
             if (path != symbuf &&               // expand embedded shortcut
                     w32_shortcut_expand(path, symbuf, sizeof(symbuf), SHORTCUT_COMPONENT)) {
                 if ((ret = Stat(symbuf, sb)) >= 0) {
@@ -324,6 +326,7 @@ w32_lstat(const char *path, struct stat *sb)
     if (ret < 0 || (ret = Stat(path, sb)) < 0) {
         if (-ENOTDIR == ret) {                  // component error.
             char lnkbuf[WIN32_PATH_MAX];
+                                                // expand embedded shortcut
             if (w32_shortcut_expand(path, lnkbuf, sizeof(lnkbuf), SHORTCUT_COMPONENT)) {
                 if ((ret = Stat(lnkbuf, sb)) >= 0) {
                     return ret;
@@ -2063,7 +2066,6 @@ my_GetVolumeInformationByHandle(HANDLE handle, DWORD *serialno, DWORD *flags)
 
     return x_GetVolumeInformationByHandleW(handle, NULL, 0, serialno, NULL, flags, NULL, 0);
 }
-
 
 
 static BOOL WINAPI

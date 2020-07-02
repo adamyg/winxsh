@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.9 2020/05/09 15:08:06 cvsuser Exp $")
+__CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.10 2020/07/02 21:25:38 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -10,8 +10,9 @@ __CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.9 2020/05/09 15:08:06
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,7 +22,7 @@ __CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.9 2020/05/09 15:08:06
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.

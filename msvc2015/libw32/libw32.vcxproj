@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\libw32\w32_child.c" />
     <ClCompile Include="..\..\libw32\w32_close.c" />
     <ClCompile Include="..\..\libw32\w32_dir.c" />
+    <ClCompile Include="..\..\libw32\w32_dirent.c" />
     <ClCompile Include="..\..\libw32\w32_domainname.c" />
     <ClCompile Include="..\..\libw32\w32_err.c" />
     <ClCompile Include="..\..\libw32\w32_errno.c" />
@@ -104,6 +105,7 @@
     <ClCompile Include="..\..\libw32\w32_progname.c" />
     <ClCompile Include="..\..\libw32\w32_pwd.c" />
     <ClCompile Include="..\..\libw32\w32_read.c" />
+    <ClCompile Include="..\..\libw32\w32_readv.c" />
     <ClCompile Include="..\..\libw32\w32_realpath.c" />
     <ClCompile Include="..\..\libw32\w32_reparse.c" />
     <ClCompile Include="..\..\libw32\w32_shell.c" />
@@ -119,6 +121,7 @@
     <ClCompile Include="..\..\libw32\w32_user.c" />
     <ClCompile Include="..\..\libw32\w32_util.c" />
     <ClCompile Include="..\..\libw32\w32_write.c" />
+    <ClCompile Include="..\..\libw32\w32_writev.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libw32\config.h" />

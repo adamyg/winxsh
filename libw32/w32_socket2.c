@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.6 2020/06/01 00:12:04 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.7 2020/07/02 21:31:43 cvsuser Exp $")
 
 /*
  * win32 socket () system calls
@@ -9,8 +9,9 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.6 2020/06/01 00:12:04 cv
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -20,7 +21,7 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.6 2020/06/01 00:12:04 cv
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * License for more details.
@@ -44,6 +45,7 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.6 2020/06/01 00:12:04 cv
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
 #include <poll.h>
 #include <unistd.h>
 
@@ -51,6 +53,7 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.6 2020/06/01 00:12:04 cv
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <memory.h>
 #include <assert.h>
 
 
@@ -230,7 +233,7 @@ w32_accept_native(int fd, struct sockaddr *addr, int *addrlen)
  *  getpeername() system call
  */
 LIBW32_API int
-w32_getpeername_native(int fd, struct sockaddr *name, int *namelen)
+w32_getpeername_native(int fd, struct sockaddr *name, socklen_t *namelen)
 {
     SOCKET osf;
     int ret;
@@ -249,7 +252,7 @@ w32_getpeername_native(int fd, struct sockaddr *name, int *namelen)
  *  getsockname() system call.
  */
 LIBW32_API int
-w32_getsockname_native(int fd, struct sockaddr *name, int *namelen)
+w32_getsockname_native(int fd, struct sockaddr *name, socklen_t *namelen)
 {
     SOCKET osf;
     int ret;
@@ -328,6 +331,58 @@ w32_sendto_native(int fd, const void *buf, size_t len, int flags,
 
 
 /*
+ *  sendmsg() system call
+ */
+LIBW32_API int
+w32_sendmsg_native(int fd, const struct msghdr *message, int flags)
+{
+    SOCKET osf;
+    int ret = -1;
+
+    if (NULL == message || NULL == message->msg_iov ||
+            message->msg_iovlen < 0 || message->msg_iovlen > IOV_MAX) {
+        errno = EINVAL;                         /* invalid argument */
+
+    } else if (0 == message->msg_iovlen) {
+        ret = 0;                                /* nothing to send */
+
+    } else if ((osf = nativehandle(fd)) != (SOCKET)INVALID_SOCKET) {
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+        WSABUF *wsabufs = _alloca(sizeof(WSABUF) * message->msg_iovlen);
+#else
+        WSABUF *wsabufs = alloca(sizeof(WSABUF) * message->msg_iovlen);
+#endif
+        const struct iovec *iov = message->msg_iov;
+        unsigned i, cnt;
+
+        for (i = 0, cnt = 0; i < message->msg_iovlen; ++i, ++iov) {
+            if (iov->iov_len) {
+                wsabufs[cnt].len = iov->iov_len;
+                wsabufs[cnt].buf = iov->iov_base;
+                ++cnt;
+            }
+        }
+
+        //  The WSASend function is used to write outgoing data from one or more buffers on a connection-oriented socket specified by s.
+        //  It can also be used, however, on connectionless sockets that have a stipulated default peer address established
+        //  through the connect or WSAConnect function.
+        //
+        ret = 0;
+        if (cnt) {
+            DWORD num_bytes_sent = 0;
+            const int srv = WSASend(osf, wsabufs, cnt, &num_bytes_sent, flags, NULL, NULL);
+            if (0 == srv) {
+	        return (int) num_bytes_sent;
+            }
+            w32_sockerror();
+            ret = -1;
+        }
+    }
+    return ret;
+}
+
+
+/*
  *  recv() system call
  */
 LIBW32_API int
@@ -361,6 +416,28 @@ w32_recvfrom_native(int fd, char *buf, int len, int flags,
         ret = -1;
     } else if ((ret = recvfrom((SOCKET)osf, buf, len, flags, from_addr, fromlen)) == -1 /*SOCKET_ERROR*/) {
         w32_sockerror();
+    }
+    return ret;
+}
+
+
+
+/*
+ *  sockblockingmode
+ */
+LIBW32_API int         
+w32_sockblockingmode_native(int fd, int enabled)
+{
+    SOCKET osf;
+    int ret;
+
+    if ((osf = nativehandle(fd)) == (SOCKET)INVALID_SOCKET) {
+        ret = -1;
+    } else {
+        u_long mode = (long)enabled;
+        if ((ret = ioctlsocket(osf, FIONBIO, &mode)) == -1 /*SOCKET_ERROR*/) {
+            w32_sockerror();
+        }
     }
     return ret;
 }

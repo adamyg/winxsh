@@ -155,6 +155,9 @@
     <ClInclude Include="..\..\libNTService\NTServiceReg.h">
       <Filter>Header Files\NTService</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTServiceIIO.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\rlogind\rlogind.ini">

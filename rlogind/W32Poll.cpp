@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.4 2020/05/17 01:17:18 cvsuser Exp $")
+__CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.5 2020/07/02 21:27:03 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -10,8 +10,9 @@ __CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.4 2020/05/17 01:17:18 cvsuser E
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,9 +22,10 @@ __CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.4 2020/05/17 01:17:18 cvsuser E
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * License for more details.
  * ==end==
  */
 

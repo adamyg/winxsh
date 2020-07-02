@@ -1,10 +1,10 @@
 #ifndef WIN32_CONFIG_H_INCLUDED
 #define WIN32_CONFIG_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_config_h, "$Id: w32config.hin,v 1.10 2020/06/14 00:49:51 cvsuser Exp $")
+__CIDENT_RCSID(gr_config_h, "$Id: w32config.hin,v 1.11 2020/07/02 21:31:43 cvsuser Exp $")
 __CPRAGMA_ONCE
 /* -*- mode: c; set-indent: 4; -*- */
-/* $Id: w32config.hin,v 1.10 2020/06/14 00:49:51 cvsuser Exp $
+/* $Id: w32config.hin,v 1.11 2020/07/02 21:31:43 cvsuser Exp $
  * Machine configuration.
  *
  * System dependent <config.h> configuration template,
@@ -64,31 +64,6 @@ __CPRAGMA_ONCE
 #pragma disable_message(201)                    // unreachable code
 #pragma disable_message(202)                    // symbol 'xxx' has been defined, but not referenced
 #endif
-
-/*
- *  Define for mouse (in xterm) capability or if your environment
- *  supports mouse controls (may not work)
- */
-#undef HAVE_MOUSE
-#undef HAVE_LIBGPM
-#undef HAVE_GPM_H
-
-/*
- *  Works around a DEC/xterm bug with CR (not needed with later xterms)
- */
-#undef LINEFEED_DOES_CR
-
-/*
- *  If defined, disables floating point macros and makes
- *  GRIEF smaller in statically linked executables
- */
-#undef NO_FLOAT_MATH
-
-/*
- *  Define for 8-bit capable displays
- */
-#undef HAVE_EIGHTBIT
-
 
 /*
  *  --auto-conf--
@@ -732,51 +707,6 @@ __CPRAGMA_ONCE
 #undef GNUWIN32_LIBARCHIVE
 #undef HAVE_ARCHIVE_H
 #undef HAVE_ARCHIVE_ENTRY_H
-
-
-/*
- *  Special features
- */
-
-        /* Target specific */
-
-#if defined(__MINGW32__)
-#define MSDOS
-
-#elif (defined(WIN32) || defined(_WIN32))
-#if !defined(MSDOS)
-#define MSDOS                                   /* assumed */
-#endif
-
-#elif defined(__EMX__) && !defined(__OS2__)
-#define __OS2__ 1
-#define __FLAT__ 1
-#undef  MSDOS
-#endif
-
-        /* MSDOS targets */
-
-#if defined(MSDOS) && !defined(__MSDOS__)
-#define __MSDOS__ 1
-#endif
-
-#if defined(__MSDOS__)
-#define MONOCASE_FILENAMES 1                    /* files are all one case */
-#define ONLY_ONE_EXTENSION 1                    /* file can only have one .ext */
-#define HAVE_SPAWN 1
-#define DOSISH 1                                /* dos type system */
-
-#elif defined(__OS2__)
-#define DOSISH 1                                /* dos type system */
-#endif
-
-#if defined(__OS2__) || defined(__MSDOS__)
-#define USE_VIO_BUFFER 1                        /* Vio buffer method */
-#define NOCASE_FILENAMES 1                      /* ignore case in filenames */
-#define NO_UNLINK_OPEN  1                       /* can't unlink open files */
-#define NEEDS_GETOPT                            /* Local getopt() implementation required */
-#endif
-
 
 #endif  /*WIN32_CONFIG_H_INCLUDED*/
 
