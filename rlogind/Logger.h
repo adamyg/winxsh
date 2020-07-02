@@ -1,5 +1,5 @@
 #pragma once
-#if !defined(LOGGER_H_INCLUDED)
+#ifndef LOGGER_H_INCLUDED
 #define LOGGER_H_INCLUDED
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -10,8 +10,9 @@
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,10 +22,11 @@
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * ==end==
+ * License for more details.
+ * ==end==
  */
 
 #include <sys/queue.h>
@@ -68,8 +70,9 @@ public:
         void base_path(const char *path);
         bool size_limit(const char *limit = 0);
         bool line_limit(const char *limit = 0);
-        bool time_period(const char *limit = 0);
+        bool time_period(const char *period = 0);
         void time_rounding(bool state, const char *epoch = 0);
+        bool purge_period(const char *period = 0);
 
         const char *base_path() const;
 
@@ -82,6 +85,7 @@ public:
         unsigned line_limit_;
         unsigned time_epoch_;
         bool time_rounding_;
+        unsigned purge_period_;
     };
 
 protected:
@@ -94,6 +98,8 @@ protected:
             { return (data_ != 0); }
         const char *data() const
             { return data_; }
+        void append(const void *buffer, size_t buflen);
+        void append_nl();
         void assign(const void *buffer, size_t buflen);
         void assign_nl(const void *buffer, size_t buflen);
         char *data()
@@ -120,10 +126,15 @@ public:
     static const unsigned CONSOLE_DEFAULT = 0x01;
 
     // log to stderr as well, synchronously
-    static const unsigned CONSOLE_SYNCHRONOUS = 0x02;          
+    static const unsigned CONSOLE_SYNCHRONOUS = 0x02;
 
     // log to stderr as well, asynchronously (via streamer)
-    static const unsigned CONSOLE_ASYNCHRONOUS = 0x04; 
+    static const unsigned CONSOLE_ASYNCHRONOUS = 0x04;
+
+    struct liovec {
+        void * liov_base;
+        size_t liov_len;
+    };
 
 public:
     Logger(unsigned flags = Logger::CONSOLE_DEFAULT);
@@ -133,6 +144,7 @@ public:
     bool start(const Profile &profile);
     void stop();
     bool push(const char *buffer, size_t length);
+    bool pushv(const struct liovec *iov, int iovcnt);
 
 public:
     static bool parse_size_limit(const char *limit, unsigned &result);

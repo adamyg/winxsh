@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.8 2020/05/22 02:21:05 cvsuser Exp $")
+__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.9 2020/07/02 21:27:03 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -10,8 +10,9 @@ __CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.8 2020/05/22 02:21:05 cvsuser E
  *
  * This file is part of the WinRSH/WinSSH project.
  *
- * The WinRSH/WinSSH project is free software: you can redistribute it
- * and/or modify it under the terms of the WinRSH/WinSSH project License.
+ * The applications are free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, version 3.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -21,9 +22,10 @@ __CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.8 2020/05/22 02:21:05 cvsuser E
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * License for more details.
  * ==end==
  */
 
@@ -32,6 +34,9 @@ __CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.8 2020/05/22 02:21:05 cvsuser E
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <time.h>
+#include <fcntl.h>
+#include <io.h>
 
 #include "Service.h"                            // public header
 
@@ -107,21 +112,22 @@ Service::ConfigLogger()
         ret = ConfigGet("LoggerFile", szValue, sizeof(szValue));
         profile.base_path(ResolveRelative(ret ? szValue : "./logs/rlogin.log"));
 
-        ConfigGet("LoggerAge",  szValue,  sizeof(szValue));
-        profile.time_period(szValue);
+        if (ConfigGet("LoggerAge",  szValue,  sizeof(szValue)))
+                profile.time_period(szValue);
 
-        ConfigGet("LoggerSize", szValue,  sizeof(szValue));
-        profile.size_limit(szValue);
+        if (ConfigGet("LoggerSize", szValue,  sizeof(szValue)))
+                 profile.size_limit(szValue);
 
-        ConfigGet("LoggerLines", szValue, sizeof(szValue));
-        profile.line_limit(szValue);
+        if (ConfigGet("LoggerLines", szValue, sizeof(szValue)))
+                 profile.line_limit(szValue);
 
-//      ConfigGet("LoggerLevel, szValue, sizeof(szValue));
-//      profile.default_level(szValue);
-//      setlogmask();
+//      if (ConfigGet("LoggerLevel, szValue, sizeof(szValue))) {
+//              profile.default_level(szValue);
+//              setlogmask(xxx);
+//      } 
 
-//      ConfigGet("LoggerPurgeDays", szValue, sizeof(szValue));
-//      profile.purge_days(szValue);
+      	if (ConfigGet("LoggerPurge", szValue, sizeof(szValue)))
+                profile.purge_period(szValue);
 
         if (! logger_.start(profile)) {
                 CNTService::LogError(true, "unable to initialise logger <%s>", profile.base_path());
@@ -362,7 +368,11 @@ Service::ResolveRelative(const char *path)
         const char *basename = NULL;
 
         if ('.' == path[0] && ('/' == path[1] || '\\' == path[1])) {               
+                if (0 == _access(path, 0)) {
+                       return path;             // exists within CWD.
+                }
                 basename = path + 2;            // './xxxx' or '.\xxxx'
+
         } else if (NULL == strchr(path, '/') && NULL == strchr(path, '\\')) {
                 basename = path;                // xxxx
         }
