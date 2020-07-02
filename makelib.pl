@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.pl,v 1.15 2020/07/02 22:26:01 cvsuser Exp $
+# $Id: makelib.pl,v 1.16 2020/07/02 23:20:34 cvsuser Exp $
 # Makefile generation under WIN32 (MSVC/WATCOMC/MINGW) and DJGPP.
 # -*- tabs: 8; indent-width: 4; -*-
 # Automake emulation for non-unix environments.
@@ -1117,7 +1117,7 @@ main()
             $cmd eq 'owc' || $cmd eq 'wc' ||
             $cmd eq 'dj' ||  $cmd eq 'mingw') {
 
-        my $cache = "${x_tmpdir}/${cmd}${o_version}.cache";
+        my $cache = "./${x_tmpdir}/${cmd}${o_version}.cache";
 
         if (! $o_clean && -f $cache) {
             eval {
