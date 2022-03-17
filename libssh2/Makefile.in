@@ -1,10 +1,11 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.11 2020/06/14 12:36:36 cvsuser Exp $
+# $Id: Makefile.in,v 1.13 2021/10/28 15:15:51 cvsuser Exp $
 # libssh2 makefile.
 #
 #
-# Copyright (c) 2015 - 2020, Adam Young.
+# Copyright (c) 2015 - 2022, Adam Young.
 # All rights reserved.
+#
 #
 # This file is part of the WinRSH/WinSSH project.
 #
@@ -101,7 +102,7 @@ RMFLAGS=	-f
 SSH2LIB=	$(D_LIB)/$(LP)ssh2_static$(A)
 SSH2DLL=	$(D_LIB)/$(LP)ssh2.la
 
-VERSION=	1.9.0
+VERSION=	1.10.0
 VERSIONSPEC=	$(subst .,:,$(VERSION))
 VERPACKED=	libssh2-$(VERSION).gr.tgz
 
@@ -110,7 +111,7 @@ SSH2SRC=	$(SSH2BASE)/src
 SSH2INCLUDE=	$(SSH2BASE)/include
 
 CINCLUDE+=	-I$(SSH2BASE)/win32 -I$(SSH2INCLUDE) -I./sdk
-CEXTRA+=	-D_WIN32_WINNT=0x601 -DLIBSSH2_WIN32 -DLIBSSH2_HAVE_ZLIB
+CEXTRA+=	-DLIBSSH2_WIN32 -DLIBSSH2_HAVE_ZLIB
 
 ##CEXTRA+=	-DLIBSSH2_WINOPENSSL
 ##CEXTRA+=	-DLIBSSH2_WINCNG
@@ -141,6 +142,10 @@ CSOURCES=\
 CSOURCES+=\
 	blowfish.c bcrypt_pbkdf.c
 
+#+1.10.0
+CSOURCES+=\
+	agent_win.c
+
 LIBOBJS=\
 	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
@@ -155,6 +160,7 @@ endif
 LIBS=		$(SSH2LIB)
 DLLS=		$(SSH2DLL)
 TSKS=
+INSTALLED=
 
 # Rules
 
@@ -178,6 +184,7 @@ $(SSH2LIB):		$(LIBOBJS)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@
 
+INSTALLED+=	$(D_BIN)/libssh2.$(VERSION).dll
 $(SSH2DLL):		CEXTRA += -DLIBSSH2_DYANMIC -D_WINDLL
 $(SSH2DLL):		$(DLLOBJS)
 		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
@@ -208,9 +215,9 @@ installinc:		../include/.created
 clean:
 		@echo $(BUILD_TYPE) clean
 		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) >/dev/null 2>&1
-		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
+		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(INSTALLED) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
 		-@$(RM) $(LIBOBJS) >/dev/null 2>&1
-		-@$(RM) ../include/libssh2*.h >/dev/null 2>&1
+		-@$(RM) ../include/libssh2/*.h >/dev/null 2>&1
 
 $(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
