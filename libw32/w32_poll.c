@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_poll_c,"$Id: w32_poll.c,v 1.8 2020/07/02 21:31:42 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_poll_c,"$Id: w32_poll.c,v 1.9 2022/03/15 12:15:38 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 poll system calls
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -210,7 +210,7 @@ w32_poll(int native, struct pollfd *fds, int cnt, int timeout)
     //      WINSOCK_API_LINKAGE int WSAAPI WSAPoll(LPWSAPOLLFD, ULONG, INT);
     //          ==> source: ws2_32.lib
     //
-    struct timeval tmval;
+    struct timeval tmval = {0};
     struct fd_set rfds;
     struct fd_set wfds;
     struct fd_set efds;
@@ -329,7 +329,7 @@ w32_poll(int native, struct pollfd *fds, int cnt, int timeout)
          -      OOB data is available for reading (only if SO_OOBINLINE is disabled).
          */
         BOOL    state;
-        u_long  val;
+        u_long  val = 0;
         int     len;
 
         for (i = 0; i < cnt; ++i) {
@@ -372,4 +372,3 @@ w32_poll(int native, struct pollfd *fds, int cnt, int timeout)
 }
 
 /*end*/
-

@@ -1,14 +1,14 @@
 #ifndef LIBW32_POLL_H_INCLUDED
 #define LIBW32_POLL_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_poll_h,"$Id: poll.h,v 1.6 2020/07/02 21:31:41 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_poll_h,"$Id: poll.h,v 1.7 2022/03/15 12:15:36 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win <poll.h>
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -28,7 +28,7 @@ __CPRAGMA_ONCE
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -87,12 +87,12 @@ __BEGIN_DECLS
 LIBW32_API int          w32_poll_fd(struct pollfd *fds, int cnt, int timeout);
 LIBW32_API int          w32_poll_native(struct pollfd *fds, int cnt, int timeout);
 
-#if defined(LIBW32_SOCKET_MAP_FD) || defined(WIN32_SOCKET_MAP_FD)
+#if defined(WIN32_SOCKET_MAP_FD)
 #if !defined(WIN32_SOCKET_H_INCLUDED)
 #define poll(a,b,c)             w32_poll_fd(a,b,c)
 #endif
 
-#elif defined(LIBW32_SOCKET_MAP_NATIVE) || defined(WIN32_SOCKET_MAP_NATIVE)
+#elif defined(WIN32_SOCKET_MAP_NATIVE)
 #if !defined(WIN32_SOCKET_H_INCLUDED)
 #define poll(a,b,c)             w32_poll_native(a,b,c)
 #endif

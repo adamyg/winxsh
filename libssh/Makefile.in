@@ -114,7 +114,7 @@ SSHSRC=		$(SSHBASE)/src
 SSHINCLUDE=	$(SSHBASE)/include
 
 CINCLUDE+=	-I$(SSHINCLUDE)
-CEXTRA+=	-D_WIN32_WINNT=0x601
+CEXTRA+=
 
 LDLIBS+=	libmbedcrypto_static.lib
 LDLIBS+=	libz_static.lib

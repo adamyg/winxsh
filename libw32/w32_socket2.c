@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.7 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.8 2022/03/15 12:15:38 cvsuser Exp $")
 
 /*
  * win32 socket () system calls
  * Light weight replacement functions, which maintain the global errno.
  *
- * Copyright (c) 2007, 2012 - 2020 Adam Young.
+ * Copyright (c) 2007, 2012 - 2022 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -24,7 +24,7 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.7 2020/07/02 21:31:43 cv
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -55,6 +55,10 @@ __CIDENT_RCSID(gr_w32_socket2_c,"$Id: w32_socket2.c,v 1.7 2020/07/02 21:31:43 cv
 #include <stdarg.h>
 #include <memory.h>
 #include <assert.h>
+
+#if defined(__WATCOMC__)
+#pragma disable_message(124)                    /* Comparison result always 0 */
+#endif
 
 
 /*
@@ -425,7 +429,7 @@ w32_recvfrom_native(int fd, char *buf, int len, int flags,
 /*
  *  sockblockingmode
  */
-LIBW32_API int         
+LIBW32_API int
 w32_sockblockingmode_native(int fd, int enabled)
 {
     SOCKET osf;
@@ -515,11 +519,10 @@ w32_shutdown_native(int fd, int how)
 #undef shutdown
     if ((osf = nativehandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
-    } else if ((ret = shutdown((SOCKET)osf, how)) == -1 /*SOCKET_ERROR*/) {
+    } else if ((ret = shutdown((SOCKET)osf, how)) == -1) {
         w32_sockerror();
     }
     return ret;
 }
 
 /*end*/
-

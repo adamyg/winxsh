@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.5 2020/07/02 21:31:42 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.6 2022/03/15 12:15:37 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -44,7 +44,7 @@ LIBW32_API int      opterr = 1,                 /* if error message should be pr
 
 LIBW32_API char *   optarg = NULL;              /* argument associated with option */
 
-static const char *__progname = "";             /* derived progname */
+static const char *__progname = "";
 
 #define	BADCH	(int)'?'
 #define	BADARG	(int)':'
@@ -64,7 +64,7 @@ getopt(int nargc, char * const *nargv, const char *ostr)
 
 #if defined(_WIN32) || defined(WIN32)
 	if (optind == 1 && (__progname == NULL || __progname[0] == '\0'))
-		__progname = nargv[0];		/* WIN32 special */
+		__progname = nargv[0];		/* MSVC special */
 #endif
 
 	if (optreset || !*place) {		/* update scanning pointer */

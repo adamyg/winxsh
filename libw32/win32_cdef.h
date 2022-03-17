@@ -4,9 +4,7 @@
 /*
  * internal definitions
  *
- * Copyright (c) 2016 - 2020 Adam Young.
- *
- * This file is part of the WinRSH/WinSSH project.
+ * Copyright (c) 2016 - 2022 Adam Young.
  *
  * The applications are free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as
@@ -23,7 +21,7 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 

@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
 /*
  * libtermemu console driver
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 2007, 2012 - 2022 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -24,10 +24,10 @@ __CPRAGMA_ONCE
  * the documentation and/or other materials provided with the
  * distribution.
  *
- * The WinRSH/WinSSH project is distributed in the hope that it will be useful,
+ * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 

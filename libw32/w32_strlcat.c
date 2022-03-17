@@ -1,11 +1,8 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_strlcat_c,"$Id: w32_strlcat.c,v 1.6 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_strlcat_c,"$Id: w32_strlcat.c,v 1.7 2022/03/15 12:15:38 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
- * Copyright (c) 1998 - 2020, Adam Young.
- * All rights reserved.
- *
  * This file is part of the WinRSH/WinSSH project.
  *
  * The applications are free software: you can redistribute it
@@ -203,4 +200,3 @@ __stdlibrary_has_strlcat(void)
 #endif  /*_MSC_VER*/
 
 /*end*/
-

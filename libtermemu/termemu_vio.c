@@ -5,7 +5,7 @@ __CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.13 2020/05/15 00:21:10 cvsu
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2007, 2012 - 2020 Adam Young.
+ * Copyright (c) 2007, 2012 - 2022 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -29,7 +29,7 @@ __CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.13 2020/05/15 00:21:10 cvsu
 
 /*
  * Notes:
- *   o Extended 256 color mode is experimental/work in progress.
+ *   o 256 color mode available under both Legacy and Win10 enhanced console.
  *   o Use of non-monospaced fonts are not advised unless UNICODE characters are required.
  *   o Neither wide nor combined characters are fully addressed.
  */
@@ -39,8 +39,14 @@ __CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.13 2020/05/15 00:21:10 cvsu
 #endif
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x601
+#else
+#if(_WIN32_WINNT < 0x601)
+#undef  _WIN32_WINNT
+#define _WIN32_WINNT 0x601
 #endif
+#endif
+
 #define PSAPI_VERSION               1           // EnumProcessModules and psapi.dll
 #if !defined(WINDOWS_MEAN_AND_LEAN)
 #define  WINDOWS_MEAN_AND_LEAN
@@ -62,11 +68,15 @@ __CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.13 2020/05/15 00:21:10 cvsu
 #define WIN32_CONSOLEEXT                        /* extended console */
 #define WIN32_CONSOLE256                        /* enable 256 color console support */
 
-#pragma comment(lib, "Advapi32.lib")
+#if defined(__WATCOMC__)
+#pragma disable_message(124)                    /* Comparison result always 0 / 1 */
+#endif
+
 #pragma comment(lib, "Gdi32.lib")
 #pragma comment(lib, "User32.lib")
 #pragma comment(lib, "Kernel32.lib")
 #pragma comment(lib, "Psapi.lib")
+#pragma comment(lib, "Advapi32.lib")
 
 #if defined(WIN32_CONSOLEEXT) && defined(WIN32_CONSOLE256)
 #define WIN32_COLORS                256
@@ -211,7 +221,7 @@ static uint32_t         unicode_remap(uint32_t ch);
 
 static __inline void    WCHAR_BUILD(const uint32_t ch, const struct WCHAR_COLORINFO *color, WCHAR_INFO *ci);
 static __inline BOOL    WCHAR_COMPARE(const WCHAR_INFO *c1, const WCHAR_INFO *c2);
-static __inline int     WCHAR_UPDATE(WCHAR_INFO *cursor, const uint32_t ch, const struct WCHAR_COLORINFO *color);
+static __inline unsigned WCHAR_UPDATE(WCHAR_INFO *cursor, const uint32_t ch, const struct WCHAR_COLORINFO *color);
 
 static int              parse_color(const char *color, const char *defname, const struct attrmap *map, int *attr);
 static int              parse_true_color(const char *color, COLORREF *rgb, int *attr);
@@ -536,6 +546,8 @@ vio_trace(const char *fmt, ...)
     if (debug[len-1] != '\n') debug[len] = '\n', debug[len+1] = 0;
     OutputDebugStringA(debug);
     va_end(ap);
+#else   //_DEBUG
+    (void)fmt;
 #endif  //_DEBUG
 }
 
@@ -607,7 +619,7 @@ vio_init(void)
         assert(vio.chandle);
         assert(vio.whandle);
 
-        vio.size = rows * cols;
+        vio.size = rows * cols;                 // buffer size, in elements
         oimage = vio.image;
         vio.image = (WCHAR_INFO *)calloc(vio.size, sizeof(WCHAR_INFO));
         if (oimage) {                           // screen has resized
@@ -874,7 +886,7 @@ vio_profile(int rebuild)
                 vio.fcfamily  = cfix.FontFamily;
                 vio.fcweight  = cfix.FontWeight;
                 vio.fcfamily  = -1;
-                wcstombs(vio.fcfacename, cfix.FaceName, sizeof(vio.fcfacename));
+                wcstombs(vio.fcfacename, cfix.FaceName, sizeof(vio.fcfacename) /*bytes*/);
             }
 
         } else {
@@ -963,7 +975,7 @@ vio_profile(int rebuild)
                 TRACE_LOG(("Console Facenames (%u)\n", (unsigned)count))
                 TRACE_LOG(("  Idx  W x  H   Fam   Wgt  Facename\n"))
                 for (f = 0; f < count; ++f, ++cursor) {
-                    wcstombs(t_facename, cursor->FaceName, sizeof(t_facename));
+                    wcstombs(t_facename, cursor->FaceName, sizeof(t_facename) /*bytes*/);
                     TRACE_LOG(("  %2d: %2u x %2u, %4u, %4u, <%s>\n", (int)cursor->nFont, \
                         (unsigned)cursor->dwFontSize.X, (unsigned)cursor->dwFontSize.Y, \
                         (unsigned)cursor->FontFamily, (unsigned)cursor->FontWeight, t_facename))
@@ -1046,7 +1058,8 @@ IsVirtualConsole(int *depth)
 #endif
 #if !defined(ENABLE_INSERT_MODE)
 #define ENABLE_INSERT_MODE 0x0020
-    // When enabled, text entered in a console window will be inserted at the current cursor location and all text following that location will not be overwritten.
+    // When enabled, text entered in a console window will be inserted at the current cursor location and
+    // all text following that location will not be overwritten.
     // When disabled, all following text will be overwritten.
     // To enable this mode, use ENABLE_INSERT_MODE | ENABLE_EXTENDED_FLAGS.
     // To disable this mode, use ENABLE_EXTENDED_FLAGS without this flag.
@@ -1058,7 +1071,7 @@ IsVirtualConsole(int *depth)
     // To disable this mode, use ENABLE_EXTENDED_FLAGS without this flag.
 #endif
 #if !defined(ENABLE_EXTENDED_FLAGS)
-#define ENABLE_EXTENDED_FLAGS 0x0080    
+#define ENABLE_EXTENDED_FLAGS 0x0080
     // Required to enable or disable extended flags. See ENABLE_INSERT_MODE and ENABLE_QUICK_EDIT_MODE.
 #endif
 
@@ -1081,7 +1094,7 @@ IsVirtualConsole(int *depth)
                 *depth = t_depth;
                 return TRUE;
             } else if (SetConsoleMode(chandle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
-                (void)SetConsoleMode(chandle, mode);
+                (void) SetConsoleMode(chandle, mode);
                 *depth = t_depth;
                 return TRUE;
             }
@@ -1493,7 +1506,7 @@ CopyOut(copyoutctx_t *ctx, unsigned pos, unsigned cnt, unsigned flags)
         if (-1 == ctx->cursormode) {            // hide cursor, if visible
             GetConsoleCursorInfo(chandle, &ctx->cursorinfo);
             if (0 != (ctx->cursormode = ctx->cursorinfo.bVisible)) {
-                ctx->cursorinfo.bVisible = FALSE; 
+                ctx->cursorinfo.bVisible = FALSE;
                 (void) SetConsoleCursorInfo(chandle, &ctx->cursorinfo);
             }
         }
@@ -1745,7 +1758,7 @@ CopyOutEx(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags)
                 const WCHAR_INFO cell = *cursor++;
 
                 if (start >= 0) {               // attribute run
-                    if (SameAttributesFGBG(&cell, &info, fg, bg, VIO_BOLD|VIO_BLINK|VIO_ITALIC|VIO_FAINT)) {
+                    if (SameAttributesFGBG(&cell, &info, fg, bg, VIO_BOLD|VIO_BLINK|VIO_ITALIC|VIO_FAINT|VIO_INVERSE)) {
                         ocursor[col++] = cell;  // update out image
                         *text = (WCHAR)cell.Char.UnicodeChar;
                         if (++text >= etext)
@@ -1768,14 +1781,17 @@ CopyOutEx(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags)
                 text  = textbuf;
                 info  = cell.Info;
                 COLOR256(&info, &fg, &bg);
+                if (info.Attributes & VIO_INVERSE) {
+                    SWAPRGB(fg, bg);
+                }
 
                 if (start > 0) {                // if previous is space, also redraw; address font cell draw bleeding.
                     const WCHAR_INFO backcell = cursor[-2];
 
                     if ((IsSpace(cell.Char.UnicodeChar) &&
-                            SameAttributesFGBG(&backcell, &info, fg, bg, VIO_BOLD | VIO_BLINK | VIO_ITALIC | VIO_FAINT)) ||
+                            SameAttributesFGBG(&backcell, &info, fg, bg, VIO_BOLD|VIO_BLINK|VIO_ITALIC|VIO_FAINT|VIO_INVERSE)) ||
                         (IsSpace(backcell.Char.UnicodeChar) &&
-                            SameAttributesBG(&backcell, &info, bg, VIO_BOLD | VIO_BLINK | VIO_ITALIC | VIO_FAINT))) {
+                            SameAttributesBG(&backcell, &info, bg, VIO_BOLD|VIO_BLINK|VIO_ITALIC|VIO_FAINT|VIO_INVERSE))) {
                         *text++ = (WCHAR)backcell.Char.UnicodeChar;
                         --start;
                     }
@@ -1908,14 +1924,6 @@ CopyOutEx2(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags)
                 }
             }
 
-            //
-            // extended features -- disable.
-//XXX       if (mode & (ENABLE_QUICK_EDIT_MODE | ENABLE_INSERT_MODE)) {
-//              mode &= ~(ENABLE_QUICK_EDIT_MODE | ENABLE_INSERT_MODE);
-//              mode |= ENABLE_EXTENDED_FLAGS;
-//              vio.isvirtualconsole = 3;       // update/restore
-//          }
-
             if (3 == vio.isvirtualconsole) {
                 (void) SetConsoleMode(chandle, mode);
             }
@@ -1937,11 +1945,16 @@ CopyOutEx2(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags)
             do {
                 const WCHAR_INFO cell = *cursor++;
 
+                if (0 == cell.Char.UnicodeChar) {
+                    ++col;
+                    continue;                   // NULL, padding
+                }
+
                 //  ESC[<y>; <x> H              CUP, Cursor Position *Cursor moves to <x>; <y> coordinate within the viewport, where <x> is the column of the <y> line.
                 //
                 if (-1 == start) {
                     if (0 == (flags & TRASHED) &&
-                        SameCell(&cell, ocursor + col)) {
+                            SameCell(&cell, ocursor + col)) {
                         ++col;
                         continue;               // up-to-date
                     }
@@ -1954,6 +1967,7 @@ CopyOutEx2(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags)
                         *wctext++ = (WCHAR)cell.Char.UnicodeChar;
                         continue;
                     }
+
                     //else, attribute change.
                 }
 
@@ -2282,6 +2296,7 @@ consolefontsenum(void)
     //              Typefaces for Source Code Beautification.
     //
     //      Fonts:
+    //          https://github.com/powerline/fonts
     //          http://www.proggyfonts.net/
     //          http://www.levien.com/type/myfonts/inconsolata.html
     //          http://terminus-font.sourceforge.net/ and https://files.ax86.net/terminus-ttf/
@@ -2558,34 +2573,41 @@ WCHAR_BUILD(const uint32_t ch, const struct WCHAR_COLORINFO *info, WCHAR_INFO *c
 
 
 static BOOL
+WATTR_COMPARE(const WCHAR_INFO *c1, const struct WCHAR_COLORINFO *info2)
+{
+    if (c1->Info.Flags || info2->Flags) {
+        return (c1->Info.Flags == info2->Flags &&
+                    c1->Info.Attributes == info2->Attributes &&
+                    c1->Info.fg == info2->fg &&
+                    c1->Info.bg == info2->bg &&
+                    c1->Info.fgrgb == info2->fgrgb &&
+                    c1->Info.bgrgb == info2->bgrgb);
+    }
+    return (c1->Info.Attributes == info2->Attributes);
+}
+
+
+static BOOL
 WCHAR_COMPARE(const WCHAR_INFO *c1, const WCHAR_INFO *c2)
 {
     if (c1->Char.UnicodeChar == c2->Char.UnicodeChar) {
-        if (c1->Info.Flags || c2->Info.Flags) {
-            return (c1->Info.Flags == c2->Info.Flags &&
-                       c1->Info.Attributes == c2->Info.Attributes &&
-                       c1->Info.fg == c2->Info.fg &&
-                       c1->Info.bg == c2->Info.bg &&
-                       c1->Info.fgrgb == c2->Info.fgrgb &&
-                       c1->Info.bgrgb == c2->Info.bgrgb);
-        }
-        return (c1->Info.Attributes == c2->Info.Attributes);
+        return WATTR_COMPARE(c1, &c2->Info);
     }
     return FALSE;
 }
 
 
-static __inline int
+static __inline unsigned
 WCHAR_UPDATE(WCHAR_INFO *cursor, const uint32_t ch, const struct WCHAR_COLORINFO *info)
 {
     WCHAR_INFO text;
 
     WCHAR_BUILD(ch, info, &text);
     if (WCHAR_COMPARE(cursor, &text)) {
-        return FALSE;                           // up-to-date
+        return 0;                               // up-to-date
     }
     *cursor = text;
-    return TRUE;
+    return TOUCHED;
 }
 
 
@@ -2778,15 +2800,16 @@ vio_save(void)
     rows = 1 + sbinfo.srWindow.Bottom - sbinfo.srWindow.Top;
     cols = 1 + sbinfo.srWindow.Right - sbinfo.srWindow.Left;
 
-    if (!vio_state.image || vio_state.rows != rows || vio_state.cols != cols) {
-        CHAR_INFO *newImage;
+    if (!vio_state.image ||                     // initial or size change
+            vio_state.rows != rows || vio_state.cols != cols) {
+        CHAR_INFO *nimage;
 
         if (rows <= 0 || cols <= 0 ||
-                NULL == (newImage = calloc(rows * cols, sizeof(CHAR_INFO)))) {
+                NULL == (nimage = calloc(rows * cols, sizeof(CHAR_INFO)))) {
             return;
         }
         free(vio_state.image);                  // release previous; if any
-        vio_state.image = newImage;
+        vio_state.image = nimage;
         vio_state.rows = rows;
         vio_state.cols = cols;
     }
@@ -2819,8 +2842,8 @@ ImageSave(HANDLE console, unsigned pos, unsigned cnt)
     wr.Top    = (SHORT)(pos / cols);
     wr.Bottom = (SHORT)((pos + (cnt - 1)) / cols);
 
-    is.Y      = (SHORT)(vio.rows - wr.Top);     // size of image.
-    is.X      = (SHORT)(vio.cols);
+    is.Y      = (SHORT)(rows - wr.Top);         // size of image.
+    is.X      = (SHORT)(cols);
 
     ic.X      = 0;                              // top left src cell in image.
     ic.Y      = 0;
@@ -3236,6 +3259,8 @@ vio_define_attr(int obj, const char *what, const char *fg, const char *bg)
 //  }
 
     if (VIO_INVERSE & (fattr|battr)) {          // apply inverse.
+        fattr &= ~VIO_INVERSE;
+        battr &= ~VIO_INVERSE;
         SWAPFGBG(fcolor, bcolor);
         SWAPRGB(frgb, brgb);
     }
@@ -3297,7 +3322,11 @@ vio_define_winattr(int obj, int fg, int bg, uint16_t attributes)
     assert(bg >= WIN_COLOR_MIN && bg < WIN_COLOR_NUM);
     if (obj < 0 || obj >= MAXOBJECTS) return;
 
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
+    if (VIO_INVERSE & attributes) {
+        attributes &= ~VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     if (fg < 0 || bg < 0) {                     // specials, dynamic
         vio.c_attrs[obj].Flags = VIO_F16;       // vt/xterm
         vio.c_attrs[obj].Attributes = attributes;
@@ -3329,8 +3358,13 @@ vio_define_vtattr(int obj, int fg, int bg, uint16_t attributes)
         vio.c_attrs[obj].Flags = VIO_F256;
         if (vio.maxcolors > 16) vio.activecolors = 256;
     }
+
+    if (VIO_INVERSE & attributes) {
+        attributes &= ~VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     vio.c_attrs[obj].Attributes = attributes;
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
     vio.c_attrs[obj].fg = (short)vtnormal(fg);
     vio.c_attrs[obj].bg = (short)vtnormal(bg);
     vio.c_attrs[obj].fgrgb = (COLORREF)-1;
@@ -3348,8 +3382,13 @@ vio_define_rgbattr(int obj, int fg, int bg, uint16_t attributes)
 
     vio.c_attrs[obj].Flags = VIO_FRGB;          // true-color
     if (vio.maxcolors > 16) vio.activecolors = 256;
+
+    if (VIO_INVERSE & attributes) {
+        attributes &= ~VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     vio.c_attrs[obj].Attributes = attributes;
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
     vio.c_attrs[obj].fg = (short)rgb_search(16, fg); // shadow colors (vt/xterm)
     vio.c_attrs[obj].bg = (short)rgb_search(16, bg);
     vio.c_attrs[obj].fgrgb = (COLORREF)fg;      // true-colors
@@ -3409,7 +3448,11 @@ vio_set_wincolor(int fg, int bg, uint16_t attributes)
     assert(fg >= WIN_COLOR_MIN && fg < WIN_COLOR_NUM);
     assert(bg >= WIN_COLOR_MIN && bg < WIN_COLOR_NUM);
 
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
+    if (VIO_INVERSE & attributes) {
+        attributes &= ~VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     if (fg < 0 || bg < 0) {                     // specials, dynamic
         vio.c_color.Flags = VIO_F16;            // vt/xterm
         vio.c_color.Attributes = attributes;
@@ -3440,8 +3483,12 @@ vio_set_vtcolor(int fg, int bg, uint16_t attributes)
 
     vio.c_color.Flags = VIO_F16;
     if (fg >= 16 || bg >= 16) vio.c_color.Flags = VIO_F256;
+    if (VIO_INVERSE & attributes) {
+        attributes &= ~VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     vio.c_color.Attributes = attributes;
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
     vio.c_color.fg = (short)vtnormal(fg);       // primary colors (vt/xterm)
     vio.c_color.bg = (short)vtnormal(bg);
     vio.c_color.fgrgb = (COLORREF)-1;           // true-colors (none)
@@ -3461,8 +3508,12 @@ vio_set_rgbcolor(int32_t fg, int32_t bg, uint16_t attributes)
 
     vio.c_color.Flags = VIO_FRGB;
     if (vio.maxcolors > 16) vio.activecolors = 256;
+    if (VIO_INVERSE & attributes) {
+        attributes &= VIO_INVERSE;
+        SWAPFGBG(fg, bg);
+    }
+
     vio.c_color.Attributes = attributes;
-    if (VIO_INVERSE & attributes) SWAPFGBG(fg, bg);
     vio.c_color.fg = (short)rgb_search(16, fg); // shadow colors (vt/xterm)
     vio.c_color.bg = (short)rgb_search(16, bg);
     vio.c_color.fgrgb = (COLORREF)fg;           // true-colors
@@ -3723,5 +3774,159 @@ vio_putc(unsigned ch, unsigned cnt, int move)
         vio.c_col = col, vio.c_row = row;
     }
 }
-/*end*/
 
+
+/* http://www.unicode.org/unicode/reports/tr11/
+ *
+ * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
+ *
+ * Permission to use, copy, modify, and distribute this software
+ * for any purpose and without fee is hereby granted. The author
+ * disclaims all warranties with regard to this software.
+ *
+ * Latest version: http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
+ */
+
+struct interval {
+  int first;
+  int last;
+};
+
+
+/* auxiliary function for binary search in interval table */
+static int bisearch(wchar_t ucs, const struct interval *table, int max) {
+  int min = 0;
+  int mid;
+
+  if (ucs < table[0].first || ucs > table[max].last)
+    return 0;
+  while (max >= min) {
+    mid = (min + max) / 2;
+    if (ucs > table[mid].last)
+      min = mid + 1;
+    else if (ucs < table[mid].first)
+      max = mid - 1;
+    else
+      return 1;
+  }
+
+  return 0;
+}
+
+
+/* The following two functions define the column width of an ISO 10646
+ * character as follows:
+ *
+ *    - The null character (U+0000) has a column width of 0.
+ *
+ *    - Other C0/C1 control characters and DEL will lead to a return
+ *      value of -1.
+ *
+ *    - Non-spacing and enclosing combining characters (general
+ *      category code Mn or Me in the Unicode database) have a
+ *      column width of 0.
+ *
+ *    - SOFT HYPHEN (U+00AD) has a column width of 1.
+ *
+ *    - Other format characters (general category code Cf in the Unicode
+ *      database) and ZERO WIDTH SPACE (U+200B) have a column width of 0.
+ *
+ *    - Hangul Jamo medial vowels and final consonants (U+1160-U+11FF)
+ *      have a column width of 0.
+ *
+ *    - Spacing characters in the East Asian Wide (W) or East Asian
+ *      Full-width (F) category as defined in Unicode Technical
+ *      Report #11 have a column width of 2.
+ *
+ *    - All remaining characters (including all printable
+ *      ISO 8859-1 and WGL4 characters, Unicode control characters,
+ *      etc.) have a column width of 1.
+ *
+ * This implementation assumes that wchar_t characters are encoded
+ * in ISO 10646.
+ */
+
+int vio_wcwidth(wchar_t ucs)
+{
+  /* sorted list of non-overlapping intervals of non-spacing characters */
+  /* generated by "uniset +cat=Me +cat=Mn +cat=Cf -00AD +1160-11FF +200B c" */
+  static const struct interval combining[] = {
+    { 0x0300, 0x036F }, { 0x0483, 0x0486 }, { 0x0488, 0x0489 },
+    { 0x0591, 0x05BD }, { 0x05BF, 0x05BF }, { 0x05C1, 0x05C2 },
+    { 0x05C4, 0x05C5 }, { 0x05C7, 0x05C7 }, { 0x0600, 0x0603 },
+    { 0x0610, 0x0615 }, { 0x064B, 0x065E }, { 0x0670, 0x0670 },
+    { 0x06D6, 0x06E4 }, { 0x06E7, 0x06E8 }, { 0x06EA, 0x06ED },
+    { 0x070F, 0x070F }, { 0x0711, 0x0711 }, { 0x0730, 0x074A },
+    { 0x07A6, 0x07B0 }, { 0x07EB, 0x07F3 }, { 0x0901, 0x0902 },
+    { 0x093C, 0x093C }, { 0x0941, 0x0948 }, { 0x094D, 0x094D },
+    { 0x0951, 0x0954 }, { 0x0962, 0x0963 }, { 0x0981, 0x0981 },
+    { 0x09BC, 0x09BC }, { 0x09C1, 0x09C4 }, { 0x09CD, 0x09CD },
+    { 0x09E2, 0x09E3 }, { 0x0A01, 0x0A02 }, { 0x0A3C, 0x0A3C },
+    { 0x0A41, 0x0A42 }, { 0x0A47, 0x0A48 }, { 0x0A4B, 0x0A4D },
+    { 0x0A70, 0x0A71 }, { 0x0A81, 0x0A82 }, { 0x0ABC, 0x0ABC },
+    { 0x0AC1, 0x0AC5 }, { 0x0AC7, 0x0AC8 }, { 0x0ACD, 0x0ACD },
+    { 0x0AE2, 0x0AE3 }, { 0x0B01, 0x0B01 }, { 0x0B3C, 0x0B3C },
+    { 0x0B3F, 0x0B3F }, { 0x0B41, 0x0B43 }, { 0x0B4D, 0x0B4D },
+    { 0x0B56, 0x0B56 }, { 0x0B82, 0x0B82 }, { 0x0BC0, 0x0BC0 },
+    { 0x0BCD, 0x0BCD }, { 0x0C3E, 0x0C40 }, { 0x0C46, 0x0C48 },
+    { 0x0C4A, 0x0C4D }, { 0x0C55, 0x0C56 }, { 0x0CBC, 0x0CBC },
+    { 0x0CBF, 0x0CBF }, { 0x0CC6, 0x0CC6 }, { 0x0CCC, 0x0CCD },
+    { 0x0CE2, 0x0CE3 }, { 0x0D41, 0x0D43 }, { 0x0D4D, 0x0D4D },
+    { 0x0DCA, 0x0DCA }, { 0x0DD2, 0x0DD4 }, { 0x0DD6, 0x0DD6 },
+    { 0x0E31, 0x0E31 }, { 0x0E34, 0x0E3A }, { 0x0E47, 0x0E4E },
+    { 0x0EB1, 0x0EB1 }, { 0x0EB4, 0x0EB9 }, { 0x0EBB, 0x0EBC },
+    { 0x0EC8, 0x0ECD }, { 0x0F18, 0x0F19 }, { 0x0F35, 0x0F35 },
+    { 0x0F37, 0x0F37 }, { 0x0F39, 0x0F39 }, { 0x0F71, 0x0F7E },
+    { 0x0F80, 0x0F84 }, { 0x0F86, 0x0F87 }, { 0x0F90, 0x0F97 },
+    { 0x0F99, 0x0FBC }, { 0x0FC6, 0x0FC6 }, { 0x102D, 0x1030 },
+    { 0x1032, 0x1032 }, { 0x1036, 0x1037 }, { 0x1039, 0x1039 },
+    { 0x1058, 0x1059 }, { 0x1160, 0x11FF }, { 0x135F, 0x135F },
+    { 0x1712, 0x1714 }, { 0x1732, 0x1734 }, { 0x1752, 0x1753 },
+    { 0x1772, 0x1773 }, { 0x17B4, 0x17B5 }, { 0x17B7, 0x17BD },
+    { 0x17C6, 0x17C6 }, { 0x17C9, 0x17D3 }, { 0x17DD, 0x17DD },
+    { 0x180B, 0x180D }, { 0x18A9, 0x18A9 }, { 0x1920, 0x1922 },
+    { 0x1927, 0x1928 }, { 0x1932, 0x1932 }, { 0x1939, 0x193B },
+    { 0x1A17, 0x1A18 }, { 0x1B00, 0x1B03 }, { 0x1B34, 0x1B34 },
+    { 0x1B36, 0x1B3A }, { 0x1B3C, 0x1B3C }, { 0x1B42, 0x1B42 },
+    { 0x1B6B, 0x1B73 }, { 0x1DC0, 0x1DCA }, { 0x1DFE, 0x1DFF },
+    { 0x200B, 0x200F }, { 0x202A, 0x202E }, { 0x2060, 0x2063 },
+    { 0x206A, 0x206F }, { 0x20D0, 0x20EF }, { 0x302A, 0x302F },
+    { 0x3099, 0x309A }, { 0xA806, 0xA806 }, { 0xA80B, 0xA80B },
+    { 0xA825, 0xA826 }, { 0xFB1E, 0xFB1E }, { 0xFE00, 0xFE0F },
+    { 0xFE20, 0xFE23 }, { 0xFEFF, 0xFEFF }, { 0xFFF9, 0xFFFB },
+    { 0x10A01, 0x10A03 }, { 0x10A05, 0x10A06 }, { 0x10A0C, 0x10A0F },
+    { 0x10A38, 0x10A3A }, { 0x10A3F, 0x10A3F }, { 0x1D167, 0x1D169 },
+    { 0x1D173, 0x1D182 }, { 0x1D185, 0x1D18B }, { 0x1D1AA, 0x1D1AD },
+    { 0x1D242, 0x1D244 }, { 0xE0001, 0xE0001 }, { 0xE0020, 0xE007F },
+    { 0xE0100, 0xE01EF }
+  };
+
+  /* test for 8-bit control characters */
+  if (ucs == 0)
+    return 0;
+
+  if (ucs < 32 || (ucs >= 0x7f && ucs < 0xa0))
+    return -1;
+
+  /* binary search in table of non-spacing characters */
+  if (bisearch(ucs, combining, sizeof(combining) / sizeof(struct interval) - 1))
+    return 0;
+
+  /* if we arrive here, ucs is not a combining or C0/C1 control character */
+  return 1 +
+    (ucs >= 0x1100 &&
+     (ucs <= 0x115f ||                    /* Hangul Jamo init. consonants */
+      ucs == 0x2329 || ucs == 0x232a ||
+      (ucs >= 0x2e80 && ucs <= 0xa4cf &&
+       ucs != 0x303f) ||                  /* CJK ... Yi */
+      (ucs >= 0xac00 && ucs <= 0xd7a3) || /* Hangul Syllables */
+      (ucs >= 0xf900 && ucs <= 0xfaff) || /* CJK Compatibility Ideographs */
+      (ucs >= 0xfe10 && ucs <= 0xfe19) || /* Vertical forms */
+      (ucs >= 0xfe30 && ucs <= 0xfe6f) || /* CJK Compatibility Forms */
+      (ucs >= 0xff00 && ucs <= 0xff60) || /* Fullwidth Forms */
+      (ucs >= 0xffe0 && ucs <= 0xffe6) ||
+      (ucs >= 0x20000 && ucs <= 0x2fffd) ||
+      (ucs >= 0x30000 && ucs <= 0x3fffd)));
+}
+
+/*end*/
