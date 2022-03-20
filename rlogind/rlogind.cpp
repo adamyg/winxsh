@@ -5,7 +5,7 @@ __CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.16 2020/07/02 21:27:03 cvsuser E
 /*
  * win rlogind
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -329,7 +329,7 @@ version(void)
 
                 fprintf(stderr,
                         "Licensed under GNU General Public License version 3.0.\n"\
-                        "Copyright (C) 2020 Adam Young.\n"\
+                        "Copyright (C) 2020 - 2022, Adam Young.\n"\
                         "Copyright (C) 1990, 1993, The Regents of the University of California.\n"\
                         "All rights reserved\n\n");
 

@@ -5,7 +5,7 @@ __CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.16 2020/07/02 21:26:54 cvsuser Exp $"
 /*
  * win rlogin
  *
- * Copyright (c) 2005 - 2020, Adam Young.
+ * Copyright (c) 2005 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -806,7 +806,7 @@ version(void)
 	    progname, RLOGIN_VERSION, RLOGIN_BUILDNUMBER, RLOGIN_BUILDDATE, LIBTSM_VERSION, LIBW32_VERSION);
 
 	fprintf(stderr,
-	    "Copyright (C) 2015-2020 Adam Young\n"
+	    "Copyright (C) 2015-2022 Adam Young\n"
 	    "libtsm - Copyright (c) 2011-2013 David Herrmann (https://www.freedesktop.org/wiki/Software/kmscon/libtsm/)\n"
 	    "All rights reserved\n\n");
 
@@ -841,4 +841,3 @@ getescape(char *p)
 }
 
 //end
-

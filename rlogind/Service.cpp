@@ -5,7 +5,7 @@ __CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.9 2020/07/02 21:27:03 cvsuser E
 /*
  * rlogind serice adapter
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

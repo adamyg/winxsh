@@ -5,7 +5,7 @@ __CIDENT_RCSID(ConPty_cpp,"$Id: ConPty.cpp,v 1.10 2020/07/02 21:27:02 cvsuser Ex
 /*
  * Windows 10 ConPTY interface
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

@@ -5,7 +5,7 @@ __CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.5 2020/07/02 21:27:03 cvsuser E
 /*
  * poll() emulation
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

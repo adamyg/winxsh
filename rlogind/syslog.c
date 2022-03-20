@@ -5,7 +5,7 @@ __CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.6 2020/05/18 22:13:47 cvsuser Exp $")
 /*
  * syslog emulation
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -275,3 +275,4 @@ syslog_network(void *data, int op, int pri, const char *msg, size_t len)
 }
 
 //end
+

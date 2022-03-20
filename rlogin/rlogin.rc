@@ -67,11 +67,11 @@ VS_VERSION_INFO VERSIONINFO
                 BEGIN
                         BLOCK   "040904E4"  /* Language ID=040904E4 (U.S. English, char set = Windows, Multilingual) */
                         BEGIN
-                                VALUE "Comments",               "rlogind service"
+                                VALUE "Comments",               "rlogin command line interface"
 
                                 VALUE "CompanyName",            "WinXSH"
 
-                                VALUE "FileDescription",        "Windows rlogind service"
+                                VALUE "FileDescription",        "Windows rLogin"
 
                                 VALUE "FileVersion",            WINSH_VERSION ", Build:" WINSH_BUILD_DATE "-" WINSH_BUILD_NUMBER
 
@@ -87,9 +87,9 @@ VS_VERSION_INFO VERSIONINFO
                                 VALUE "Maintainers",
                                         "Port: https://github.com/adamyg/winxsh \n"
 
-                                VALUE "OriginalFilename",       "rlogind.exe"
+                                VALUE "OriginalFilename",       "rlogin.exe"
 
-                                VALUE "ProductName",            "Native Windows ConPTY rlogind Service"
+                                VALUE "ProductName",            "Native Windows rlogin tool"
 
                                 VALUE "ProductVersion",         WINSH_VERSION ", Win32"
                         END
