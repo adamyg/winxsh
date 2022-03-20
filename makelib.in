@@ -3,7 +3,7 @@
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2022, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRsh/WinSSH
@@ -34,7 +34,7 @@
 
 $PACKAGE        = 'winsh';
 $PACKAGE_NAME   = 'WinSSH/WinRSH';
-$PACKAGE_VERSION = '0.2.2';
+$PACKAGE_VERSION = '0.3.0';
 
 $PACKAGE_URL    = 'https://github.com/adamyg/winxsh';
 
@@ -74,6 +74,7 @@ $PACKAGE_FILE   = 'package.h';
 @OPTLIBRARIES    = ();  # optional libraries
 
 ## Makefiles
+
 @MAKEFILES       = (    # local makefiles
         '.',
         'libw32',
@@ -84,6 +85,7 @@ $PACKAGE_FILE   = 'package.h';
         'libtermemu',
         'libNTService',
         'rsh',
+        'rcmd',
         'rlogin',
         'rlogind',
         'slogin'
