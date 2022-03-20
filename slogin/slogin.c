@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.13 2020/07/02 21:27:12 cvsuser Exp $")
+__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.14 2022/03/20 13:25:21 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * slogin, windows console ssh client (libssh2 based).
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -73,7 +73,10 @@ __CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.13 2020/07/02 21:27:12 cvsuser Exp $"
 #include "../libtermemu/compat.h"
 #include "../libtermemu/termemu_tsm.h"
 
+#include "win32_internal.h"
+
 #include "options.h"
+#include "console.h"
 
 #if defined(__WATCOMC__)
 #define DECLTHREAD	/**/
@@ -94,10 +97,10 @@ struct winsize {
 	unsigned short ws_xpixel;	/* horizontal size, pixels */
 	unsigned short ws_ypixel;	/* vertical size, pixels */
 };
-#endif  //WINSIZE_T
+#endif	//WINSIZE_T
 
 static void		ssh2_sockinit(void);
-static int		ssh2_create(const char *host, const struct options *options, const char *term, struct winsize *wp);
+static int		ssh2_create(const char *host, const struct options *options, const char *term, struct winsize *wp, const char *cmd);
 static int		ssh2_authenticate_direct(const struct options *options, const char *host);
 static int		ssh2_authenticate_agent(const struct options *options);
 static int		ssh2_prompt_continue(const struct options *options, const char *msg);
@@ -110,23 +113,24 @@ static void		ssh2_trace_handler(LIBSSH2_SESSION *session, void* context, const c
 
 static int		prompt_confirm(const struct options *options, const char *msg);
 static char *		prompt_user(const char *msg, int echo);
-static int		prompt_password();
 
 static char *		path_resolve(const char *path);
 static int		path_make(const char *path, int has_file);
 
+static char *		copyargs(char **argv);
 static void		run(const struct options *options);
-static void		done(int status);
-static void		writer(const struct options *options);
+static void		done(int status, const char *message);
+static void		lostpeer(const char *msg);
+static void		tty_writer(const struct options *options);
+static void		direct_writer(const struct options *options);
 static void		echo(unsigned char ch, unsigned char escapechar);
 static void		stop(int all);
 static void		sigwinch(void);
 static void		get_window_size(struct winsize *wp);
 static void		sendwindow(void);
-static DECLTHREAD void	reader_task(void *arg);
-static int		reader(const struct options *options);
-static int		nonterminal(const struct options *options);
-static void		lostpeer(void);
+static DECLTHREAD void	remote_task(void *arg);
+static void		remote_reader(const struct options *options);
+static int		remote_drain(const struct options *options, int isterminal);
 
 static const char *	user;
 static const char *	password;
@@ -139,6 +143,9 @@ static LIBSSH2_SESSION *session = NULL;
 static LIBSSH2_AGENT   *agent = NULL;
 static LIBSSH2_CHANNEL *channel = NULL;
 
+static const char *	exit_message = NULL;
+static HANDLE		terminate_event;
+static int		running = 1;
 static int		rem = -1;
 
 static void kbd_callback_prompt(const char *name, int name_len,
@@ -191,11 +198,12 @@ static const struct option long_options[] = {
 int
 main(int argc, char *argv[])
 {
-	char *u, term[1024] = "";
+	char *u, terminal[1024] = "";
 	struct options options = {0};
 
 	const char *appname = NULL, *keytrans[4] = {NULL, NULL};
 	const char *host = NULL;
+	char *cmd = NULL;
 	int ch, one;
 
 	user = NULL;
@@ -205,6 +213,9 @@ main(int argc, char *argv[])
 	ssh2_sockinit();
 
 	options_default(&options);
+	options.PseudoTerminal = -1;
+	options.Quiet = -1;
+
 	while ((ch = getopt_long(argc, argv, OPTIONS, long_options, NULL)) != -1)
 		switch(ch) {
 		case '4':   //IP4
@@ -268,8 +279,8 @@ main(int argc, char *argv[])
 			options.PseudoTerminal = 0;
 			break;
 		case 't':   //enable pseudo-terminal
-			if (term[0]) errx(1, "multiple -t options specified.");
-			strncpy(term, optarg, sizeof(term)-1);
+			if (terminal[0]) errx(1, "multiple -t options specified.");
+			strncpy(terminal, optarg, sizeof(terminal)-1);
 			options.PseudoTerminal = 1;
 			break;
 		case 'q':   //quiet
@@ -352,18 +363,18 @@ main(int argc, char *argv[])
 				}
 
 				if (what >= 0) {
-					LIBSSH2_SESSION *session = libssh2_session_init();
+					LIBSSH2_SESSION *t_session = libssh2_session_init();
 					const char **algorithms = NULL;
 					int i, rc;
 
 					printf("LIBSSH2 engine: %s\n", libssh2_helper_engine());
-					libssh2_session_flag(session, LIBSSH2_FLAG_COMPRESS, 1);
-					if ((rc = libssh2_session_supported_algs(session, what,  &algorithms)) > 0) {
+					libssh2_session_flag(t_session, LIBSSH2_FLAG_COMPRESS, 1);
+					if ((rc = libssh2_session_supported_algs(t_session, what,  &algorithms)) > 0) {
 						if (desc) printf("Supported %s:\n", desc);
 						for (i = 0; i < rc; ++i) {
 							printf("%s\n", algorithms[i]);
 						}
-						libssh2_free(session, (void *)algorithms);
+						libssh2_free(t_session, (void *)algorithms);
 					}
 				}
 			}
@@ -378,21 +389,39 @@ main(int argc, char *argv[])
 	argv += optind;
 
 	/* Host and optional password */
-	if (NULL == (host = *argv++)) {
+	if (NULL == (host = *argv++) || !*host) {
 		if (optind > 1) usagex("expected host specification.");
 		usage();
 	}
-	if (*argv)                              // additional?
-		usage();
+
+	/* optional command */
+	if (*argv) {				// optional command
+		cmd = copyargs(argv);
+	}
+
+	/*  If an interactive session is requested ssh by default will only request a pseudo-terminal (pty)
+	 *  for interactive sessions when the client has one. The flags -T and -t can be used to override this behaviour.
+	 */
+	if (cmd) {
+		if (-1 == options.PseudoTerminal)
+			options.PseudoTerminal = 0;
+		if (-1 == options.Quiet)
+			options.Quiet = 1;
+	} else {
+		if (-1 == options.PseudoTerminal)
+			options.PseudoTerminal = 1;
+		if (-1 == options.Quiet)
+			options.Quiet = 0;
+	}
 
 	/* Accept user1[:password]@host format, though "-l user" overrides */
 	user = options.User;
 	if (NULL != (u = strchr(host, '@'))) {
 		char *p;
 
-		*u = '\0';                      // terminate user + [password].
+		*u = '\0';			// terminate user + [password].
 		if (NULL != (p = strchr(host, ':')) && p < u) {
-			*p++ = '\0';            // terminate user.
+			*p++ = '\0';		// terminate user.
 			if (*p) password = strdup(p);
 		}
 		if (!user && u > host)
@@ -410,30 +439,33 @@ main(int argc, char *argv[])
 			err(1, "malloc");
 	}
 
-	if (!*term) strcpy(term, "xterm-color");
+	if (options.PseudoTerminal) {
+		if (!*terminal)
+			strcpy(terminal, "xterm-color");
 
-	termemu_init();
-	if (appname) termemu_appname(appname);
-	if (keytrans[0]) termemu_keysyms(keytrans[0]);
-	if (keytrans[1]) termemu_keysyms(keytrans[1]);
-	if (keytrans[2]) termemu_keysyms(keytrans[2]);
-	if (keytrans[3]) termemu_keysyms(keytrans[3]);
-	if (options.ColorPalette)
-		termemu_palette(options.ColorPalette);
-	(void)get_window_size(&winsize);
-	{	char title[128];
-		_snprintf(title, sizeof(title), "slogin %s - %s@%s", SLOGIN_VERSION, user, host);
-		GetConsoleTitleW(oldtitle, sizeof(oldtitle));
-		SetConsoleTitleA(title);
+		termemu_init();
+		if (appname) termemu_appname(appname);
+		if (keytrans[0]) termemu_keysyms(keytrans[0]);
+		if (keytrans[1]) termemu_keysyms(keytrans[1]);
+		if (keytrans[2]) termemu_keysyms(keytrans[2]);
+		if (keytrans[3]) termemu_keysyms(keytrans[3]);
+		if (options.ColorPalette)
+			termemu_palette(options.ColorPalette);
+		(void)get_window_size(&winsize);
+		{	char title[128];
+			_snprintf(title, sizeof(title), "slogin %s - %s@%s", SLOGIN_VERSION, user, host);
+			GetConsoleTitleW(oldtitle, sizeof(oldtitle));
+			SetConsoleTitleA(title);
+		}
 	}
 
 	options.publickey_path = path_resolve(options.publickey_path);
 	options.privatekey_path = path_resolve(options.privatekey_path);
 	options.knownhosts_path = path_resolve(options.knownhosts_path);
 
-	rem = ssh2_create(host, &options, term, &winsize);
+	rem = ssh2_create(host, &options, terminal, &winsize, cmd);
 	if (rem == -1) {
-		done(1);
+		done(1, NULL);
 	}
 
 //	if (options.DebugMode && setsockopt(rem, SOL_SOCKET, SO_DEBUG, (const char *)&one, sizeof(one)) < 0)
@@ -470,6 +502,7 @@ static void
 ssh2_sockinit(void)
 {
 	WSADATA wsadata;
+
 	if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0) {
 		err(1, "winsock initialisation : %d", err);
 		exit(3);
@@ -477,7 +510,7 @@ ssh2_sockinit(void)
 }
 
 static int
-ssh2_create(const char *host, const struct options *options, const char *term, struct winsize *wp)
+ssh2_create(const char *host, const struct options *options, const char *term, struct winsize *wp, const char *cmd)
 {
 	LIBSSH2_KNOWNHOSTS *knownhosts = NULL;
 	const char *fingerprint = NULL, *fingerprint_type = "";
@@ -513,10 +546,12 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 
 	if (options->DebugMode) {
 		if (! libssh2_helper_trace()) { //only available when explicitly built (LIBSSH2DEBUG).
-			warnx("LIBSSH2 trace not available, option ignored");
+			if (!options->Quiet) {
+				warnx("LIBSSH2 trace not available, option ignored");
+			}
 		} else {
 			void *context = ssh2_trace_init(options->DebugOutput);
-			int bitmask;
+			int bitmask = 0;
 
 			if (context) {
 				libssh2_trace_sethandler(session, context, ssh2_trace_handler);
@@ -686,23 +721,42 @@ ssh2_create(const char *host, const struct options *options, const char *term, s
 		}
 	}
 
-	/*
-	 *  Request a terminal with user-specific otherwise 'vanilla' terminal emulation.
-	 *  See /etc/termcap for more options
-	 */
-	if (!options->PseudoTerminal || !term || !*term)
-		term = "vanilla";
-	if (libssh2_channel_request_pty_ex(channel, term, (unsigned int)strlen(term),
-			NULL, 0, wp->ws_col, wp->ws_row, wp->ws_xpixel, wp->ws_ypixel)) {
-		warnx("failed requesting pty, terminal type <%s>", term);
+	if (libssh2_channel_handle_extended_data2(channel, options->StdErrMode)) {
+		warnx("failed setting stderr mode <%d>", options->StdErrMode);
 		goto shutdown;
 	}
 
 	/*
-	 *  Open a SHELL on that pty
+	 *  Request a terminal with user-specific otherwise 'vanilla' terminal emulation.
+	 *  See /etc/termcap for more options
 	 */
-	if (libssh2_channel_shell(channel)) {
-		warnx("unable to request shell on allocated pty");
+	if (options->PseudoTerminal) {
+		if (!term || !*term)
+			term = "vanilla";
+
+		if ((rc = libssh2_channel_request_pty_ex(channel, term, (unsigned int)strlen(term),
+				NULL, 0, wp->ws_col, wp->ws_row, wp->ws_xpixel, wp->ws_ypixel)) < 0) {
+			warnx("failed requesting pty, terminal type <%s> : %d", term, rc);
+			goto shutdown;
+		}
+	}
+
+	/*
+	 *  Exec or open shell
+	 *
+	 *	If a command is specified, it will be executed on the remote host instead of a login shell.
+	 *	A complete command line may be specified as command, or it may have additional arguments.
+	 *	If supplied, the arguments will be appended to the command, separated by spaces,
+	 *	before it is sent to the server to be executed.
+	 */
+	if (cmd) {
+		if ((rc = libssh2_channel_exec(channel, cmd)) < 0 && LIBSSH2_ERROR_EAGAIN != rc) {
+			warnx("unable to request exec on allocated pty : %d", rc);
+			goto shutdown;
+		}
+
+	} else if ((rc = libssh2_channel_shell(channel)) < 0 && LIBSSH2_ERROR_EAGAIN != rc) {
+		warnx("unable to request shell on allocated pty : %d", rc);
 		goto shutdown;
 	}
 
@@ -726,7 +780,10 @@ ssh2_authenticate_direct(const struct options *options, const char *host)
 	 *  Check what authentication methods are available.
 	 */
 	userauthlist = libssh2_userauth_list(session, user, (unsigned int)strlen(user));
-	if (! options->Quiet) fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+	if (! options->Quiet) {
+		fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+	}
+
 	if (userauthlist) {
 		if (strstr(userauthlist, "password") != NULL) {
 			auth_pw |= AUTH_PASSWORD;
@@ -738,6 +795,7 @@ ssh2_authenticate_direct(const struct options *options, const char *host)
 			auth_pw |= AUTH_PUBLICKEY;
 		}
 	}
+
 	if (options->Authentication) {
 		const int avail_auth_pw = auth_pw;
 
@@ -768,7 +826,9 @@ ssh2_authenticate_direct(const struct options *options, const char *host)
 			warnx("authentication by password failed!");
 			return -1;
 		} else {
-			if (! options->Quiet) fprintf(stderr, "Authentication by password succeeded.\n");
+			if (! options->Quiet) {
+				fprintf(stderr, "Authentication by password succeeded.\n");
+			}
 		}
 
 	} else if (auth_pw & AUTH_INTERACTIVE) {
@@ -778,7 +838,9 @@ ssh2_authenticate_direct(const struct options *options, const char *host)
 			warnx("authentication by keyboard-interactive failed!");
 			return -1;
 		} else {
-			if (! options->Quiet) fprintf(stderr, "Authentication by keyboard-interactive succeeded.\n");
+			if (! options->Quiet) {
+				fprintf(stderr, "Authentication by keyboard-interactive succeeded.\n");
+			}
 		}
 
 	} else if (auth_pw & AUTH_PUBLICKEY) {
@@ -794,7 +856,9 @@ ssh2_authenticate_direct(const struct options *options, const char *host)
 			warnx("authentication by public key failed!");
 			return -1;
 		} else {
-			if (! options->Quiet) fprintf(stderr, "Authentication by public key succeeded.\n");
+			if (! options->Quiet) {
+				fprintf(stderr, "Authentication by public key succeeded.\n");
+			}
 		}
 	} else {
 		warnx("No supported authentication methods found!");
@@ -856,8 +920,9 @@ ssh2_authenticate_agent(const struct options *options)
 			warnx("authentication with user %s and public key %s failed!", user, identity->comment);
 			++count;
 		} else {
-			if (! options->Quiet) fprintf(stderr,
-				"authentication with user %s and public key %s succeeded!", user, identity->comment);
+			if (! options->Quiet) {
+				fprintf(stderr, "authentication with user %s and public key %s succeeded!", user, identity->comment);
+			}
 			return 0;
 		}
 		prev_identity = identity;
@@ -874,9 +939,16 @@ ssh2_authenticate_agent(const struct options *options)
 static int
 ssh2_prompt_continue(const struct options *options, const char *msg)
 {
-	fflush(stderr);
-	if (msg && *msg) printf("%s", msg);
-	return prompt_confirm(options, "Are you sure you want to continue connecting (yes/no)?");
+	char message[1024] = {0};
+	int msglen = 0;
+
+	if (msg && *msg) {
+		if ((msglen = strlen(msg)) > (sizeof(message) - 32))
+			msglen = (sizeof(message) - 32);
+		memcpy(message, msg, msglen);
+	}
+	snprintf(message + msglen, sizeof(message) - msglen, "Are you sure you want to continue connecting (yes/no)?");
+	return prompt_confirm(options, message);
 }
 
 
@@ -971,15 +1043,18 @@ ssh2_done(void)
 		libssh2_session_free(session);
 		session = NULL;
 	}
-	closesocket((SOCKET)rem);
+	if (-1 != rem) {
+		closesocket((SOCKET)rem);
+		rem = -1;
+	}
 	libssh2_exit();
 }
 
 
-struct context {            // diagnostics context
-	FILE    *file;
-	time_t  now;
-	char    timestamp[32];
+struct context {				// diagnostics context
+	FILE *	file;
+	time_t	now;
+	char	timestamp[32];
 };
 
 
@@ -991,7 +1066,7 @@ ssh2_trace_init(const char *filename)
 
 	if (filename && *filename) {
 		if (NULL == (cxt = (struct context *)calloc(1, sizeof(struct context))) ||
-		    NULL != (cxt->file = fopen(filename, "a"))) {
+				NULL != (cxt->file = fopen(filename, "a"))) {
 			fputs("\n\n", cxt->file);
 			ssh2_trace_handler(NULL, cxt, buffer, sizeof(buffer)-1);
 		} else {
@@ -1059,39 +1134,12 @@ prompt_confirm(const struct options *options, const char *msg)
 static char *
 prompt_user(const char *msg, int echo)
 {
-	char text[80], *cursor = text, *end = text + (sizeof(text)-1);
-	int ch;
+	char text[1024] = {0};
 
+	fflush(stdout);
 	fflush(stderr);
-	if (msg) printf("%s", msg);
-	for (;;) {
-		fflush(stdout);
-		if ((ch = _getch()) < 0)	// error
-			break;
-		if (ch == 3) { //ctrl-c; abort
-			_putch('\a');
-			*text = 0;
-			break;
-		} else if (ch == '\b') {	// delete/backspace
-			if (cursor > text) {
-				cursor--;
-				if (echo) {
-					_putch(ch); _putch(' '); _putch(ch);
-				}
-			}
-		} else if (ch == '\r') {	// carriage return; complete
-			break;
-		} else if (ch > 0x1b && ch < 255) { //ascii
-			if (cursor < end) {
-				*cursor++ = (char)ch;
-				if (echo) _putch(ch);
-			} else {
-				_putch('\a');
-			}
-		}
-	}
-	*cursor = 0;
-	_putch('\n'), _putch('\r');
+
+	(void) console_prompt(echo, msg, text, sizeof(text));
 	return _strdup(text);
 }
 
@@ -1101,7 +1149,7 @@ path_resolve(const char *path)
 {
 	char t_path[1024], *newpath = NULL, *p;
 
-	if (*path == '~') {                     // embedded home
+	if (*path == '~') {			// embedded home
 		extern const char *w32_gethome(int ignore_home);
 		const char *home = w32_gethome(1);
 		if (home && *home) {
@@ -1155,45 +1203,85 @@ path_make(const char *path, int has_file)
 }
 
 
+static char *
+copyargs(char **argv)
+{
+	char **ap, *args, *p, *ep;
+	int cc;
+
+	cc = 1; 	// trailing newline
+	for (ap = argv; *ap; ++ap)
+		cc += strlen(*ap) + 1;
+	if (NULL == (args = (char *)malloc((size_t)cc)))
+		err(1, "malloc");
+	ep = args + cc;
+	for (p = args, *p = '\0', ap = argv; *ap; ++ap) {
+		(void)strlcpy(p, *ap, ep - p);
+		p += strlen(p);
+		if (ap[1])
+			*p++ = ' ';
+	}
+//	*p++ = '\n';
+	*p = '\0';
+	return args;
+}
+
+
 static void
 run(const struct options *options)
 {
-	if (options->PseudoTerminal) {
-#define CC_CHAR(c)	(c & 0x037)
+	const int istty = _isatty(STDOUT_FILENO);
 
-		tty_cc[VEOF]   = CC_CHAR('d');
-		tty_cc[VERASE] = CC_CHAR('h');
-		tty_cc[VINTR]  = CC_CHAR('c');
-		tty_cc[VKILL]  = CC_CHAR('x');
-		tty_cc[VQUIT]  = CC_CHAR('\\');
-		tty_cc[VSTOP]  = CC_CHAR('s');
-		tty_cc[VSUSP]  = CC_CHAR('z');
-		if (_beginthread(reader_task, 0, (void *)options) == -1L) {
-			err(1, "slogin: fork: %s", strerror(errno));
-			done(1);
-		}
-		writer(options);
+	libssh2_session_set_blocking(session, 0);
 
-	} else {
-		nonterminal(options);
+	if (_beginthread(remote_task, 0, (void *)options) == -1L) {
+		err(1, "slogin: fork: %s", strerror(errno));
 	}
-	msg("closed connection.");
-	done(0);
+
+	if (options->PseudoTerminal && istty) {
+		tty_writer(options);
+	} else {
+		direct_writer(options);
+	}
+	done(0, "closed connection.");
 }
 
+
 static void
-done(int status)
+done(int status, const char *message)
 {
+	lostpeer(message);
 	ssh2_done();
-	w32_sleep(1);                           /* give reader() time to exit */
+	Sleep(200);				/* give reader/writer time to exit */
 	termemu_exit();
 	if (oldtitle[0]) SetConsoleTitleW(oldtitle);
-	w32_sleep(status ? 2 : 1);
+	if (exit_message) msg(exit_message);
+	Sleep(500);
 	exit(status);
 }
 
+
+static void
+lostpeer(const char *message)
+{
+	int t_rem;
+
+	if (!running) return;
+	running = 0;
+
+	exit_message = message;
+	if (-1 != (t_rem = rem)) {
+		rem = -1;
+		closesocket((SOCKET)t_rem);
+		if (terminate_event) SetEvent(terminate_event);
+		termemu_signal_break();
+		Sleep(200);			/* give writer/reader time to exit */
+	}
+}
+
+
 /*
- * writer: write to remote: 0 -> line.
+ *  tty_writer: processed writer
  *
  *  Client Escapes
  *   Normally everything we type to the rlogin client is sent to the server. Occasionally, however,
@@ -1217,7 +1305,7 @@ done(int status)
  *
  *	~C	Open command line. (TODO)
  *		    Currently this allows the addition of port forwardings using the -L, -R
- *		    and -D options (see above).  It also allows the cancellation of existing
+ *		    and -D options (see above). It also allows the cancellation of existing
  *		    port-forwardings with
  *
  *			-KL[bind_address:]port for local,
@@ -1234,12 +1322,12 @@ done(int status)
  *	~v	Increase the verbosity (LogLevel) when errors are being written to stderr. (TODO)
  */
 static void
-writer(const struct options *options)
+tty_writer(const struct options *options)
 {
 	const unsigned char noescape = (options->EscapeCharacter < 0 ? 1 : 0),
 		escapechar = (unsigned char)options->EscapeCharacter;
 	HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
-	DWORD consoleMode;
+	DWORD console_mode = 0;
 
 	unsigned char ibuf[64+1], *ichr, *iend; /* input buffer */
 	unsigned char obuf[sizeof(ibuf)*2];	/* output buffer */
@@ -1251,8 +1339,22 @@ writer(const struct options *options)
 	local = 0;				/* local escape processing */
 	terminate = 0;
 
-	GetConsoleMode(hConsole, &consoleMode);
-	SetConsoleMode(hConsole, ENABLE_WINDOW_INPUT|ENABLE_MOUSE_INPUT);
+#define CC_CHAR(c)	(c & 0x037)
+
+	tty_cc[VEOF]   = CC_CHAR('d');
+	tty_cc[VERASE] = CC_CHAR('h');
+	tty_cc[VINTR]  = CC_CHAR('c');
+	tty_cc[VKILL]  = CC_CHAR('x');
+	tty_cc[VQUIT]  = CC_CHAR('\\');
+	tty_cc[VSTOP]  = CC_CHAR('s');
+	tty_cc[VSUSP]  = CC_CHAR('z');
+
+	if (FILE_TYPE_CHAR != GetFileType(hConsole) ||
+		    !GetConsoleMode(hConsole, &console_mode) ||
+		    !SetConsoleMode(hConsole, ENABLE_WINDOW_INPUT|ENABLE_MOUSE_INPUT)) {
+		msg("non-console");
+		return;
+	}
 
 	while (!terminate) {
 		if ((icnt = termemu_read(ibuf, sizeof(ibuf)-1, sigwinch)) < 0)
@@ -1281,19 +1383,19 @@ writer(const struct options *options)
 					if (c == '.' || CCEQ(tty_cc[VEOF], c)) {
 						echo(c, escapechar);
 						terminate = 1;
-						break;	    //terminate (. and EOF)
+						break;		//terminate (. and EOF)
 					}
 					if (CCEQ(tty_cc[VSUSP], c)) {
 						bol = 1;
 						echo(c, escapechar);
 						stop(1);
-						continue;   //suspend
+						continue;	//suspend
 					}
 					if (CCEQ(tty_cc[VDSUSP], c)) {
 						bol = 1;
 						echo(c, escapechar);
 						stop(0);
-						continue;   //continue
+						continue;	//continue
 					}
 				}
 				if (c != escapechar) {
@@ -1307,16 +1409,99 @@ writer(const struct options *options)
 				(c == '\r') || (c == '\n');
 		} /*for*/
 
-		if (ocnt) {		        /* flush out buffer */
-			if (libssh2_channel_write(channel, (void *)obuf, ocnt) == 0) {
+		if (ocnt) {			/* flush out buffer */
+			if (0 == libssh2_channel_write(channel, (void *)obuf, ocnt)) {
 				msg("line gone");
 				break;
 			}
 			ocnt = 0;
 		}
+
+		if (libssh2_channel_eof(channel)) {
+			break;
+		}
 	}
 
-	SetConsoleMode(hConsole, consoleMode);
+	SetConsoleMode(hConsole, console_mode);
+}
+
+
+/*
+ *  direct_writer: unprocessed writer
+ */
+static void
+direct_writer(const struct options *options)
+{
+	static char outbuffer[16 * 1024];
+
+	const BOOL line_buffer = options->PseudoTerminal;
+	HANDLE hLocal;
+	DWORD console_mode = (DWORD)-1;
+	DWORD count = 0;
+
+	hLocal = GetStdHandle(STD_INPUT_HANDLE);
+	if (FILE_TYPE_CHAR == GetFileType(hLocal)) {
+		if (console_raw_input(hLocal, &console_mode)) {
+			terminate_event = CreateEventA(NULL, TRUE, FALSE, NULL);
+		} else {
+			console_mode = (DWORD)-1;
+		}
+	}
+
+	for (;;) {
+		if ((DWORD)-1 == console_mode) {
+			if (! ReadFile(hLocal, outbuffer, sizeof(outbuffer), &count, NULL) || 0 == count) {
+				break;
+			}
+
+		} else {
+			HANDLE handles[] = { hLocal, terminate_event };
+			const DWORD rc = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+
+			if (WAIT_OBJECT_0 != rc) {
+				if ((WAIT_OBJECT_0 + 1) == rc) {
+					break;	/* terminate event */
+				}
+				if (rc != WAIT_TIMEOUT) { /* timeout */
+					msg("wait channel error");
+					break;
+				}
+				continue;
+			}
+
+			count = console_getln(hLocal, line_buffer, FALSE, outbuffer, sizeof(outbuffer));
+			if (line_buffer && 6 == count) {
+				if (strncmp(outbuffer, "exit", 4)) {
+					break;
+				}
+			}
+		}
+
+		if (count) {
+			DWORD written = 0;
+			int ret;
+
+			do {
+				ret = libssh2_channel_write(channel, outbuffer + written, count - written);
+				if (ret > 0) {
+					written += ret;
+				}
+			} while (ret >= 0 && written != count);
+			if (ret >= 0 || LIBSSH2_ERROR_EAGAIN == ret) {
+				if (libssh2_channel_eof(channel)) {
+					break;
+				}
+			} else {
+				msg("write channel error");
+				break;
+			}
+
+			libssh2_channel_flush(channel);
+		}
+	}
+
+	if ((DWORD)-1 != console_mode)
+		SetConsoleMode(hLocal, console_mode);
 }
 
 
@@ -1339,6 +1524,7 @@ echo(unsigned char ch, unsigned char escapechar)
 	*p++ = '\n';
 	(void) libssh2_channel_write(channel, (void *)buf, p - buf);
 }
+
 
 static void
 stop(int all)
@@ -1386,29 +1572,22 @@ sendwindow(void)
 }
 
 static DECLTHREAD void
-reader_task(void *arg)
+remote_task(void *arg)
 {
 	const struct options *options = (const struct options *)arg;
-	if (reader(options) == 0) {
-		msg("connection closed.");
-		done(0);
-	}
-	msg("\aconnection closed.");
-	done(1);
-	/*NOTREACHED*/
+	remote_reader(options);
 }
 
 /*
  *  reader: read from remote: line -> 1
  */
-static int
-reader(const struct options *options)
+static void
+remote_reader(const struct options *options)
 {
-	static char rcvbuf[64 * 1024];
-
+	const int isterminal = termemu_active();
 	const int keepalive = options->KeepAliveInterval;
 	struct pollfd fds[1] = {0};
-	time_t keepalive_next = 0;
+	ULONGLONG keepalive_next = 0;
 	int flush = 0, seconds_to_next = 0;
 	int timeoutms, ret;
 
@@ -1416,238 +1595,113 @@ reader(const struct options *options)
 		libssh2_keepalive_config(session, 0, keepalive);
 	}
 
+	if ((! isterminal && -1 == _setmode(STDOUT_FILENO, _O_BINARY)) ||
+			-1 == _setmode(STDERR_FILENO, _O_BINARY)) {
+		lostpeer("set-mode error");
+		return;
+	}
+
+	if (remote_drain(options, isterminal) > 0) {
+		flush = 1;
+	}
+
 	for (;;) {
 		fds[0].fd = rem;
 		fds[0].events = (POLLIN|POLLPRI);
 
 		if (keepalive > 0) {
-			libssh2_keepalive_send(session, &seconds_to_next);
+			const ULONGLONG now = GetTickCount64();
+			if (now > keepalive_next) {
+				libssh2_keepalive_send(session, &seconds_to_next);
+				keepalive_next = now + (seconds_to_next * 1000);
+			}
 		}
 
-		timeoutms = (flush ? 25 : (seconds_to_next > 0 ? (seconds_to_next * 1000) - 100 : -1));
-		if ((ret = w32_poll_native(fds, 1, timeoutms)) < 1) {
-			if (0 == ret) {         /* timeout */
-				if (flush) termemu_flush();
+		timeoutms = (flush ? 25 : 5000);
+		if ((ret = poll(fds, 1, timeoutms)) < 1) {
+			if (0 == ret) { 	/* timeout */
+				if (flush && isterminal) {
+					termemu_flush();
+				} else {
+					if (remote_drain(options, isterminal) < 0) {
+						lostpeer("channel read error");
+						return;
+					}
+					if (libssh2_channel_eof(channel))
+						break;
+				}
 				flush = 0;
 				continue;
 			}
-			return -1;
+			lostpeer("poll error.");
+			return;
 		}
 
 		if (fds[0].revents & POLLPRI) {
-			msgx("OOB data detected ");
-			lostpeer();
+			lostpeer("\aOBB data detected; connection closed.");
+			return;
 
 		} else if (fds[0].revents & POLLHUP) {
 			/* socket close */
-			return 0;
+			break;
 
 		} else if (fds[0].revents & (POLLERR|POLLNVAL)) {
 			/* socket error */
-			lostpeer();
+			lostpeer("\alost peer; connection terminated.");
+			return;
 
 		} else if (fds[0].revents & POLLIN) {
 			/* refill buffer */
-			int rcvcnt = (int)libssh2_channel_read(channel, rcvbuf, (int)sizeof(rcvbuf));
-			if (0 == rcvcnt) {
-				if (libssh2_channel_eof(channel)) {
-					return (0);
-				}
-			} else if (rcvcnt < 0) {
-				if (rcvcnt == -EINTR || errno == EINTR /*???*/)
-					continue;
-				msgx("channel read");
-				return (-1);
-			}
-			termemu_write(rcvbuf, rcvcnt);
-			++flush;
-		}
-	}
-	/*NOTREACHED*/
-}
-
-/*
- *  simple line client
- */
-static int
-nonterminal(const struct options *options)
-{
-	static char rcvbuf[64 * 1024], cmdline[1024*2];
-
-	HANDLE hRemote, hConsole, handles[2];
-	const int keepalive = options->KeepAliveInterval;
-	int iteration, timeoutms, seconds_to_next = 0;
-	DWORD dRet;
-	size_t cmdlen = 0;
-
-	if (keepalive > 0) {
-		libssh2_keepalive_config(session, 0, keepalive);
-	}
-
-	hRemote = WSACreateEvent();
-	WSAEventSelect(rem, hRemote, FD_READ);
-	hConsole = GetStdHandle(STD_INPUT_HANDLE);
-
-	for (iteration = 0;; ++iteration) {
-		if (keepalive > 0) {
-			libssh2_keepalive_send(session, &seconds_to_next);
-		}
-
-		handles[(iteration+0)%2] = hRemote; /* round robin handles */
-		handles[(iteration+1)%2] = hConsole;
-
-		timeoutms = (seconds_to_next > 0 ? (seconds_to_next * 1000) - 100 : -1);
-		dRet = WaitForMultipleObjects(2, handles, FALSE, timeoutms);
-		if (dRet < WAIT_OBJECT_0 || dRet > (WAIT_OBJECT_0 + 1)) {
-			if (dRet == WAIT_TIMEOUT) { /* timeout */
-				continue;
-			}
-			msgx("wait channel error");
-			break;
-		}
-
-		if (handles[dRet] == hRemote) {
-			int ret;
-
-			libssh2_channel_set_blocking(channel, 0);
-			do {
-				ret = libssh2_channel_read(channel, rcvbuf, sizeof(rcvbuf));
-				if (ret > 0) {
-					(void) fwrite(rcvbuf, ret, 1, stdout);
-					fflush(stdout);
-				}
-			} while (LIBSSH2_ERROR_EAGAIN != ret && ret > 0);
-			if (ret >= 0) {
-				if (libssh2_channel_eof(channel)) {
-					lostpeer();
-				}
-			} else if (ret < 0 && LIBSSH2_ERROR_EAGAIN != ret) {
-				msgx("read channel error");
+			const int ret = remote_drain(options, isterminal);
+			if (ret > 0) {
+				++flush;
+			} else if (ret < 0) {
+				lostpeer("channel read error");
+				return;
+			} else if (libssh2_channel_eof(channel)) {
 				break;
 			}
-
-		} else if (handles[dRet] == hConsole) {
-			INPUT_RECORD k = {0};
-			DWORD count = 0;
-
-			if (ReadConsoleInput(hConsole, &k, 1, &count) && count) {
-				KEY_EVENT_RECORD *key = &k.Event.KeyEvent;
-				char ch;
-
-				if (k.EventType == KEY_EVENT && key->bKeyDown) {
-					if ((ch = key->uChar.AsciiChar) != 0) {
-						if (ch == 3) { //ctrl-c; abort
-							cmdlen = 0;
-						} else if (ch == '\b') { //delete/backspace
-							if (cmdlen) {
-								--cmdlen;
-								_putch(ch); _putch(' '); _putch(ch);
-							}
-						} else if (cmdlen < (sizeof(cmdline)-2)) { //append
-							cmdline[cmdlen++] = ch;
-							_putch(ch);
-						} else { //overflow
-							_putch('\a');
-						}
-					}
-				}
-			}
-
-			if (cmdlen && (cmdline[cmdlen-1] == '\r' || cmdline[cmdlen-1] == '\n')) {
-				int ret, written = 0;
-
-				while (cmdline &&	// trim trainling delimiters
-					    (cmdline[cmdlen-1] == '\r' || cmdline[cmdlen-1] == '\n')) {
-					--cmdlen;
-				}
-
-				if (cmdlen == 4 && 0 == strncmp(cmdline, "exit", 4)) {
-					done(1);	// local exit command
-				}
-
-				cmdline[cmdlen++] = '\r';
-				cmdline[cmdlen++] = '\n';
-				cmdline[cmdlen] = 0;
-
-				libssh2_channel_set_blocking(channel, 1);
-				do {			// export
-					ret = libssh2_channel_write(channel, cmdline, cmdlen - written);
-					if (ret > 0) written += ret;
-				} while (LIBSSH2_ERROR_EAGAIN != ret && ret > 0 && written != cmdlen);
-				if (0 == ret) {
-					if (libssh2_channel_eof(channel)) {
-						break;
-					}
-				} else if (ret < 0 && LIBSSH2_ERROR_EAGAIN != ret) {
-					msgx("write channel error");
-					break;
-				}
-
-				_putch('\n');
-				cmdlen = 0;
-			}
 		}
 	}
-
-	WSACloseEvent(hRemote);
-	return 0;
+	lostpeer("connection closed.");
 }
 
-static void
-lostpeer()
-{
-	msg("\aconnection closed.");
-	done(1);
-}
 
-#if (TODO)
 static int
-exec(const char *command)
+remote_drain(const struct options *options, int isterminal)
 {
-	dos2unix(command);			/* CR+LF (Windows) => LF (Unix) */
+	static char inbuffer[16 * 1024];
+	int written = 0, ret;
 
-	/* request a shell on a channel and execute command */
-	while (0 != (rc = libssh2_channel_exec(channel, command)) {
-	    switch (rc) {
-		case LIBSSH2_ERROR_EAGAIN:
-			waitsocket(socket, session);
-			continue;
-		default:
-			SET_MSG_RESULT(result, strdup(NULL, "Cannot request a shell"));
-			goto channel_close;
+	do {
+		ret = libssh2_channel_read(channel, inbuffer, sizeof(inbuffer));
+		if (ret > 0) {
+			if (isterminal) {
+				termemu_write(inbuffer, ret);
+			} else {
+				(void) _write(STDOUT_FILENO, inbuffer, ret);
+			}
+			written += ret;
 		}
-	}
+	} while (ret > 0);
 
-	for (;;) {
-		/* loop until we block */
+	if (LIBSSH2_CHANNEL_EXTENDED_DATA_NORMAL == options->StdErrMode) {
+		int eret;
+
 		do {
-		    if (0 < (rc = libssh2_channel_read(channel, buf, sizeof(buf)))) {
-			sz = (size_t)rc;
-			if (sz > (size_t)(MAX_BUFFER_LEN - (bytecount + 1)))
-				sz = (size_t)(MAX_BUFFER_LEN - (bytecount + 1));
-			if (0 == sz)
-				continue;
-			memcpy(buffer + bytecount, buf, sz);
-			bytecount += sz;
-		    }
-		} while (rc > 0);
-
-		/* this is due to blocking that would occur otherwise so we loop on this condition */
-		if (LIBSSH2_ERROR_EAGAIN == rc)
-			waitsocket(s.socket, session);
-		else if (rc < 0) {
-			SET_MSG_RESULT(result, zbx_strdup(NULL, "Cannot read data from SSH server"));
-			goto channel_close;
-		}
-		else
-			break;
+			eret = libssh2_channel_read_stderr(channel, inbuffer, sizeof(inbuffer));
+			if (eret > 0) {
+				(void) _write(STDERR_FILENO, inbuffer, eret);
+			}
+		} while (eret > 0);
 	}
 
-	buffer[bytecount] = '\0';
-	SET_STR_RESULT(result, convert_to_utf8(buffer, bytecount, encoding));
+	if (ret >= 0 || LIBSSH2_ERROR_EAGAIN == ret) {
+		return written;
+	}
 
-	ret = SYSINFO_RET_OK;
+	return -1;
 }
-#endif	//TODO
 
 /*end*/
+

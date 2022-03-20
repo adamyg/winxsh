@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_test_c,"$Id: options_test.c,v 1.9 2020/05/09 15:07:19 cvsuser Exp $")
+__CIDENT_RCSID(options_test_c,"$Id: options_test.c,v 1.10 2022/03/20 13:25:21 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win slogin
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -560,4 +560,5 @@ static void keymap(void)
 	keymap_test("Any None<Key>VK_UP : string(\"\")");
 	keymap_test("None Any<Key>VK_UP : string(\"\")");
 }
+
 #endif	//_DEBUG

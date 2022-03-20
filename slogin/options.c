@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_c,"$Id: options.c,v 1.14 2020/07/02 21:27:12 cvsuser Exp $")
+__CIDENT_RCSID(options_c,"$Id: options.c,v 1.15 2022/03/20 13:25:21 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * win slogin
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -32,7 +32,6 @@ __CIDENT_RCSID(options_c,"$Id: options.c,v 1.14 2020/07/02 21:27:12 cvsuser Exp 
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
-#include "options.h"
 
 #define WIN32_SOCKET_H_CLEAN
 #ifdef HAVE_SYS_SOCKET_H
@@ -63,6 +62,9 @@ __CIDENT_RCSID(options_c,"$Id: options.c,v 1.14 2020/07/02 21:27:12 cvsuser Exp 
 #endif
 
 #include <zlib.h>
+
+#include "options.h"
+#include "console.h"
 
 #include "../libtermemu/compat.h"
 #include "../libtermemu/termemu_tsm.h"
@@ -343,13 +345,13 @@ options_default(struct options *options)
 {
 	memset(options, 0, sizeof(options));
 
-	options->publickey_path  = SLOGIN_DEFAULT_PUBLICKEY_PATH;
+	options->publickey_path = SLOGIN_DEFAULT_PUBLICKEY_PATH;
 	options->privatekey_path = SLOGIN_DEFAULT_PRIVATEKEY_PATH;
 	options->knownhosts_path = SLOGIN_DEFAULT_KNOWNHOSTS_PATH;
 	options->EscapeCharacter = '~';
 	options->ColorMax = 256; //xterm
 	options->Port = opt_default_ssh_port();
-	options->PseudoTerminal = 1;
+	options->StdErrMode = LIBSSH2_CHANNEL_EXTENDED_DATA_NORMAL;
 	options->StrictHostKeyChecking = 1;
 	options->TerminalName = "xterm-color";
 }
@@ -579,19 +581,6 @@ version(void)
 	    "Please send any bug reports (including the output of '%s -V') as tickets\n"
 	    "at https://sourceforge.net/projects/winssh\n", getprogname());
 	exit(0);
-}
-
-
-static int
-console_width(void)
-{
-	static int width = 0;
-	if (! width) {
-		CONSOLE_SCREEN_BUFFER_INFO scr = {0};
-		GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scr);
-		width = (scr.srWindow.Right - scr.srWindow.Left) + 1;
-	}
-	return width;
 }
 
 

@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.10 2020/06/14 00:49:51 cvsuser Exp $
+# $Id: Makefile.in,v 1.11 2022/03/20 13:25:21 cvsuser Exp $
 # winssh Makefile
 #
 #
-# Copyright (c) 2015 - 2020, Adam Young.
+# Copyright (c) 2015 - 2022, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -92,7 +92,7 @@ RMFLAGS=	-f
 TARGET=		slogin$(E)
 
 CSOURCES=\
-	slogin.c options.c options_test.c
+	slogin.c console.c options.c options_test.c
 CINCLUDE+=	-I../libtermemu
 
 OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
