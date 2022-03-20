@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_c,"$Id: options.c,v 1.15 2022/03/20 13:25:21 cvsuser Exp $")
+__CIDENT_RCSID(options_c,"$Id: options.c,v 1.16 2022/03/20 13:48:59 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -568,7 +568,7 @@ version(void)
 #endif
 
 	fprintf(stderr,
-	    "Copyright (C) 2015-2020 Adam Young\n"
+	    "Copyright (C) 2015-2022 Adam Young\n"
 	    "libssh2    - Copyright (C) 2004-2019 (https://www.libssh2.org/license.html)\n"
 #if defined(MBEDTLS_VERSION_STRING)
 	    "libmbedtls - Apache 2.0 license (https://tls.mbed.org/)\n"

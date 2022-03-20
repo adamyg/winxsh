@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.6 2020/05/18 22:13:47 cvsuser Exp $")
+__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.7 2022/03/20 13:48:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*

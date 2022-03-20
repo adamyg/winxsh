@@ -1,11 +1,12 @@
-BUILD 60 - pending
-
 Sun Mar 20 18:59:48 2022 adamy
+
+	* version 0.3.0
 
 	* slogin
 
 		o command exec option.
 		o raw terminal mode.
+		o aligned pseudo-tty rules.
 
 	* ci: github
 

@@ -27,12 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\slogin\options.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\slogin\slogin.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libtermemu\compat_inet_ntop.c">
       <Filter>Source Files\libemu</Filter>
     </ClCompile>
@@ -78,7 +72,16 @@
     <ClCompile Include="..\..\libtermemu\termemu_keysym.c">
       <Filter>Source Files\libemu</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\slogin\console.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\slogin\options.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\slogin\options_test.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\slogin\slogin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libtermemu\config.h">
       <Filter>Header Files\libemu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\slogin\console.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

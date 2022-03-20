@@ -282,7 +282,7 @@ CtrlHandler(DWORD fdwCtrlType)
 	case CTRL_C_EVENT:
 		signo = 2;  // SIGINT
 		w32_write(remerr, &signo, sizeof(signo));
-                return TRUE;
+		return TRUE;
 	case CTRL_BREAK_EVENT:
 		signo = 3;  // SIGQUIT
 		w32_write(remerr, &signo, sizeof(signo));

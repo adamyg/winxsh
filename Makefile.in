@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.15 2022/03/20 11:24:28 cvsuser Exp $
+# $Id: Makefile.in,v 1.16 2022/03/20 13:48:58 cvsuser Exp $
 # winxsh - top level makefile.
 #
 #
@@ -44,7 +44,7 @@ PKG_TARNAME	= @PACKAGE_TARNAME@
 PKG_URL		= @PACKAGE_URL@
 PKG_VERSION	= @PACKAGE_VERSION@
 ifeq ("","$(PKG_VERSION)")
-PKG_VERSION	= 0.2.2
+PKG_VERSION	= 0.3.0
 endif
 
 PATH_SEPARATOR	= @PATH_SEPARATOR@
