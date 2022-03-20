@@ -32,11 +32,11 @@
 #include "../packageinfo.h"
 #endif
 
-#if defined(WINSH_BUILD_TOOLCHAIN)
-#if defined(WINSH_BUILD_TYPE)
-#define BinDir "bin" + WINSH_BUILD_TOOLCHAIN + "\\" + WINSH_BUILD_TYPE
+#if defined(BUILD_TOOLCHAIN)
+#if defined(BUILD_TYPE)
+#define BinDir "bin" + BUILD_TOOLCHAIN + "\\" + BUILD_TYPE
 #else
-#define BinDir "bin" + WINSH_BUILD_TOOLCHAIN
+#define BinDir "bin" + BUILD_TOOLCHAIN
 #endif
 #else
 #define BinDir "bin"
