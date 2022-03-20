@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.6 2022/03/17 03:48:02 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2022/03/20 09:54:59 cvsuser Exp $
 # libmbedtls makefile.
 #
 #
@@ -92,7 +92,7 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) $(D_LIB)/$(LP)regex$(A) @LIBS@ @LIBM@ @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) @LIBS@ @LIBM@ @EXTRALIBS@
 
 ARFLAGS=	rcv
 RMFLAGS=	-f

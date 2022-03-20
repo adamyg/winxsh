@@ -113,7 +113,7 @@ LP=		lib
 E=		.exe
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
-XCLEAN=
+XCLEAN=		$(D_BIN)/*.map
 
 # Configuration
 
@@ -156,12 +156,12 @@ debug:
 
 else	# BUILD_TYPE
 
-ifeq ("$(BUILD_TYPE)","")	#default
-BUILD_TYPE=	debug
-MAKEFLAGS+=	BUILD_TYPE=debug
-endif
-ifneq ("$(BUILD_TYPE)","release")
+ifeq ("$(BUILD_TYPE)","debug")
 RTSUFFIX=d
+else
+ifneq ("$(BUILD_TYPE)","release")
+$(error invalid BUILD_TYPE; debug or release expected)
+endif
 endif
 
 # Directories
@@ -181,6 +181,7 @@ D_LOCALE=	$(D_BIN)/locale
 # Compilers, programs
 
 CC=		@CC@
+CXX=		@CXX@
 AR=		@AR@
 RM=		@RM@
 RMDIR=		@RMDIR@
@@ -219,6 +220,7 @@ LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
 LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
 
+ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
@@ -301,17 +303,16 @@ debug:
 new_release:			new_buildnumber
 		$(MAKE) build
 
-#	.PHONY: package
-#	package:
-#		$(INNO) ./support/pascal-inno-setup.iss
 
 # Build support
 
-BUILD_DATE=		$(shell date +'%Y%m%d')
+BUILD_DATE=			$(shell $(BUSYBOX) date +'%Y%m%d')
 ifneq ($(APPVEYOR_BUILD_NUMBER),)
-BUILD_NUMBER=		$(APPVEYOR_BUILD_NUMBER)
+BUILD_NUMBER=			$(APPVEYOR_BUILD_NUMBER)
+else ifneq ($(GITHUB_RUN_NUMBER),)
+BUILD_NUMBER=			$(GITHUB_RUN_NUMBER)
 else
-BUILD_NUMBER=		$(shell cat BUILDNUMBER)
+BUILD_NUMBER=			$(shell $(BUSYBOX) cat BUILDNUMBER)
 endif
                                 
 .PHONY: 			buildinfo
