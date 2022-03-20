@@ -2,7 +2,7 @@
  * CNTService - Classic window services framework (tweaked).
  * Service Control
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -26,9 +26,8 @@
  * ==end==
  */
 
-#include <string>
-
 #include "NTServiceIO.h"
+#include "NTString.h"
 
 class CNTServiceControl {
     CNTServiceControl(const class CNTServiceControl &) /*=delete*/;
@@ -45,7 +44,7 @@ public:
 
 private:
     NTService::IDiagnostics &diags_;
-    std::string svcName_;
+    NTService::CString svcName_;
 };
 
 //end
