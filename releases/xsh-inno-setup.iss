@@ -32,11 +32,11 @@
 #include "../packageinfo.h"
 #endif
 
-#if defined(BUILD_TOOLCHAIN)
-#if defined(BUILD_TYPE)
-#define BinDir "bin" + BUILD_TOOLCHAIN + "\\" + BUILD_TYPE
+#if defined(WINSH_BUILD_TOOLCHAIN)
+#if defined(WINSH_BUILD_TYPE)
+#define BinDir "bin" + WINSH_BUILD_TOOLCHAIN + "\\" + WINSH_BUILD_TYPE
 #else
-#define BinDir "bin" + BUILD_TOOLCHAIN
+#define BinDir "bin" + WINSH_BUILD_TOOLCHAIN
 #endif
 #else
 #define BinDir "bin"
@@ -49,7 +49,7 @@
 ;
 AppId={{CBB4464D-4F2D-86AB-AF6D-4A9B82F5288A}
 AppName=WinXSH
-AppVersion={#VERSION} (build: {#BUILD_DATE}-{#BUILD_NUMBER})
+AppVersion={#WINSH_VERSION} (build: {#WINSH_BUILD_DATE}-{#WINSH_BUILD_NUMBER})
 AppPublisherURL=https://github.com/adamyg/winxsh
 AppSupportURL=https://github.com/adamyg/winxsh
 AppUpdatesURL=https://github.com/adamyg/winxsh
@@ -59,7 +59,7 @@ DefaultGroupName=WinXSH
 LicenseFile=..\COPYING
 
 OutputDir=.
-OutputBaseFilename=xsh-build{#BUILD_NUMBER}-setup
+OutputBaseFilename=xsh-build{#WINSH_BUILD_NUMBER}-setup
 Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=true
@@ -79,10 +79,10 @@ Root: HKLM; Subkey: "Software\WinXSH"; ValueType: string; ValueName: ""; ValueDa
 Root: HKLM; Subkey: "Software\WinXSH"; ValueType: string; ValueName: "Path"; ValueData: "{app}"; Flags: uninsdeletevalue
 Root: HKLM; Subkey: "Software\WinXSH"; ValueType: string; ValueName: "UninstallString"; ValueData: {uninstallexe}; Flags: uninsdeletevalue
 
-Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "MajorVersion";  ValueData: "{#VERSION_1}"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "MinorVersion";  ValueData: "{#VERSION_2}"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "PatchVersion";  ValueData: "{#VERSION_3}"; Flags: uninsdeletevalue
-Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "BuildVersion";  ValueData: "{#VERSION_4}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "MajorVersion";  ValueData: "{#WINSH_VERSION_1}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "MinorVersion";  ValueData: "{#WINSH_VERSION_2}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "PatchVersion";  ValueData: "{#WINSH_VERSION_3}"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\WinXSH"; ValueType: dword;  ValueName: "BuildVersion";  ValueData: "{#WINSH_VERSION_4}"; Flags: uninsdeletevalue
 
 [Files]
 Source: "..\ChangeLog.txt";             DestDir: "{app}"; Flags: ignoreversion

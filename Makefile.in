@@ -1,5 +1,5 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.13 2020/07/02 22:26:01 cvsuser Exp $
+# $Id: Makefile.in,v 1.14 2022/03/20 10:53:57 cvsuser Exp $
 # winxsh - top level makefile.
 #
 #
@@ -324,7 +324,7 @@ buildinfo:
 
 .PHONY:				packageinfo
 packageinfo:
-		-@$(PERL) ./buildinfo.pl -o packageinfo.h --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+		-@$(PERL) ./buildinfo.pl -o packageinfo.h --prefix="WINSH_" --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
 			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAINEXT@" --type="$(BUILD_TYPE)"
 
 buildinfo.h:		BUILDNUMBER

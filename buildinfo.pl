@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode: perl; -*-
-# $Id: buildinfo.pl,v 1.3 2020/07/02 22:26:01 cvsuser Exp $
+# $Id: buildinfo.pl,v 1.4 2022/03/20 10:53:57 cvsuser Exp $
 # buildinfo generation
 #
 # Copyright Adam Young 2018-2022
@@ -131,11 +131,11 @@ Generate	#()
 #define ${prefix}BUILD_NUMBER "${buildnumber}"
 EOT
 
-	print FILE "#define BUILD_TOOLCHAIN \"${buildtoolchain}\"\n"
+	print FILE "#define ${prefix}BUILD_TOOLCHAIN \"${buildtoolchain}\"\n"
 		if ($buildtoolchain);
 
 	if ($buildtype) {
-		print FILE "#define BUILD_TYPE \"${buildtype}\"\n";
+		print FILE "#define ${prefix}BUILD_TYPE \"${buildtype}\"\n";
 
 		die "buildinfo.pm: build type verb 'release' or 'debug' expected.\n"
 			if ($buildtype !~ /release/ && $buildtype !~ /debug/);
@@ -143,9 +143,9 @@ EOT
 		die "buildinfo.pm: build type verbs 'release' and 'debug' are mutually exclusive.\n"
 			if ($buildtype =~ /release/ && $buildtype =~ /debug/);
 
-		print FILE "#define BUILD_TYPE_RELEASE 1\n"
+		print FILE "#define ${prefix}BUILD_TYPE_RELEASE 1\n"
 			if ($buildtype =~ /release/);
-		print FILE "#define BUILD_TYPE_DEBUG 1\n"
+		print FILE "#define ${prefix}BUILD_TYPE_DEBUG 1\n"
 			if ($buildtype =~ /debug/);
 	}
 

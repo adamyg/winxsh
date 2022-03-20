@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode: perl; -*-
-# $Id: libtool_win32.pl,v 1.8 2020/06/14 00:49:50 cvsuser Exp $
+# $Id: libtool_win32.pl,v 1.9 2022/03/20 10:53:57 cvsuser Exp $
 # libtool emulation for WIN32 builds.
 #
 #   **Warning**
