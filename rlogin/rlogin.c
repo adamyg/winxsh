@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.16 2020/07/02 21:26:54 cvsuser Exp $")
+__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.17 2022/03/20 09:30:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*

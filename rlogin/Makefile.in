@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.8 2020/06/14 00:49:51 cvsuser Exp $
+# $Id: Makefile.in,v 1.9 2022/03/20 09:30:05 cvsuser Exp $
 # rlogin makefile.
 #
 #
