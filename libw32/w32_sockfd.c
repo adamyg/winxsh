@@ -1,10 +1,10 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.6 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.7 2022/03/15 12:15:38 cvsuser Exp $")
 
 /*
  * win32 socket file-descriptor support
  *
- * Copyright (c) 2007, 2012 - 2020 Adam Young.
+ * Copyright (c) 2007, 2012 - 2022 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -23,7 +23,7 @@ __CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.6 2020/07/02 21:31:43 cvsu
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -53,8 +53,8 @@ __CIDENT_RCSID(gr_w32_sockfd_c,"$Id: w32_sockfd.c,v 1.6 2020/07/02 21:31:43 cvsu
 #include <stdarg.h>
 #include <assert.h>
 
-static int                  x_fdhard;           /* hard limit */
-static int                  x_fdlimit = WIN32_FILDES_DEF; /* soft limit */
+static int                  x_fdinit;           /* hard limit */
+static int                  x_fdlimit = 128;    /* soft limit */
 static SOCKET *             x_fdsockets;
 
 
@@ -64,14 +64,14 @@ static SOCKET *             x_fdsockets;
 LIBW32_API void
 w32_sockfd_init(void)
 {
-    if (0 == x_fdhard) {
+    if (!x_fdinit) {
         unsigned s;
 
         if (NULL != (x_fdsockets = calloc(sizeof(SOCKET), WIN32_FILDES_MAX))) {
             for (s = 0; s < WIN32_FILDES_MAX; ++s) {
                 x_fdsockets[s] = INVALID_SOCKET;
             }
-            x_fdhard = WIN32_FILDES_MAX;
+            x_fdinit = WIN32_FILDES_MAX;
         }
     }
 }
@@ -84,10 +84,9 @@ LIBW32_API int
 w32_sockfd_limit(int fd)
 {
     assert(fd >= -1 /*error*/ && fd < WIN32_FILDES_MAX);
+
     if (fd > x_fdlimit) {
-        if ((x_fdlimit = fd) > WIN32_FILDES_MAX) {
-            x_fdlimit =  WIN32_FILDES_MAX;      /* cap */
-        }
+        x_fdlimit = fd;
     }
     return fd;
 }
@@ -104,7 +103,7 @@ w32_sockfd_open(int fd, SOCKET s)
     w32_sockfd_init();
     w32_sockfd_limit(fd);
 
-    if (x_fdsockets && fd >= 0 && fd < x_fdhard) {
+    if (x_fdsockets && fd >= 0 && fd < x_fdinit) {
         assert(s != INVALID_SOCKET);
         x_fdsockets[fd] = s;
     }
@@ -120,7 +119,7 @@ w32_sockfd_get(int fd)
     if (fd >= WIN32_FILDES_MAX) {               /* not an osf handle; hard limit */
         return fd;
 
-    } else if (fd >= 0 && fd < x_fdhard) {
+    } else if (fd >= 0 && fd < x_fdinit) {
         if (x_fdsockets) {                      /* local socket mapping */
             return x_fdsockets[fd];
 
@@ -144,7 +143,7 @@ w32_sockfd_get(int fd)
 LIBW32_API void
 w32_sockfd_close(int fd, SOCKET s)
 {
-    if (fd >= 0 && fd < x_fdhard) {
+    if (fd >= 0 && fd < x_fdinit) {
         if (s == INVALID_SOCKET || x_fdsockets[fd] == s) {
             x_fdsockets[fd] = INVALID_SOCKET;
         }
@@ -189,7 +188,7 @@ w32_issockfd(int fd, SOCKET *s)
              */
             t_s = (SOCKET)fd;
 
-        } else if (fd >= x_fdhard ||            /* local socket mapping */
+        } else if (fd >= x_fdinit ||            /* local socket mapping */
                     (t_s = x_fdsockets[fd]) == INVALID_SOCKET) {
 
             /*

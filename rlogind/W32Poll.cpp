@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.5 2020/07/02 21:27:03 cvsuser Exp $")
+__CIDENT_RCSID(W32Poll_cpp,"$Id: W32Poll.cpp,v 1.6 2022/03/20 13:48:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * poll() emulation
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

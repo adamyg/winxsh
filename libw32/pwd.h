@@ -1,13 +1,14 @@
 #ifndef LIBW32_PWD_H_INCLUDED
 #define LIBW32_PWD_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_pwd_h,"$Id: pwd.h,v 1.5 2020/07/02 21:31:41 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_pwd_h,"$Id: pwd.h,v 1.6 2022/03/15 12:15:36 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
- * Copyright (c) 1998 - 2020, Adam Young.
- * All rights reserved.
+ * win32 <pwd.h> implementation
+ *
+ *      pwd.h - password structure
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -26,17 +27,18 @@ __CPRAGMA_ONCE
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
-#include <sys/cdefs.h>
+#include <sys/cdefs.h>                          /* __BEGIN_DECLS, __PDECL */
+#include <sys/utypes.h>                         /* uid_t */
 
 __BEGIN_DECLS
 
 /*
  *  The <pwd.h> header shall provide a definition for struct passwd,
- *   which shall include at least the following members:
+ *  which shall include at least the following members:
  *
  *      char    *pw_name            User's login name.
  *      uid_t    pw_uid             Numerical user ID.
@@ -59,14 +61,16 @@ struct passwd {
     int                 pw_audflg;
 };
 
-LIBW32_API struct passwd *getpwent(void);
 LIBW32_API struct passwd *getpwuid(int);
 LIBW32_API struct passwd *getpwnam(const char *);
-LIBW32_API void         setpwent(void);
-LIBW32_API void         endpwent(void);
 
-//LIBW32_API int        getpwnam_r(const char *, struct passwd *, char *, size_t, struct passwd **);
-//LIBW32_API int        getpwuid_r(uid_t, struct passwd *, char *, size_t, struct passwd **);
+LIBW32_API void         setpwent(void);
+LIBW32_API struct passwd *getpwent(void);
+LIBW32_API void         endpwent(void);
+LIBW32_API int          getpwent_r(struct passwd *, char *, size_t, struct passwd **);
+
+LIBW32_API int          getpwnam_r(const char *, struct passwd *, char *, size_t, struct passwd **);
+LIBW32_API int          getpwuid_r(uid_t, struct passwd *, char *, size_t, struct passwd **);
 
 __END_DECLS
 

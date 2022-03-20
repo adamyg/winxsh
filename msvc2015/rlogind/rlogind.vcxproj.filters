@@ -128,9 +128,6 @@
     <ClInclude Include="..\..\rlogind\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\rlogind\LoggerSyslog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\rlogind\SyslogDiagnosticsIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -156,6 +153,9 @@
       <Filter>Header Files\NTService</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libNTService\NTServiceIIO.h">
+      <Filter>Header Files\NTService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libNTService\NTString.h">
       <Filter>Header Files\NTService</Filter>
     </ClInclude>
   </ItemGroup>

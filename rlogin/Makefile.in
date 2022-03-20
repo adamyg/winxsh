@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.8 2020/06/14 00:49:51 cvsuser Exp $
+# $Id: Makefile.in,v 1.9 2022/03/20 09:30:05 cvsuser Exp $
 # rlogin makefile.
 #
 #
-# Copyright (c) 2015 - 2020, Adam Young.
+# Copyright (c) 2015 - 2022, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -43,7 +43,12 @@ XCLEAN=
 # Compilers, programs
 
 CC=		@CC@
+CXX=		@CXX@
+ifeq ("$(CXX)","")
+CXX=		$(CC)
+endif
 RM=		@RM@
+RC=		@RC@
 
 # Configuration
 
@@ -91,13 +96,15 @@ RMFLAGS=	-f
 
 TARGET=		rlogin$(E)
 
-CSOURCES=\
-	rlogin.c rcmd.c getport.c
+CSOURCES=	rlogin.c rcmd.c getport.c
 VPATH=		../librcmd
 
-OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+RESOURCES=	rlogin.rc
 
-LDLIBS=		-L$(D_LIB) -llibtermemu -llibw32_static
+OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+OBJS+=		$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
+
+LDLIBS+=	-llibtermemu -llibw32_static
 
 .PHONY:			build release debug
 build:		$(D_BIN)/$(TARGET)
@@ -121,5 +128,8 @@ clean:
 
 $(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(D_OBJ)/%.res: 	%.rc
+		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
 
 #end

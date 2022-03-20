@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_tsm_c,"$Id: termemu_tsm.c,v 1.11 2020/05/15 00:21:52 cvsuser Exp $")
+__CIDENT_RCSID(termemu_tsm_c,"$Id: termemu_tsm.c,v 1.12 2022/03/20 08:22:55 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -67,6 +67,7 @@ static struct term {				// terminal instance
 	int cursorx, cursory;
 	int cols, rows;
 	tsm_age_t age;
+	HANDLE break_signal;
 } *term;
 
 static int xkb_key_get(int block, void (*sigwinch)(void));
@@ -96,23 +97,44 @@ termemu_init(void)
 		return -1;
 	tsm_screen_resize(term->screen, cols, rows);
 	term->cols = cols, term->rows = rows;
+        term->break_signal = CreateEventA(NULL, TRUE, FALSE, NULL);
 	vio_cursor_show();
 	return 0;
+}
+
+
+int
+termemu_active(void)
+{
+	return (NULL != term);
+}
+
+
+void
+termemu_signal_break(void)
+{
+	if (term) {
+		SetEvent(term->break_signal);
+	}
 }
 
 
 void
 termemu_exit(void)
 {
-	assert(term);
-	if (!term) return;
+	struct term *t_term;
 
-	vio_close();
-	tsm_vte_unref(term->vte);
-	tsm_screen_unref(term->screen);
-	vio_restore();				// TODO: optional and/or export screen buffer.
-        free(term);
+	if (NULL == (t_term = term))
+		return;
 	term = NULL;
+
+	termemu_signal_break();
+	vio_close();
+	tsm_vte_unref(t_term->vte);
+	tsm_screen_unref(t_term->screen);
+	vio_restore();				// TODO: optional and/or export screen buffer.
+	CloseHandle(t_term->break_signal);
+	free(t_term);
 }
 
 
@@ -124,10 +146,10 @@ termemu_size(int *rows, int *cols)
 		t_rows = term->rows;
 		t_cols = term->cols;
 	} else {
-                CONSOLE_SCREEN_BUFFER_INFO scr = {0};
+		CONSOLE_SCREEN_BUFFER_INFO scr = {0};
 		if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &scr)) {
-		        t_rows = (scr.srWindow.Bottom - scr.srWindow.Top) + 1;
-		        t_cols = (scr.srWindow.Right - scr.srWindow.Left) + 1;
+			t_rows = (scr.srWindow.Bottom - scr.srWindow.Top) + 1;
+			t_cols = (scr.srWindow.Right - scr.srWindow.Left) + 1;
 		}
 	}
 	if (rows) *rows = t_rows;
@@ -340,9 +362,16 @@ xkb_key_get(int block, void (*sigwinch)(void))
 	DWORD count;
 
 	while (1) {
-		if (WAIT_OBJECT_0 != WaitForSingleObject(console, block ? -1 : 0) ||
-				0 == ReadConsoleInput(console, &k, 1, &count))
-			return -1;	/* error, return EOF */
+		HANDLE handles[2] = {console, term->break_signal};
+		int rc;
+
+		if (WAIT_OBJECT_0 != (rc = WaitForMultipleObjects(2, handles, FALSE, block ? INFINITE : 0)) ||
+				0 == ReadConsoleInput(console, &k, 1, &count)) {
+			if ((WAIT_OBJECT_0 + 1) == rc) {
+				ResetEvent(term->break_signal);
+			}
+			return -1;	/* break, error, return EOF */
+		}
 
 		if (k.EventType == KEY_EVENT) {
 			if (count) {

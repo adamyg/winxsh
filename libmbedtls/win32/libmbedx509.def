@@ -1,6 +1,6 @@
-;$Id: libmbedx509.def,v 1.2 2020/04/29 19:30:43 cvsuser Exp $
+;$Id: libmbedx509.def,v 1.3 2022/03/20 10:12:38 cvsuser Exp $
 ;
-;  libmbedx509 library definition (4.16.6)
+;  libmbedx509 library definition (2.27)
 ;
 DESCRIPTION "libmbedx509"
 EXPORTS

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.14 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.15 2022/03/15 12:15:38 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 socket () system calls
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -25,7 +25,7 @@ __CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.14 2020/07/02 21:31:43 cvs
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -439,8 +439,11 @@ w32_sockclose_fd(int fd)
 #undef closesocket
     if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
-    } else if ((ret = closesocket(osf)) == -1 /*SOCKET_ERROR*/) {
-        w32_sockerror();
+    } else {
+        w32_sockfd_close(fd, osf);
+        if ((ret = closesocket(osf)) == -1 /*SOCKET_ERROR*/) {
+            w32_sockerror();
+        }
     }
     return ret;
 }
@@ -479,4 +482,3 @@ w32_sockhandle(int fd)
 }
 
 /*end*/
-

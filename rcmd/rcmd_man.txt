@@ -1,0 +1,75 @@
+RCMD(1)                     General Commands Manual                    RCMD(1)
+
+NAME
+	rcmd - backend driver for rcmd(3)
+
+SYNOPSIS
+	rcmd [-46dn] [-l username] [-p port] [-u localusername] host command
+
+DESCRIPTION
+	rcmd executes command on host.
+
+	rcmd copies its standard input to the remote command, the standard output
+	of the remote command to its standard output, and the standard error of
+	the remote command to its standard error.  Interrupt, quit and terminate
+	signals are propagated to the remote command; rcmd normally terminates
+	when the remote command does.  The options are as follows:
+
+	-4    Use IPv4 addresses only.
+
+	-6    Use IPv6 addresses only.
+
+	-d    The -d option turns on socket debugging (using setsockopt(2)) on
+	      the TCP sockets used for communication with the remote host.
+
+	-l    By default, the remote username is the same as the local username.
+	      The -l option allows the remote name to be specified.  Another
+	      possible way to specify the remote username is the notation
+	      user@host.
+
+	-n    The -n option redirects input from the special device /dev/null
+	      (see the BUGS section of this manual page).
+
+	-p port
+	      Uses the given port instead of the one assigned to the service
+	      "shell".  May be given either as symbolic name or as number.
+
+	-u    The -u option allows the local username to be specified.  Only the
+	      superuser is allowed to use this option.
+
+	Shell metacharacters which are not quoted are interpreted on local
+	machine, while quoted metacharacters are interpreted on the remote
+	machine.  For example, the command
+
+	rcmd otherhost cat remotefile >> localfile
+
+	appends the remote file remotefile to the local file localfile, while
+
+	rcmd otherhost cat remotefile ">>" other_remotefile
+
+	appends remotefile to other_remotefile.
+
+FILES
+	/etc/hosts
+
+SEE ALSO
+	rsh(1), rcmd(3), environ(7)
+
+HISTORY
+	The rcmd command appeared in NetBSD 1.3 and is primarily derived from
+	rsh(1).  Its purpose was to create a backend driver for rcmd(3) that
+	would allow the users of rcmd(3) to no longer require super-user
+	privileges.
+
+BUGS
+	If you are using csh(1) and put a rcmd in the background without
+	redirecting its input away from the terminal, it will block even if no
+	reads are posted by the remote command.  If no input is desired you
+	should redirect the input of rcmd to /dev/null using the -n option.
+
+	You cannot use rcmd to run an interactive command (like rogue(6) or
+	vi(1)).  Use rlogin(1) instead.
+
+	The stop signal, SIGSTOP, will stop the local rcmd process only. This is
+	arguably wrong, but currently hard to fix for reasons too complicated to
+	explain here.

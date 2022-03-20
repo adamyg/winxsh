@@ -1,10 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.7 2020/07/02 21:25:09 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.8 2022/03/17 03:44:20 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -24,7 +25,7 @@ __CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.7 2020/07/02 2
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -146,7 +147,8 @@ int CNTServiceConfig::ExecuteCommand(int argc, const char * const *argv, unsigne
 //      } else if (0 == (filter & 0x400) && 0 == _stricmp(cmd, "import")) {
                 // Import configuration; from an ini.
 
-        } else if (0 == (filter & 0x100) && 0 == _stricmp(cmd, "help")) {
+        } else if (0 == (filter & 0x100) &&
+                        (0 == _stricmp(cmd, "help") || 0 == _stricmp(cmd, "--help"))) {
                 if (argc > 1) {                 // Note: uninstall perferred
                     return NTSERVICE_CMD_UNEXPECTED_ARG;
                 }
@@ -705,4 +707,3 @@ int CNTServiceConfig::SetAttribute(int argc, const char * const *argv)
 }
 
 //end
-

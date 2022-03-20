@@ -39,6 +39,9 @@
 #ifndef WIN32_SOCKET_MAP_NATIVE
 #define WIN32_SOCKET_MAP_NATIVE
 #endif
+#ifndef WIN32
+#define WIN32
+#endif
 
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE
@@ -77,6 +80,7 @@
 #define snprintf _snprintf
 #define INET6
 #endif
+
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64
 #endif
@@ -104,7 +108,7 @@ rcmd_af(const char **ahost, int rport, const char *locuser, const char *remuser,
 	char pbuf[NI_MAXSERV];
 	struct addrinfo hints, *res;
 	int ret;
-	struct servent *sp;
+//	struct servent *sp;
 
 	_DIAGASSERT(ahost != NULL);
 	_DIAGASSERT(locuser != NULL);
@@ -132,14 +136,13 @@ rcmd_af(const char **ahost, int rport, const char *locuser, const char *remuser,
 	}
 
 	/*
-	 * Check if rport is the same as the shell port, and that the fd2p.  If
-	 * it is not, the program isn't expecting 'rsh' and so we can't use the
-	 * RCMD_CMD environment.
+	 * Check if rport is the same as the shell port, and that the fd2p.
+	 * If it is not, the program isn't expecting 'rsh' and so we can't use the RCMD_CMD environment.
 	 */
-	sp = getservbyname("shell", "tcp");
-	if (sp != NULL && sp->s_port == rport)
-		ret = rshrcmd(af, ahost, (u_int32_t)rport, locuser, remuser, cmd, fd2p, getenv("RCMD_CMD"));
-	else
+//	sp = getservbyname("shell", "tcp");
+//	if (sp != NULL && sp->s_port == rport)
+//		ret = rshrcmd(af, ahost, (u_int32_t)rport, locuser, remuser, cmd, fd2p, getenv("RCMD_CMD"));
+//	else
 		ret = resrcmd(res, ahost, (u_int32_t)rport, locuser, remuser, cmd, fd2p);
 	freeaddrinfo(res);
 	return ret;
@@ -167,7 +170,7 @@ orcmd_af(const char **ahost, u_int rport, const char *locuser, const char *remus
 	/* fd2p may be NULL */
 
 	(void) snprintf(pbuf, sizeof(pbuf), "%u", ntohs(rport));
-        pbuf[sizeof(pbuf) - 1] = 0;
+	pbuf[sizeof(pbuf) - 1] = 0;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = af;
@@ -182,7 +185,7 @@ orcmd_af(const char **ahost, u_int rport, const char *locuser, const char *remus
 		strlcpy(hbuf, res->ai_canonname, sizeof(hbuf));
 		*ahost = hbuf;
 	}
-	
+
 	error = resrcmd(res, ahost, rport, locuser, remuser, cmd, fd2p);
 	freeaddrinfo(res);
 	return error;
@@ -193,22 +196,22 @@ orcmd_af(const char **ahost, u_int rport, const char *locuser, const char *remus
  *  rlogin uses a single TCP connection between the client and server. After the normal TCP connection establishment is complete,
  *  the following application protocol takes place between the client and server.
  *
- *      o The client writes four strings to the server;
- *                (a) a byte of 0,
- *                (b) the login name of the user on the client host, terminated by a byte of 0,
- *                (c) the login name of the user on the server host, terminated by a byte of 0,
- *                (d) the name of the user's terminal type, followed by a slash, followed by the terminal speed, terminated by a byte of 0.
+ *	o The client writes four strings to the server;
+ *		  (a) a byte of 0,
+ *		  (b) the login name of the user on the client host, terminated by a byte of 0,
+ *		  (c) the login name of the user on the server host, terminated by a byte of 0,
+ *		  (d) the name of the user's terminal type, followed by a slash, followed by the terminal speed, terminated by a byte of 0.
  *
- *          Two login names are required because users aren't required to have the same login name on each system.
+ *	    Two login names are required because users aren't required to have the same login name on each system.
  *
- *      o The terminal type is passed from the client to the server because many full-screen applications need to know it.
- *            The terminal speed is passed because some applications operate differently depending on the speed.
- *            For example, the vi editor works with a smaller window when operating at slower speeds, so it doesn't take forever
- *            to redraw the window.
+ *	o The terminal type is passed from the client to the server because many full-screen applications need to know it.
+ *	      The terminal speed is passed because some applications operate differently depending on the speed.
+ *	      For example, the vi editor works with a smaller window when operating at slower speeds, so it doesn't take forever
+ *	      to redraw the window.
  *
- *      o The server responds with a byte of 0.
+ *	o The server responds with a byte of 0.
  *
- *      o The server has the option of asking the user to enter a password.
+ *	o The server has the option of asking the user to enter a password.
  */
 static int
 resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *locuser, const char *remuser, const char *cmd, int *fd2p)
@@ -216,8 +219,6 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 	struct addrinfo *r;
 	struct sockaddr_storage from;
 	struct pollfd reads[2];
-//	sigset_t nmask, omask;
-//	pid_t pid;
 	int s, lport, timo;
 	int pollr;
 	char c;
@@ -232,11 +233,6 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 
 	r = res;
 	refused = 0;
-//	pid = getpid();
-//	sigemptyset(&nmask);
-//	sigaddset(&nmask, SIGURG);
-//	if (sigprocmask(SIG_BLOCK, &nmask, &omask) == -1)
-//		return -1;
 	for (timo = 1, lport = IPPORT_RESERVED - 1;;) {
 		s = rresvport_af(&lport, r->ai_family);
 		if (s < 0) {
@@ -248,11 +244,9 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 				r = r->ai_next;
 				continue;
 			} else {
-//				(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 				return -1;
 			}
 		}
-//		fcntl(s, F_SETOWN, pid);
 #if defined(DO_TRACE)
 		printf("connecting : %s\n", res->ai_canonname);
 #endif
@@ -289,7 +283,6 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 			continue;
 		}
 		(void)fprintf(stderr, "%s: %s\n", res->ai_canonname, w32_strerror(errno));
-//		(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 		return -1;
 	}
 	lport--;
@@ -318,7 +311,7 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 		reads[1].fd = s2;
 		reads[1].events = POLLIN;
 		errno = 0;
-		pollr = w32_poll_native(reads, 2, -1 /*INFTIM*/);
+		pollr = poll(reads, 2, -1 /*INFTIM*/);
 		if (pollr < 1 || (reads[1].revents & POLLIN) == 0) {
 			if (errno != 0)
 				warn("poll: setting up stderr");
@@ -371,14 +364,12 @@ resrcmd(struct addrinfo *res, const char **ahost, u_int32_t rport, const char *l
 		}
 		goto bad2;
 	}
-//	(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 	return s;
 bad2:
 	if (lport)
 		(void)w32_close(*fd2p);
 bad:
 	(void)w32_close(s);
-//	(void)sigprocmask(SIG_SETMASK, &omask, NULL);
 	return -1;
 }
 
@@ -386,140 +377,139 @@ bad:
  * based on code written by Chris Siebenmann <cks@utcc.utoronto.ca>
  */
 /* ARGSUSED */
+#if !defined(WIN32)
 static int
 rshrcmd(int af, const char **ahost, u_int32_t rport, const char *locuser, const char *remuser, const char *cmd, int *fd2p, const char *rshcmd)
 {
-#if defined(WIN32)
 	warnx("%s: not implemented: %s", __FUNCTION__, locuser);
 	return -1;
 
-#else
-//	pid_t pid;
-//	int sp[2], ep[2];
-//	char *p;
-//	struct passwd *pw, pwres;
-//	char pwbuf[1024];
-//
-//	_DIAGASSERT(ahost != NULL);
-//	_DIAGASSERT(locuser != NULL);
-//	_DIAGASSERT(remuser != NULL);
-//	_DIAGASSERT(cmd != NULL);
-//	/* fd2p may be NULL */
-//
-//	/* What rsh/shell to use. */
-//	if (rshcmd == NULL)
-//		rshcmd = _PATH_BIN_RCMD;
-//
-//	/* locuser must exist on this host. */
-//	if (getpwnam_r(locuser, &pwres, pwbuf, sizeof(pwbuf), &pw) != 0 || pw == NULL) {
-//		warnx("%s: unknown user: %s", __FUNCTION__, locuser);
-//		return -1;
-//	}
-//
-//	/* get a socketpair we'll use for stdin and stdout. */
-//	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, sp) < 0) {
-//		warn("%s: socketpair", __FUNCTION__);
-//		return -1;
-//	}
-//
-//	/* we will use this for the fd2 pointer */
-//	if (fd2p) {
-//       	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, ep) < 0) {
-//			warn("%s: socketpair", __FUNCTION__);
-//			return -1;
-//		}
-//		*fd2p = ep[0];
-//	}
-//	
-//	pid = fork();
-//	if (pid < 0) {
-//		warn("%s: fork", __FUNCTION__);
-//		return -1;
-//	}
-//	if (pid == 0) {
-//		/*
-//		 * child
-//		 * - we use sp[1] to be stdin/stdout, and close sp[0]
-//		 * - with fd2p, we use ep[1] for stderr, and close ep[0]
-//		 */
-//		(void)close(sp[0]);
-//		if (dup2(sp[1], 0) < 0 || dup2(0, 1) < 0) {
-//			warn("%s: dup2", __FUNCTION__);
-//			_exit(1);
-//		}
-//		(void)close(sp[1]);
-//		if (fd2p) {
-//			if (dup2(ep[1], 2) < 0) {
-//				warn("%s: dup2", __FUNCTION__);
-//				_exit(1);
-//			}
-//			(void)close(ep[0]);
-//			(void)close(ep[1]);
-//		} else if (dup2(0, 2) < 0) {
-//			warn("%s: dup2", __FUNCTION__);
-//			_exit(1);
-//		}
-//		/* fork again to lose parent. */
-//		pid = fork();
-//		if (pid < 0) {
-//			warn("%s: second fork", __FUNCTION__);
-//			_exit(1);
-//		}
-//		if (pid > 0)
-//			_exit(0);
-//
-//		/* Orphan.  Become local user for rshprog. */
-//		if (setuid(pw->pw_uid)) {
-//			warn("%s: setuid(%lu)", __FUNCTION__, (u_long)pw->pw_uid);
-//			_exit(1);
-//		}
-//
-//		/*
-//		 * If we are rcmd'ing to "localhost" as the same user as we
-//		 * are, then avoid running remote shell for efficiency.
-//		 */
-//		if (strcmp(*ahost, "localhost") == 0 && strcmp(locuser, remuser) == 0) {
-//			if (pw->pw_shell[0] == '\0')
-//				rshcmd = _PATH_BSHELL;
-//			else
-//				rshcmd = pw->pw_shell;
-//			p = strrchr(rshcmd, '/');
-//			execlp(rshcmd, p ? p + 1 : rshcmd, "-c", cmd, NULL);
-//		} else {
-//			const char *program;
-//			program = strrchr(rshcmd, '/');
-//			program = program ? program + 1 : rshcmd;
-//			if (fd2p)
-//				/* ask rcmd to relay signal information */
-//				setenv("RCMD_RELAY_SIGNAL", "YES", 1);
-//			switch (af) {
-//			case AF_INET:
-//				execlp(rshcmd, program, "-4", "-l", remuser, *ahost, cmd, NULL);
-//				break;
-//
-//			case AF_INET6:
-//				execlp(rshcmd, program, "-6", "-l", remuser, *ahost, cmd, NULL);
-//				break;
-//
-//			default:
-//				/* typically AF_UNSPEC, plus whatever */
-//				execlp(rshcmd, program, "-l", remuser, *ahost, cmd, NULL);
-//				break;
-//			}
-//		}
-//		warn("%s: exec %s", __FUNCTION__, rshcmd);
-//		_exit(1);
-//	}
-//	/* Parent */
-//	(void)close(sp[1]);
-//	if (fd2p)
-//		(void)close(ep[1]);
-//
-//	(void)waitpid(pid, NULL, 0);
-//
-//	return sp[0];
-#endif
+	pid_t pid;
+	int sp[2], ep[2];
+	char *p;
+	struct passwd *pw, pwres;
+	char pwbuf[1024];
+
+	_DIAGASSERT(ahost != NULL);
+	_DIAGASSERT(locuser != NULL);
+	_DIAGASSERT(remuser != NULL);
+	_DIAGASSERT(cmd != NULL);
+	/* fd2p may be NULL */
+
+	/* What rsh/shell to use. */
+	if (rshcmd == NULL)
+		rshcmd = _PATH_BIN_RCMD;
+
+	/* locuser must exist on this host. */
+	if (getpwnam_r(locuser, &pwres, pwbuf, sizeof(pwbuf), &pw) != 0 || pw == NULL) {
+		warnx("%s: unknown user: %s", __FUNCTION__, locuser);
+		return -1;
+	}
+
+	/* get a socketpair we'll use for stdin and stdout. */
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, sp) < 0) {
+		warn("%s: socketpair", __FUNCTION__);
+		return -1;
+	}
+
+	/* we will use this for the fd2 pointer */
+	if (fd2p) {
+		if (socketpair(AF_LOCAL, SOCK_STREAM, 0, ep) < 0) {
+			warn("%s: socketpair", __FUNCTION__);
+			return -1;
+		}
+		*fd2p = ep[0];
+	}
+
+	pid = fork();
+	if (pid < 0) {
+		warn("%s: fork", __FUNCTION__);
+		return -1;
+	}
+	if (pid == 0) {
+		/*
+		 * child
+		 * - we use sp[1] to be stdin/stdout, and close sp[0]
+		 * - with fd2p, we use ep[1] for stderr, and close ep[0]
+		 */
+		(void)close(sp[0]);
+		if (dup2(sp[1], 0) < 0 || dup2(0, 1) < 0) {
+			warn("%s: dup2", __FUNCTION__);
+			_exit(1);
+		}
+		(void)close(sp[1]);
+		if (fd2p) {
+			if (dup2(ep[1], 2) < 0) {
+				warn("%s: dup2", __FUNCTION__);
+				_exit(1);
+			}
+			(void)close(ep[0]);
+			(void)close(ep[1]);
+		} else if (dup2(0, 2) < 0) {
+			warn("%s: dup2", __FUNCTION__);
+			_exit(1);
+		}
+		/* fork again to lose parent. */
+		pid = fork();
+		if (pid < 0) {
+			warn("%s: second fork", __FUNCTION__);
+			_exit(1);
+		}
+		if (pid > 0)
+			_exit(0);
+
+		/* Orphan.  Become local user for rshprog. */
+		if (setuid(pw->pw_uid)) {
+			warn("%s: setuid(%lu)", __FUNCTION__, (u_long)pw->pw_uid);
+			_exit(1);
+		}
+
+		/*
+		 * If we are rcmd'ing to "localhost" as the same user as we
+		 * are, then avoid running remote shell for efficiency.
+		 */
+		if (strcmp(*ahost, "localhost") == 0 && strcmp(locuser, remuser) == 0) {
+			if (pw->pw_shell[0] == '\0')
+				rshcmd = _PATH_BSHELL;
+			else
+				rshcmd = pw->pw_shell;
+			p = strrchr(rshcmd, '/');
+			execlp(rshcmd, p ? p + 1 : rshcmd, "-c", cmd, NULL);
+		} else {
+			const char *program;
+			program = strrchr(rshcmd, '/');
+			program = program ? program + 1 : rshcmd;
+			if (fd2p)
+				/* ask rcmd to relay signal information */
+				setenv("RCMD_RELAY_SIGNAL", "YES", 1);
+			switch (af) {
+			case AF_INET:
+				execlp(rshcmd, program, "-4", "-l", remuser, *ahost, cmd, NULL);
+				break;
+
+			case AF_INET6:
+				execlp(rshcmd, program, "-6", "-l", remuser, *ahost, cmd, NULL);
+				break;
+
+			default:
+				/* typically AF_UNSPEC, plus whatever */
+				execlp(rshcmd, program, "-l", remuser, *ahost, cmd, NULL);
+				break;
+			}
+		}
+		warn("%s: exec %s", __FUNCTION__, rshcmd);
+		_exit(1);
+	}
+	/* Parent */
+	(void)close(sp[1]);
+	if (fd2p)
+		(void)close(ep[1]);
+
+	(void)waitpid(pid, NULL, 0);
+
+	return sp[0];
 }
+#endif	//WIN32
 
 int
 rresvport(int *alport)
@@ -576,10 +566,10 @@ bindresvport_last(const int port)
 	}
 	if (NULL == pport) {
 #if defined(DO_TRACE)
-	        printf("bindresvport_last() = -1\n");
+		printf("bindresvport_last() = -1\n");
 #endif
-                return -1;
-        }
+		return -1;
+	}
 
 	/* Assign (if required) and return */
 	if (port >= 0)
@@ -593,8 +583,8 @@ bindresvport_last(const int port)
 }
 
 
-#if defined(__WATCOMC__) && (__WATCOMC__ < 1300)	
-#if defined(IN6ADDR_ANY_INIT)                   /* <wc20 */
+#if defined(__WATCOMC__) && (__WATCOMC__ < 1300)
+#if defined(IN6ADDR_ANY_INIT)			/* <wc20 */
 static const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #else
 static const struct in6_addr in6addr_any = {0};
@@ -630,7 +620,7 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	case AF_INET: {
 			struct sockaddr_in *sin = (struct sockaddr_in *)sa;
 			salen = sizeof(struct sockaddr_in);
-                        sin->sin_addr.s_addr = INADDR_ANY;
+			sin->sin_addr.s_addr = INADDR_ANY;
 			portp = &sin->sin_port;
 		}
 		break;
@@ -638,7 +628,7 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	case AF_INET6: {
 			struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sa;
 			salen = sizeof(struct sockaddr_in6);
-                        sin6->sin6_addr = in6addr_any;
+			sin6->sin6_addr = in6addr_any;
 			portp = &sin6->sin6_port;
 		}
 		break;
@@ -657,7 +647,7 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	 */
 	if (NULL == mutex) {
 		mutex = CreateMutex(NULL, FALSE, RCMD_MUTEXNAME);
-		if (NULL == mutex) 
+		if (NULL == mutex)
 			return -1;
 	} else {
 		WaitForSingleObject(mutex, INFINITE);
@@ -685,7 +675,7 @@ bindresvport(int sockfd, struct sockaddr *sa)
 	if (lastport >= 0) {
 		bindresvport_last(lastport);
 	}
-        (void) ReleaseMutex(mutex);
+	(void) ReleaseMutex(mutex);
 
 #if defined(DO_TRACE)
 	printf("bindresvport() = %u\n", lastport);
@@ -768,7 +758,7 @@ rresvport_af_addr(int *alport, int family, void *addr)
 		(*alport)--;
 		if (*alport == IPPORT_RESERVED/2) {
 			(void)w32_close(s);
-			errno = EAGAIN;		/* close */
+			errno = EAGAIN; 	/* close */
 			return -1;
 		}
 	}
@@ -789,7 +779,7 @@ ruserok(const char *rhost, int superuser, const char *ruser, const char *luser)
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_UNSPEC;
-	hints.ai_socktype = SOCK_DGRAM;		/*dummy*/
+	hints.ai_socktype = SOCK_DGRAM; 	/*dummy*/
 	error = getaddrinfo(rhost, "0", &hints, &res);
 	if (error) {
 		return -1;
@@ -870,9 +860,9 @@ iruserok_sa(const void *raddr, int rlen, int superuser, const char *ruser, const
 
 		const char *home;
 		if (NULL == (home = w32_gethome( 1 /*ignore environment*/ ))) {
-                        __rcmd_errstr = ".rhosts, unable to resolve home directory";
+			__rcmd_errstr = ".rhosts, unable to resolve home directory";
 			return -1;
-                }
+		}
 //		(void) strcpy(pbuf, home);
 //		(void) strcat(pbuf, "/.rhosts");
 		(void) snprintf(pbuf, sizeof(pbuf)-1, "%s/.rhosts", home);
@@ -914,11 +904,10 @@ iruserok_sa(const void *raddr, int rlen, int superuser, const char *ruser, const
 
 		} else {
 			__rcmd_errstr = ".rhosts not available";
-                }
+		}
 
 //		(void)seteuid(uid);
 //		(void)setegid(gid);
-
 	}
 	return isvaliduser;
 }
@@ -951,7 +940,7 @@ __ivaliduser_sa(FILE *hostf, const struct sockaddr *raddr, socklen_t salen, cons
 {
 	char *user, *p;
 	int ch;
-	char buf[MAXHOSTNAMELEN + 128];		/* host + login */
+	char buf[MAXHOSTNAMELEN + 128]; 	/* host + login */
 	const char *auser, *ahost;
 	int hostok, userok;
 	char *rhost = NULL;
@@ -1108,7 +1097,7 @@ __icheckhost(const struct sockaddr *raddr, socklen_t salen, const char *lhost)
 	/* Resolve laddr into sockaddr */
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = raddr->sa_family;
-	hints.ai_socktype = SOCK_DGRAM;	/*dummy*/
+	hints.ai_socktype = SOCK_DGRAM; /*dummy*/
 	res = NULL;
 	error = getaddrinfo(lhost, "0", &hints, &res);
 	if (error) {
@@ -1194,3 +1183,4 @@ __gethostloop(const struct sockaddr *raddr, socklen_t salen)
 }
 
 /*end*/
+

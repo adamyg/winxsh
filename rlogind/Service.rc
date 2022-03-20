@@ -67,11 +67,11 @@ VS_VERSION_INFO VERSIONINFO
                 BEGIN
                         BLOCK   "040904E4"  /* Language ID=040904E4 (U.S. English, char set = Windows, Multilingual) */
                         BEGIN
-                                VALUE "Comments",               "RLogind Service"
+                                VALUE "Comments",               "rlogind service"
 
-                                VALUE "CompanyName",            "rlogind"
+                                VALUE "CompanyName",            "WinXSH"
 
-                                VALUE "FileDescription",        "Windows RLogind Service"
+                                VALUE "FileDescription",        "Windows rlogind service"
 
                                 VALUE "FileVersion",            WINSH_VERSION ", Build:" WINSH_BUILD_DATE "-" WINSH_BUILD_NUMBER
 
@@ -79,13 +79,13 @@ VS_VERSION_INFO VERSIONINFO
 
                                 VALUE "LegalCopyright",
                                         "Licensed under GNU General Public License version 3.0. \n"
-                                        "Copyright (C) 2020, Adam Young. All rights reserved. \n"
+                                        "Copyright (C) 2020 - 2022, Adam Young. All rights reserved. \n"
                                         "Copyright (C) 1990, 1993, The Regents of the University of California. \n"
 
                                 VALUE "LegalTrademarks",        "https://github.com/adamyg/winxsh"
 
                                 VALUE "Maintainers",
-                                        "Port: https://sourceforge.net/projects/winrsh/ \n"
+                                        "Port: https://github.com/adamyg/winxsh \n"
 
                                 VALUE "OriginalFilename",       "rlogind.exe"
 

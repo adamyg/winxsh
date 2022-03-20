@@ -2,7 +2,7 @@
 /*
  * slogin configuration options.
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -74,6 +74,7 @@ struct options {
 	int StrictHostKeyChecking;	/* yes/no (default: yes) */
 	int NonDelay;
 	int PseudoTerminal;		/* assign pseudo terminal */
+	int StdErrMode;			/* stdout/stderr stream mode */
 	const char *User;
 	int UsePrivilegedPort;
 

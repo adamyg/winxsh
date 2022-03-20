@@ -5,12 +5,14 @@
 
 Lean Win32 native console clients with a built-in VT220/xterm-color256 terminal emulator.
 
-   * slogin is a Windows console based SSH2 client, using LIBSSH2.
+   * slogin is a Windows console based SSH2 client, using LIBSSH2; with a builtin terminal emulator.
 
-   * rlogin is a RSH/RLOGIN client.
+   * rlogin is a RLOGIN(1) client; with a builtin terminal emulator.
+
+   * rsh is a RSH(1) client.
 
 
-Plus a native Win32 'rlogind' service.
+Plus a native win32 'rlogind' service.
 
    * rlogind is a RSH/RLOGIN service utilising ConPTY's
 
@@ -20,7 +22,7 @@ Plus a native Win32 'rlogind' service.
        Note: Limited login validation occurs, pty's shall be created under the service identity.
        Hence if running under the default Service account, shall have system rights.
 
-       See for [Introducing the windows pseudo console ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty) 
+       See for [Introducing the windows pseudo console ConPTY](https://devblogs.microsoft.com/commandline/windows-command-line-introducing-the-windows-pseudo-console-conpty)
        series of articles detailing recent developments.
 
 

@@ -1,11 +1,12 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.5 2020/07/02 21:25:09 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.6 2022/03/17 03:44:20 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 8; -*- */
 /*
- * CNTService - Classic window services framework.
+ * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020, Adam Young.
- * Based on the MSDN example service framework.
+ * Copyright (c) 2020 - 2022, Adam Young.
+ * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -24,7 +25,7 @@ __CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.5 2020/07/02
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -33,7 +34,7 @@ __CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.5 2020/07/02
 #include <strsafe.h>
 #include <aclapi.h>
 
-#pragma	comment(lib, "advapi32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 #include "NTServiceControl.h"                   // public interface
 #include "NTService.h"
@@ -100,7 +101,8 @@ int CNTServiceControl::ExecuteCommand(int argc, const char * const *argv, unsign
                 UpdateDacl();
                 return 1;
 
-        } else if (0 == (filter & 0x100) && 0 == _stricmp(cmd, "help")) {
+        } else if (0 == (filter & 0x100) &&
+                        (0 == _stricmp(cmd, "help") || 0 == _stricmp(cmd, "--help"))) {
                 if (argc > 1) {
                         return NTSERVICE_CMD_UNEXPECTED_ARG;
                 }

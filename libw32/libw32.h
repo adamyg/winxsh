@@ -4,7 +4,7 @@
 /*
  * win32 public interface
  *
- * Copyright (c) 2007, 2012 - 2020 Adam Young.
+ * Copyright (c) 2007, 2012 - 2022 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -23,7 +23,7 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -33,6 +33,7 @@
 #include <win32_time.h>
 #include <win32_child.h>
 #include <win32_io.h>
+#include <win32_direct.h>
 #include <win32_misc.h>
 
 #endif /*LIBW32_LIBW32_H_INCLUDED*/

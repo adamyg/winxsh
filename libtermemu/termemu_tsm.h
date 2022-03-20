@@ -1,14 +1,14 @@
 #ifndef TERMEMU_TSM_H_INCLUDED
 #define TERMEMU_TSM_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_tsm_h,"$Id: termemu_tsm.h,v 1.8 2020/05/07 11:51:04 cvsuser Exp $")
+__CIDENT_RCSID(termemu_tsm_h,"$Id: termemu_tsm.h,v 1.9 2022/03/20 08:22:56 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu terminal driver
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -33,11 +33,12 @@ __CPRAGMA_ONCE
 
 __BEGIN_DECLS
 
-#define LIBTSM_VERSION      "1.3.0b"
+#define LIBTSM_VERSION      "1.3.0c"
 
 extern int                  termemu_init(void);
+extern int                  termemu_active(void);
 extern int                  termemu_palette(const char *name);
-extern int		    termemu_appname(const char *appname);
+extern int                  termemu_appname(const char *appname);
 extern int                  termemu_keysyms(const char *keysyms);
 extern void                 termemu_exit(void);
 extern int                  termemu_size(int *rows, int *cols);
@@ -45,6 +46,7 @@ extern int                  termemu_winch(int *rows, int *cols);
 extern int                  termemu_read(void *buf, int buflen, void (*sigwinch)(void));
 extern void                 termemu_write(void *buf, int len);
 extern void                 termemu_flush(void);
+extern void                 termemu_signal_break(void);
 
 __END_DECLS
 

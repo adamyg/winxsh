@@ -1,14 +1,14 @@
 #ifndef TERMEMU_KEYMAP_H_INCLUDED
 #define TERMEMU_KEYMAP_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_keymap_h,"$Id: termemu_keymap.h,v 1.6 2020/05/07 11:51:04 cvsuser Exp $")
+__CIDENT_RCSID(termemu_keymap_h,"$Id: termemu_keymap.h,v 1.7 2022/03/20 08:22:55 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * termemu keyboard mapping
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

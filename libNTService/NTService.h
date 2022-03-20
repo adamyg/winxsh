@@ -4,7 +4,7 @@
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -24,17 +24,20 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 #include <Winsvc.h>
 
 #include "NTServiceIO.h"
 #include "NTServiceReg.h"
 
-#define SERVICE_CONTROL_USER    128         // User control message base.
+#define SERVICE_CONTROL_USER    128             // User control message base.
 
 #define NTSERVICE_CMD_HELP      -1              // Help.
 #define NTSERVICE_CMD_MISSING_ARG -2            // Missing argument.

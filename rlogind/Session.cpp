@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.15 2020/07/02 21:27:03 cvsuser Exp $")
+__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.16 2022/03/20 13:48:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogind
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -770,7 +770,7 @@ Session::handshake(struct sockaddr *dest, const char *host)
         getstr(term_ + ENVSIZE, sizeof(term_) - ENVSIZE, "Terminal type too long");
 
         struct passwd *pwd = getpwnam(lusername_);
-        if (NULL == pwd) {                      /* FIXME/WARNING: current implementation returns canned information */
+        if (NULL == pwd) {                      /* XXX: current implementation returns limited information */
                 syslog(LOG_INFO,
                     "%s@%s as %s: unknown login.", rusername_, host, lusername_);
                 return -2;

@@ -1,11 +1,13 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.3 2020/07/02 21:25:09 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.4 2022/03/17 03:44:20 cvsuser Exp $")
+
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
+ * Service Control
  *
- * Copyright (c) 2020, Adam Young.
- * Based on the MSDN example service framework.
+ * Copyright (c) 2020 - 2022, Adam Young.
+ * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -24,7 +26,7 @@ __CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.3 2020/07/02 21:25:0
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 

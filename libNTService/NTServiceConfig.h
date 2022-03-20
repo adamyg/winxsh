@@ -1,8 +1,8 @@
 /*
  * CNTService - Classic window services framework (tweaked).
- * Service Config
+ * Service config.
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -22,13 +22,12 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
-#include <string>
-
 #include "NTServiceIO.h"
+#include "NTString.h"
 
 class CNTServiceReg;
 
@@ -52,8 +51,8 @@ public:
 
 private:
     NTService::IDiagnostics &diags_;
-    std::string svcName_;
-    std::string coName_;
+    NTService::CString svcName_;
+    NTService::CString coName_;
 };
 
 //end

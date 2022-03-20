@@ -1,9 +1,9 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.13 2020/07/02 22:26:01 cvsuser Exp $
-# winsh - top level makefile.
+# $Id: Makefile.in,v 1.16 2022/03/20 13:48:58 cvsuser Exp $
+# winxsh - top level makefile.
 #
 #
-# Copyright (c) 2015 - 2020, Adam Young.
+# Copyright (c) 2015 - 2022, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -44,7 +44,7 @@ PKG_TARNAME	= @PACKAGE_TARNAME@
 PKG_URL		= @PACKAGE_URL@
 PKG_VERSION	= @PACKAGE_VERSION@
 ifeq ("","$(PKG_VERSION)")
-PKG_VERSION	= 0.2.2
+PKG_VERSION	= 0.3.0
 endif
 
 PATH_SEPARATOR	= @PATH_SEPARATOR@
@@ -113,16 +113,55 @@ LP=		lib
 E=		.exe
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
-XCLEAN=
+XCLEAN=		$(D_BIN)/*.map
 
 # Configuration
 
-ifeq ("$(BUILD_TYPE)","")	#default
-BUILD_TYPE=	debug
-MAKEFLAGS+=	BUILD_TYPE=debug
+BUSYBOX=	@BUSYBOX@
+ifeq ($(BUSYBOX),busybox)
+BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
-ifneq ("$(BUILD_TYPE)","release")
+
+ifeq ("$(BUILD_TYPE)","")	#default
+
+.PHONY:				help clean vclean build package
+help clean vclean build package:
+ifneq ("$(word 1,$(MAKECMDGOALS))","debug")
+ifneq ("$(word 1,$(MAKECMDGOALS))","release")
+	@$(BUSYBOX) echo -n -e '\
+		|\n\
+		| make [release or debug] target \n\
+		|\n\
+		|	Build one or more of the following targets recursively within each sub-directory. \n\
+		|\n\
+		| Targets: \n\
+		|\n\
+		|	build   - build everything. \n\
+		|	package - build package. \n\
+		|	clean   - delete everything which can be remade. \n\
+		|	vclean  - delete all. \n\
+		|	help    - command line usage. \n\
+		'
+endif
+endif
+	@echo .
+
+.PHONY:				release
+release:
+		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+
+.PHONY:				debug
+debug:
+		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
+
+else	# BUILD_TYPE
+
+ifeq ("$(BUILD_TYPE)","debug")
 RTSUFFIX=d
+else
+ifneq ("$(BUILD_TYPE)","release")
+$(error invalid BUILD_TYPE; debug or release expected)
+endif
 endif
 
 # Directories
@@ -142,6 +181,7 @@ D_LOCALE=	$(D_BIN)/locale
 # Compilers, programs
 
 CC=		@CC@
+CXX=		@CXX@
 AR=		@AR@
 RM=		@RM@
 RMDIR=		@RMDIR@
@@ -156,11 +196,6 @@ INSTALL_DATA=	@INSTALL_DATA@
 INNO=		@INNO@
 ifeq ($(INNO),) # Inno5: allowing legacy XP installations
 INNO=		"C:/Program Files (x86)/Inno Setup 5/Compil32"
-endif
-
-BUSYBOX=	@BUSYBOX@
-ifeq ($(BUSYBOX),busybox)
-BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
 
 # Common flags
@@ -185,6 +220,7 @@ LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
 LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
 
+ARFLAGS=	rcv
 RMFLAGS=	-f
 RMDFLAGS=	-rf
 
@@ -207,10 +243,13 @@ LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
 endif
 
 BUILDINFO=	include/buildinfo.h
+PACKAGEINFO=	packageinfo.h
 
 BINS=\
 	$(D_BIN)/slogin$(E)		\
 	$(D_BIN)/rlogin$(E)		\
+	$(D_BIN)/rsh$(E)		\
+	$(D_BIN)/rcmd$(E)		\
 	$(D_BIN)/rlogind$(E)
 
 ifneq "" "$(filter mingw32 win32,@build_os@)"
@@ -235,36 +274,58 @@ endif
 # rules
 
 .DEFAULT:
-.PHONY:			build release debug
+.PHONY:			build
 build:			directories buildinfo libs bins import
 
+.PHONY:				help
+help:
+	@$(BUSYBOX) echo -e '\
+		|\n\
+		| make [release or debug] target \n\
+		|\n\
+		|	Build one or more of the following targets recursively within each sub-directory. \n\
+		|\n\
+		| Targets: \n\
+		|\n\
+		|	build   - build everything. \n\
+		|	package - build all packages. \n\
+		|	clean   - delete everything which can be remade. \n\
+		|	help    - command line usage. \n\
+		'
+
+.PHONY:				release
 release:
 		$(MAKE) BUILD_TYPE=release $(filter-out release, $(MAKECMDGOALS))
+                
+.PHONY:				debug
 debug:
 		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
 new_release:			new_buildnumber
 		$(MAKE) build
 
-#	.PHONY: package
-#	package:
-#		$(INNO) ./support/pascal-inno-setup.iss
 
 # Build support
 
-BUILD_DATE=		$(shell date +'%Y%m%d')
+BUILD_DATE=			$(shell $(BUSYBOX) date +'%Y%m%d')
 ifneq ($(APPVEYOR_BUILD_NUMBER),)
-BUILD_NUMBER=		$(APPVEYOR_BUILD_NUMBER)
+BUILD_NUMBER=			$(APPVEYOR_BUILD_NUMBER)
+else ifneq ($(GITHUB_RUN_NUMBER),)
+BUILD_NUMBER=			$(GITHUB_RUN_NUMBER)
 else
-BUILD_NUMBER=		$(shell cat BUILDNUMBER)
+BUILD_NUMBER=			$(shell $(BUSYBOX) cat BUILDNUMBER)
 endif
 
-.PHONY: 		buildinfo new_buildnumber
+.PHONY: 			buildinfo
 buildinfo:
 		@echo updating buildinfo.h ...
-		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) --prefix="WINSH_" --package="$(PACKAGE)" \
-			--name="$(PKG_NAME)" --version="$(PKG_VERSION)" --date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" \
-			--toolchain="@TOOLCHAIN@" --bindir="$(BINDIR)" --sbindir="$(SBINDIR)" --libexecdir="$(LIBEXECDIR)" --libdir="$(LIBDIR)" --datadir="$(DATADIR)"
+		-@$(PERL) ./buildinfo.pl -o $(BUILDINFO) --prefix="WINSH_" --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAINEXT@"
+                
+.PHONY:				packageinfo
+packageinfo:
+		-@$(PERL) ./buildinfo.pl -o $(PACKAGEINFO) --prefix="WINSH_" --package="$(PACKAGE)" --name="$(PKG_NAME)" --version="$(PKG_VERSION)" \
+			--date="$(BUILD_DATE)" --build="$(BUILD_NUMBER)" --toolchain="@TOOLCHAINEXT@" --type="$(BUILD_TYPE)"
 
 buildinfo.h:		BUILDNUMBER
 
@@ -326,6 +387,11 @@ install:		all
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/rlogin$(E) $(BINDIR)
 		$(INSTALL_PROGRAM) -m 0755 -c -o bin -g bin $(D_BIN)/slogin$(E) $(BINDIR)
 
+.PHONY:				package
+package:	packageinfo
+	$(INNO) ./releases/xsh-inno-setup.iss
+	-$(RM) $(PACKAGEINFO)
+
 clean:
 		@echo $(BUILD_TYPE) clean
 		$(MAKE) -C libw32 clean
@@ -334,17 +400,24 @@ clean:
 		$(MAKE) -C libmbedtls clean
 		$(MAKE) -C libtermemu clean
 		$(MAKE) -C libNTService clean
+		$(MAKE) -C rsh clean
+		$(MAKE) -C rcmd clean
 		$(MAKE) -C rlogin clean
+		$(MAKE) -C rlogind clean
 		$(MAKE) -C slogin clean
 
 vclean:			clean
+		-@$(RM) $(IMPORT) >nul 2>&1
 		-@$(RM) $(RMDFLAGS) $(D_BIN)/* $(D_MACROS)/* $(D_HELP)/* $(D_LIB)/* $(D_OBJ)/*
 		-rmdir $(D_BIN) $(D_MACROS) $(D_HELP) $(D_LIB) $(D_OBJ)
 
 distclean:		clean
 		$(RM) $(RMFLAGS) config.cache config.log config.status \
 			slogin/Makefile \
+			rlogind/Makefile \
 			rlogin/Makefile \
+			rcmd/Makefile \
+			rsh/Makefile \
 			libNTService/Makefile \
 			libtermemu/Makefile \
 			libmbedtls/Makefile \
@@ -355,3 +428,6 @@ distclean:		clean
 			Makefile
 
 #end
+
+endif	# BUILD_TYPE
+

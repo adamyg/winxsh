@@ -2,7 +2,7 @@
 #define LIBW32_EDIDENTIFIER_H_INCLUDED
 
 /* -*- mode: c; indent-width: 4; -*- */
-/*  $Id: edidentifier.h,v 1.4 2020/07/02 21:31:41 cvsuser Exp $
+/*  $Id: edidentifier.h,v 1.6 2022/03/17 03:50:40 cvsuser Exp $
  *  Compiler specific object identify functionality.
  *
  *      __CIDENT(description)
@@ -10,8 +10,7 @@
  *      __CPRAGMA_ONCE
  *
  *
- *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,7 +30,7 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -191,4 +190,4 @@ static void __CIDENT_JOIN(RCSFN_,__tag)(const char *tag) {          \
 
 __CPRAGMA_ONCE
 
-#endif /*LIBW32_EDIDENTIFIER_H_INCLUDED*/
+#endif  /*LIBW32_EDIDENTIFIER_H_INCLUDED*/

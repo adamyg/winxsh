@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\libtermemu\termemu_vio.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../libtermemu;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="..\..\slogin\console.c" />
     <ClCompile Include="..\..\slogin\options.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../slogin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -166,6 +167,7 @@
     <ClInclude Include="..\..\libtermemu\tsm\shl_array.h" />
     <ClInclude Include="..\..\libtermemu\tsm\shl_htable.h" />
     <ClInclude Include="..\..\libtermemu\tsm\shl_llog.h" />
+    <ClInclude Include="..\..\slogin\console.h" />
     <ClInclude Include="..\..\slogin\options.h" />
   </ItemGroup>
   <ItemGroup>

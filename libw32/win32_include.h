@@ -1,14 +1,14 @@
 #ifndef LIBW32_WIN32_INCLUDE_H_INCLUDED
 #define LIBW32_WIN32_INCLUDE_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_include_h,"$Id: win32_include.h,v 1.5 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_include_h,"$Id: win32_include.h,v 1.6 2022/03/15 12:15:39 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * winsock2.h and windows.h include guard
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -28,7 +28,7 @@ __CPRAGMA_ONCE
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 

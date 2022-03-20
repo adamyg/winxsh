@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.6 2020/05/18 22:13:47 cvsuser Exp $")
+__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.7 2022/03/20 13:48:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * syslog emulation
  *
- * Copyright (c) 2020, Adam Young.
+ * Copyright (c) 2020 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -275,3 +275,4 @@ syslog_network(void *data, int op, int pri, const char *msg, size_t len)
 }
 
 //end
+

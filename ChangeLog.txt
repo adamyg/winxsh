@@ -1,3 +1,25 @@
+Sun Mar 20 18:59:48 2022 adamy
+
+	* version 0.3.0
+
+	* slogin
+
+		o command exec option.
+		o raw terminal mode.
+		o aligned pseudo-tty rules.
+
+	* ci: github
+
+		o rcmd/rsh published
+		o inno package
+
+Mon Nov  8 20:34:27 2021 adamy
+
+	* submodule updates
+
+		o libssh2 - 1.10,0
+		o mbedtls - 2.27.0
+
 Mon Jun  8 20:59:04 2020 adamy
 
 	* ci builds

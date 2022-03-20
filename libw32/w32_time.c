@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.4 2020/07/02 21:31:43 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.5 2022/03/15 12:15:38 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 time system calls
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2022, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -25,7 +25,7 @@ __CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.4 2020/07/02 21:31:43 cvsuser 
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -111,6 +111,13 @@ __CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.4 2020/07/02 21:31:43 cvsuser 
 //      No errors are defined.
 */
 unsigned int
+sleep (unsigned int secs)
+{
+    Sleep((DWORD)secs * 1000);
+    return (0);
+}
+
+unsigned int
 w32_sleep (unsigned int secs)
 {
     Sleep((DWORD)secs * 1000);
@@ -131,22 +138,25 @@ w32_sleep (unsigned int secs)
 //
 //  DESCRIPTION
 //
-//      The gettimeofday() function shall obtain the current time, expressed aa seconds and 
-//      microseconds since the Epoch, and store it in the timeval structure pointed to by tp.
-//      The resolution of the system clock is unspecified.
+//      The  gettimeofday()  function  shall  obtain  the  current  time,
+//      expressed  as  seconds  and  microseconds  since  the  Epoch, and
+//      store  it  in  the  timeval  structure  pointed  to  by  tp.  The
+//      resolution of the system clock is unspecified.
 //
 //      If tzp is not a null pointer, the behavior is unspecified.
 //
 //  RETURN VALUE
+//
 //      The  gettimeofday()  function  shall  return 0 and no value shall
 //      be reserved to indicate an error.
 //
 //  ERRORS
+//
 //      No errors are defined.
 //
 */
 
-int
+LIBW32_API int
 w32_gettimeofday(
     struct timeval *tv, /*struct timezone*/ void *tz)
 {
@@ -163,11 +173,11 @@ w32_gettimeofday(
 #elif defined(__MINGW32__)
 #undef gettimeofday
         return gettimeofday(tv, tz)
- 
+
 #else //DEFAULT
         FILETIME ft;
         long long hnsec;
- 
+
         (void) GetSystemTimeAsFileTime(&ft);
         hnsec = filetime_to_hnsec(&ft);
         tv->tv_sec = hnsec / 10000000;
@@ -178,6 +188,16 @@ w32_gettimeofday(
     errno = EINVAL;
     return -1;
 }
+
+
+#if !defined(__MINGW32__)
+LIBW32_API int
+gettimeofday(
+    struct timeval *tv, struct timezone *tz)
+{
+    return w32_gettimeofday(tv, tz);
+}
+#endif
 
 
 /*
@@ -271,14 +291,50 @@ w32_gettimeofday(
 //          pathname string exceeded {PATH_MAX}.
 //
 */
-int
+LIBW32_API int
 w32_utime(const char *path, const struct utimbuf *times)
+{
+#if defined(UTF8FILENAMES)
+    if (w32_utf8filenames_state()) {
+        wchar_t wpath[WIN32_PATH_MAX];
+
+        if (NULL == path || NULL == times) {
+            errno = EFAULT;
+            return -1;
+        }
+
+        if (w32_utf2wc(path, wpath, _countof(wpath)) > 0) {
+            return w32_utimeW(wpath, times);
+        }
+
+        return -1;
+    }
+#endif  //UTF8FILENAMES
+
+    return w32_utimeA(path, times);
+}
+
+
+LIBW32_API int
+w32_utimeA(const char *path, const struct utimbuf *times)
 {
 #if defined(__MINGW32__)
 #undef utime
     return utime(path, (struct utimbuf *)times);
 #else
     return _utime(path, (struct _utimbuf *)times);
+#endif
+}
+
+
+LIBW32_API int
+w32_utimeW(const wchar_t *path, const struct utimbuf *times)
+{
+#if defined(__MINGW32__)
+#undef utime
+    return wutime(path, (struct utimbuf *)times);
+#else
+    return _wutime(path, (struct _utimbuf *)times);
 #endif
 }
 
