@@ -12,6 +12,7 @@ BUILDNUMBER
 owcsetup.dbg
 .created
 mc.aps
+.git
 .#*
 *.00*
 *.o
