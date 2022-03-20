@@ -11,6 +11,7 @@ objects*/
 msvc*/
 crash/
 CVS/
+.vscode/
 Makefile
 buildinfo.h
 BUILDNUMBER

@@ -144,4 +144,9 @@
   <ItemGroup>
     <Text Include="..\..\rlogin\rlogin_man.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\rlogin\rlogin.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
 </Project>

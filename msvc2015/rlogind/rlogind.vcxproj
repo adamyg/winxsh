@@ -130,12 +130,12 @@
     <ClInclude Include="..\..\libNTService\NTServiceIO.h" />
     <ClInclude Include="..\..\libNTService\NTServiceReg.h" />
     <ClInclude Include="..\..\libNTService\NTServMsg.h" />
+    <ClInclude Include="..\..\libNTService\NTString.h" />
     <ClInclude Include="..\..\rlogind\config.h" />
     <ClInclude Include="..\..\rlogind\ConPty.h" />
     <ClInclude Include="..\..\rlogind\heapcheck.h" />
     <ClInclude Include="..\..\rlogind\Logger.h" />
     <ClInclude Include="..\..\rlogind\SyslogDiagnosticsIO.h" />
-    <ClInclude Include="..\..\rlogind\LoggerSyslog.h" />
     <ClInclude Include="..\..\rlogind\rlogind.h" />
     <ClInclude Include="..\..\rlogind\Service.h" />
     <ClInclude Include="..\..\rlogind\Session.h" />
