@@ -1,4 +1,4 @@
-//$Id: x509_globals.c,v 1.1 2018/11/07 01:11:54 cvsuser Exp $
+//$Id: x509_globals.c,v 1.2 2022/03/20 10:12:38 cvsuser Exp $
 //
 //  libmetlx509 support
 //
@@ -22,5 +22,4 @@ MBEDAPI const mbedtls_x509_crt_profile *
 get_mbedtls_x509_crt_profile_suiteb(void) {
     return &mbedtls_x509_crt_profile_suiteb;
 }
-
 

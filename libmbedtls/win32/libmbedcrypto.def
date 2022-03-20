@@ -1,6 +1,6 @@
-;$Id: libmbedcrypto.def,v 1.2 2020/05/01 14:33:00 cvsuser Exp $
+;$Id: libmbedcrypto.def,v 1.4 2022/03/20 10:12:37 cvsuser Exp $
 ;
-;  libmbedcrypto library definition (4.16.6)
+;  libmbedcrypto library definition (2.27)
 ;
 DESCRIPTION "libmbedcrypto"
 EXPORTS
