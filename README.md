@@ -5,9 +5,9 @@
 
 Lean Win32 native console clients with a built-in VT220/xterm-color256 terminal emulator.
 
-   * slogin is a Windows console based SSH2 client, using LIBSSH2; with builtin terminal emulation.
+   * slogin is a Windows console based SSH2 client, using LIBSSH2; with a builtin terminal emulator.
 
-   * rlogin is a RLOGIN(1) client; with builtin terminal emulation.
+   * rlogin is a RLOGIN(1) client; with a builtin terminal emulator.
 
    * rsh is a RSH(1) client.
 
