@@ -27,7 +27,7 @@
 ;
 
 #if defined(BUILD_INFO)
-#include "../buildinfo.h"
+#include "../include/buildinfo.h"
 #else
 #include "../packageinfo.h"
 #endif
