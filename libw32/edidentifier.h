@@ -2,7 +2,7 @@
 #define LIBW32_EDIDENTIFIER_H_INCLUDED
 
 /* -*- mode: c; indent-width: 4; -*- */
-/*  $Id: edidentifier.h,v 1.5 2022/03/15 12:15:36 cvsuser Exp $
+/*  $Id: edidentifier.h,v 1.6 2022/03/17 03:50:40 cvsuser Exp $
  *  Compiler specific object identify functionality.
  *
  *      __CIDENT(description)

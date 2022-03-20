@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.4 2020/06/14 00:49:50 cvsuser Exp $
+# $Id: Makefile.in,v 1.5 2022/03/17 03:48:39 cvsuser Exp $
 # libssh makefile.
 #
 #
