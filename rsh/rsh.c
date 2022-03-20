@@ -34,7 +34,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-//  #include <sys/file.h>
 #include <poll.h>
 
 #include <netinet/in.h>
@@ -52,50 +51,49 @@
 #include <string.h>
 #include <unistd.h>
 
+#define _NETBSD_SOURCE
+#include "../librcmd/getport.h"
 #include "../librcmd/rcmd.h"
 #include "../librcmd/pathnames.h"
-#include "getport.h"
+
+#if defined(__WATCOMC__)
+#define DECLTHREAD      /**/
+#elif defined(_MSC_VER)
+#define DECLTHREAD      cdecl
+#else
+#error unknown toolchain
+#endif
 
 
 /*
  * rsh - remote shell
  */
-int	remerr;
+static int	remerr = -1;
 
-#ifndef SIGQUIT
-static int	sigs[] = { SIGINT, SIGTERM };
-#else
-static int	sigs[] = { SIGINT, SIGTERM, SIGQUIT };
-#endif
-
-static char	*copyargs(char **);
-static void	sendsig(int);
+static void	set_env(const char *name, const char *value, int overwrite);
+static char *	copyargs(char **);
 static int	checkfd(struct pollfd *, int);
-static void	talk(int, sigset_t *, pid_t, int);
+static void	talk(int, int);
 static void	usage(void);
 #ifdef IN_RCMD
-int		orcmd(char **, int, const char *, const char *, const char *, int *);
-int		orcmd_af(char **, int, const char *, const char *, const char *, int *, int);
 static int	relay_signal;
 #endif
 
-int
+void
 main(int argc, char **argv)
 {
 	struct passwd *pw;
 	struct servent *sp;
-//	sigset_t oset, nset;
 	struct protoent *proto;
 
 #ifdef IN_RCMD
 	char *locuser = 0, *loop, *relay;
 #endif /* IN_RCMD */
 	int argoff, asrsh, ch, dflag, nflag, one, rem;
-//	size_t i;
 	int family = AF_UNSPEC;
-//	pid_t pid;
 	uid_t uid;
-	char *args, *host, *p, *user, *name;
+	const char *host = NULL, *user;
+	char *args, *p, *name;
 
 	argoff = asrsh = dflag = nflag = 0;
 	one = 1;
@@ -105,8 +103,7 @@ main(int argc, char **argv)
 	setprogname(argv[0]);
 #ifndef IN_RCMD
 	/*
-	 * If called as something other than "rsh" use it as the host name,
-	 * only for rsh.
+	 * If called as something other than "rsh" use it as the host name, only for rsh.
 	 */
 	if (strcmp(getprogname(), "rsh") == 0)
 		asrsh = 1;
@@ -129,13 +126,13 @@ main(int argc, char **argv)
 	if ((loop = getenv("RCMD_LOOP")) && strcmp(loop, "YES") == 0)
 		warnx("rcmd appears to be looping!");
 
-	setenv("RCMD_LOOP", "YES", 1);
+	set_env("RCMD_LOOP", "YES", 1);
 
-#define	OPTIONS	"468KLdel:np:u:w"
+#define OPTIONS	"468KLdel:np:u:w"
 
 #else /* IN_RCMD */
 
-#define	OPTIONS	"468KLdel:np:w"
+#define OPTIONS	"468KLdel:np:w"
 
 #endif /* IN_RCMD */
 
@@ -173,9 +170,6 @@ main(int argc, char **argv)
 			break;
 #ifdef IN_RCMD
 		case 'u':
-			if (getuid() != 0 && optarg && name &&
-			    strcmp(name, optarg) != 0)
-				errx(1,"only super user can use the -u option");
 			locuser = optarg;
 			break;
 #endif /* IN_RCMD */
@@ -203,7 +197,7 @@ main(int argc, char **argv)
 	}
 
 	if (w32_sockinit() == -1)
-		err(3, "winsock initialisation" );
+		err(3, "winsock initialisation");
 
 	argc -= optind;
 	argv += optind;
@@ -229,11 +223,10 @@ main(int argc, char **argv)
 		errx(1, "shell/tcp: unknown service");
 
 #ifdef IN_RCMD
-	rem = orcmd_af(&host, sp->s_port, locuser ? locuser :
+	rem = orcmd_af(&host, sp->s_port, locuser ? locuser : name, user, args, &remerr, family);
 #else
-	rem = rcmd_af(&host, sp->s_port,
+	rem = rcmd_af(&host, sp->s_port, name, user, args, &remerr, family);
 #endif
-	    name, user, args, &remerr, family);
 	(void)free(name);
 
 	if (rem < 0)
@@ -251,45 +244,112 @@ main(int argc, char **argv)
 	setsockopt(rem, proto->p_proto, TCP_NODELAY, &one, sizeof(one));
 	setsockopt(remerr, proto->p_proto, TCP_NODELAY, &one, sizeof(one));
 
-//	(void)setuid(uid);
-
-//	(void)sigemptyset(&nset);
-//	for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++)
-//		(void)sigaddset(&nset, sigs[i]);
-
-//	(void)sigprocmask(SIG_BLOCK, &nset, &oset);
-
 #ifdef IN_RCMD
 	if (!relay_signal)
 #endif
-//		for (i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++) {
-//			struct sigaction sa;
-
-//			if (sa.sa_handler != SIG_IGN) {
-//				sa.sa_handler = sendsig;
-//				(void)sigaction(sigs[i], &sa, NULL);
-//			}
-//		}
-
-//	if (!nflag) {
-//		pid = fork();
-//		if (pid < 0)
-//			err(1, "fork");
-//	}
-//	else
-//		pid = -1;
-
-//	(void)ioctl(remerr, FIONBIO, &one);
-//	(void)ioctl(rem, FIONBIO, &one);
 	(void)ioctlsocket(remerr, FIONBIO, &one);
 	(void)ioctlsocket(rem, FIONBIO, &one);
 
-	talk(nflag, NULL /*&oset*/, -1 /*pid*/, rem);
-
-//	if (!nflag)
-//		(void)kill(pid, SIGKILL);
+	talk(nflag, rem);
 	exit(0);
 }
+
+
+
+#ifdef IN_RCMD
+static void
+set_env(const char *name, const char *value, int overwrite)
+{
+	if ((1 == overwrite) || NULL == getenv(name)) {
+#if defined(__WATCOMC__)
+		setenv(name, value, TRUE);
+#else
+		char buf[1024];
+		snprintf(buf, sizeof(buf), "%s=%s", name, value);
+		buf[sizeof(buf)-1] = 0;
+		_putenv(_strdup(buf));
+#endif
+	}
+}
+#endif  //#ifdef IN_RCMD
+
+
+static BOOL WINAPI
+CtrlHandler(DWORD fdwCtrlType)
+{
+	char signo = 1;
+	switch (fdwCtrlType) {
+	case CTRL_C_EVENT:
+		signo = 2;  // SIGINT
+		w32_write(remerr, &signo, sizeof(signo));
+                return TRUE;
+	case CTRL_BREAK_EVENT:
+		signo = 3;  // SIGQUIT
+		w32_write(remerr, &signo, sizeof(signo));
+		return FALSE;
+	case CTRL_CLOSE_EVENT:
+		signo = 15;  // SIGTERM
+		w32_write(remerr, &signo, sizeof(signo));
+		return TRUE;
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+		signo = 15;  // SIGTERM
+		w32_write(remerr, &signo, sizeof(signo));
+		return FALSE;
+	default:
+		return FALSE;
+	}
+}
+
+
+static DECLTHREAD void
+reader_task(void *arg)
+{
+	const int rem = *((int *)arg);
+	struct pollfd fds[1] = {0};
+	char buf[BUFSIZ];
+	const char *bp;
+	int cc;
+
+	(void) SetConsoleCtrlHandler(CtrlHandler, TRUE);
+
+reread: errno = 0;
+	if ((cc = _read(STDIN_FILENO, buf, sizeof buf)) <= 0) {
+		goto done;
+	}
+	bp = buf;
+
+rewrite:;
+	fds[0].events = POLLOUT;
+	fds[0].fd = rem;
+	if (poll(fds, 1, -1 /*INFTIM*/) == -1) {
+		if (errno != EINTR)
+			err(1, "poll");
+		goto rewrite;
+	}
+
+	if (fds[0].revents & POLLOUT) {
+		int wc = w32_write(rem, bp, cc);
+		if (wc < 0) {
+			if (errno == EWOULDBLOCK)
+				goto rewrite;
+			goto done;
+		}
+		bp += wc;
+		cc -= wc;
+		if (cc == 0)
+		        goto reread;
+
+	} else if (fds[0].revents & (POLLERR|POLLHUP)) {
+		goto done;
+	}
+	goto rewrite;
+
+done:;
+        (void) SetConsoleCtrlHandler(CtrlHandler, FALSE);
+	shutdown(rem, SD_SEND);
+}
+
 
 static int
 checkfd(struct pollfd *fdp, int outfd)
@@ -324,71 +384,28 @@ checkfd(struct pollfd *fdp, int outfd)
 	}
 }
 
+
 static void
-talk(int nflag, sigset_t *oset, pid_t pid, int rem)
+talk(int nflag, int rem)
 {
+	struct pollfd fds[3] = {0}, *fdp;
 	int nfds;
-	struct pollfd fds[3], *fdp = &fds[0];
 
-//	if (!nflag && pid == 0) {
-//		int nr, nw;
-//		char *bp, buf[BUFSIZ];
+	_setmode(STDIN_FILENO, _O_BINARY);
+	_setmode(STDOUT_FILENO, _O_BINARY);
 
-//		(void)close(remerr);
-//
-//		fdp->events = POLLOUT|POLLNVAL|POLLERR|POLLHUP;
-//		fdp->fd = rem;
-//		nr = 0;
-//		bp = buf;
-//
-//		for (;;) {
-//			errno = 0;
-//
-//			if (nr == 0) {
-//				if ((nr = read(0, buf, sizeof buf)) == 0)
-//					goto done;
-//				if (nr == -1) {
-//					if (errno == EIO)
-//						goto done;
-//					if (errno == EINTR) {
-//						nr = 0;
-//						continue;
-//					}
-//					err(1, "read");
-//				}
-//				bp = buf;
-//			}
-//
-//rewrite:		if (poll(fdp, 1, 0 /*INFTIM*/) == -1) {
-//				if (errno != EINTR)
-//					err(1, "poll");
-//				goto rewrite;
-//			}
-//
-//			if (fdp->revents & (POLLNVAL|POLLERR|POLLHUP))
-//				err(1, "poll");
-//
-//			if ((fdp->revents & POLLOUT) == 0)
-//				goto rewrite;
-//
-//			nw = write(rem, bp, nr);
-//
-//			if (nw < 0) {
-//				if (errno == EAGAIN)
-//					continue;
-//				err(1, "write");
-//			}
-//			bp += nw;
-//			nr -= nw;
-//		}
-//done:
-//		(void)shutdown(rem, 1);
-//		exit(0);
-//	}
+	if (! nflag) {
+		if (_beginthread(reader_task, 0, (void *)&rem) == -1L) {
+			err(1, "rsh: fork: %s", strerror(errno));
+		}
+	} else {
+		shutdown(rem, SD_SEND);
+	}
 
 	fdp = &fds[1];
 	nfds = 2;
 	fds[0].events = 0;
+
 #ifdef IN_RCMD
 	if (relay_signal) {
 		fdp = &fds[0];
@@ -397,7 +414,7 @@ talk(int nflag, sigset_t *oset, pid_t pid, int rem)
 		fds[0].fd = 2;
 	} //else
 #endif
-//		(void)sigprocmask(SIG_SETMASK, oset, NULL);
+
 	fds[1].events = fds[2].events = POLLIN|POLLNVAL|POLLERR|POLLHUP;
 	fds[1].fd = remerr;
 	fds[2].fd = rem;
@@ -407,7 +424,8 @@ talk(int nflag, sigset_t *oset, pid_t pid, int rem)
 				err(1, "poll");
 			continue;
 		}
-		if ((fds[1].events != 0 && checkfd(&fds[1], 2) == -1)
+
+		if ((fds[1].events != 0 && checkfd(&fds[1], STDERR_FILENO) == -1)
 #ifdef IN_RCMD
 		    || (fds[0].events != 0 && checkfd(&fds[0], remerr) == -1)
 #endif
@@ -422,7 +440,8 @@ talk(int nflag, sigset_t *oset, pid_t pid, int rem)
 #endif
 			fdp = &fds[2];
 		}
-		if (fds[2].events != 0 && checkfd(&fds[2], 1) == -1) {
+
+		if (fds[2].events != 0 && checkfd(&fds[2], STDOUT_FILENO) == -1) {
 			nfds--;
 			fds[2].events = 0;
 		}
@@ -430,14 +449,6 @@ talk(int nflag, sigset_t *oset, pid_t pid, int rem)
 	while (nfds);
 }
 
-static void
-sendsig(int sig)
-{
-	char signo;
-
-	signo = sig;
-	(void)w32_write(remerr, &signo, 1);
-}
 
 static char *
 copyargs(char **argv)
@@ -461,10 +472,10 @@ copyargs(char **argv)
 	return (args);
 }
 
+
 static void
 usage(void)
 {
-
 	(void)fprintf(stderr,
 	    "usage: %s [-46dn] [-l login] [-p port]%s [login@]host command\n",
 	    getprogname(),
@@ -476,3 +487,4 @@ usage(void)
 	    );
 	exit(1);
 }
+
