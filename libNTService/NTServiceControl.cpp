@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.6 2022/03/17 03:44:20 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.7 2023/12/24 15:01:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,13 +31,19 @@ __CIDENT_RCSID(NTServiceControl_cpp, "$Id: NTServiceControl.cpp,v 1.6 2022/03/17
 
 #include <Windows.h>
 #include <tchar.h>
-#include <strsafe.h>
 #include <aclapi.h>
-
-#pragma comment(lib, "advapi32.lib")
 
 #include "NTServiceControl.h"                   // public interface
 #include "NTService.h"
+
+#if defined(__MINGW32__)
+#include <strings.h>
+#define _strnicmp(__a,__b,__c) strncasecmp(__a,__b,__c)
+#define _stricmp(__a,__b) strcasecmp(__a,__b)
+#else
+#include <strsafe.h>
+#pragma comment(lib, "advapi32.lib")
+#endif
 
 static bool StopDependentServices(SC_HANDLE schSCManager, SC_HANDLE schService);
 
@@ -85,7 +91,7 @@ int CNTServiceControl::ExecuteCommand(int argc, const char * const *argv, unsign
                         return NTSERVICE_CMD_UNEXPECTED_ARG;
                 }
                 Start();
-            return 1;
+                return 1;
 
         } else if (0 == (filter & 0x002) && 0 == _stricmp(cmd, "stop")) {
                 if (argc > 1) {
@@ -381,6 +387,7 @@ void CNTServiceControl::UpdateDacl()
         DWORD                dwError        = 0;
         DWORD                dwSize         = 0;
         DWORD                dwBytesNeeded  = 0;
+        char guest[] = "GUEST";
 
         // Get a handle to the SCM database.
 
@@ -412,7 +419,7 @@ void CNTServiceControl::UpdateDacl()
         // Get the current security descriptor.
 
         if (!::QueryServiceObjectSecurity(schService, DACL_SECURITY_INFORMATION,
-                        &psd,                   // using NULL does not work on all versions
+                        psd,                    // using NULL does not work on all versions
                         0, &dwBytesNeeded))
         {
                 if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER)
@@ -450,7 +457,7 @@ void CNTServiceControl::UpdateDacl()
 
         // Build the ACE.
 
-        ::BuildExplicitAccessWithName(&ea, TEXT("GUEST"),
+        ::BuildExplicitAccessWithNameA(&ea, guest,
                     SERVICE_START | SERVICE_STOP | READ_CONTROL | DELETE, SET_ACCESS, NO_INHERITANCE);
 
         dwError = ::SetEntriesInAcl(1, &ea, pacl, &pNewAcl);

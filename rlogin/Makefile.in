@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.9 2022/03/20 09:30:05 cvsuser Exp $
+# $Id: Makefile.in,v 1.10 2023/12/26 17:01:07 cvsuser Exp $
 # rlogin makefile.
 #
 #
@@ -64,7 +64,7 @@ endif
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/rlogin
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/rlogin
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
@@ -130,6 +130,6 @@ $(D_OBJ)/%$(O):		%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
 
 $(D_OBJ)/%.res: 	%.rc
-		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
+		$(RC) -Fo$@ -I../include -I../libNTService $<
 
 #end

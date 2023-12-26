@@ -1,12 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_neterr_c,"$Id: w32_neterr.c,v 1.8 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_neterr_c,"$Id: w32_neterr.c,v 1.9 2023/12/26 17:01:03 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 network errno mapping support
  *
- * Copyright (c) 1998 - 2022, Adam Young.
- * All rights reserved.
+ * Copyright (c) 1998 - 2023, Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -25,7 +24,7 @@ __CIDENT_RCSID(gr_w32_neterr_c,"$Id: w32_neterr.c,v 1.8 2022/03/15 12:15:38 cvsu
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from

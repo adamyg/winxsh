@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.8 2022/03/17 03:44:20 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.9 2023/12/24 15:01:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,14 +31,20 @@ __CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.8 2022/03/17 0
 
 #include <Windows.h>
 #include <tchar.h>
-#include <strsafe.h>
-
-#pragma comment(lib, "advapi32.lib")
 
 #include "NTServiceConfig.h"                    // public header
 #include "NTServiceGetOpt.h"                    // argument parsing
 #include "NTServiceReg.h"                       // registry
 #include "NTService.h"                          // NTSERVICE_CMD_xxx
+
+#if defined(__MINGW32__)
+#include <strings.h>
+#define _strnicmp(__a,__b,__c) strncasecmp(__a,__b,__c)
+#define _stricmp(__a,__b) strcasecmp(__a,__b)
+#else
+#include <strsafe.h>
+#pragma comment(lib, "advapi32.lib")
+#endif
 
 
 //

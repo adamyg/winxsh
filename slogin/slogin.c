@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.14 2022/03/20 13:25:21 cvsuser Exp $")
+__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.15 2023/12/22 17:07:46 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * slogin, windows console ssh client (libssh2 based).
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -1704,4 +1704,3 @@ remote_drain(const struct options *options, int isterminal)
 }
 
 /*end*/
-

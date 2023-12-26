@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015 - 2022, Adam Young.
+Copyright (c) 2015 - 2023, Adam Young.
 Copyright 1990, 1998 The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -28,7 +28,7 @@ from The Open Group.
 */
 
 static const char 
-mkkeys_ident[] = "$Id: termemumkkeys.c,v 1.4 2022/03/20 08:22:56 cvsuser Exp $";
+mkkeys_ident[] = "$Id: termemumkkeys.c,v 1.5 2023/12/22 17:07:45 cvsuser Exp $";
 
 #define  _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>

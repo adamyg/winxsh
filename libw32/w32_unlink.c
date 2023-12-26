@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_unlink_c,"$Id: w32_unlink.c,v 1.1 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_unlink_c,"$Id: w32_unlink.c,v 1.2 2023/12/26 17:01:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 unlink() system call.
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

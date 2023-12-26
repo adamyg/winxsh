@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_select_c,"$Id: w32_select.c,v 1.1 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_select_c,"$Id: w32_select.c,v 1.2 2023/12/26 17:01:04 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  *  Windows 'select' compat interface
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -34,7 +34,7 @@ __CIDENT_RCSID(gr_w32_select_c,"$Id: w32_select.c,v 1.1 2022/03/15 12:15:38 cvsu
 #include <sys/types.h>
 #include <sys/param.h>
 #define  WIN32_SOCKET_H_CLEAN                   // disable mapping
-#ifdef HAVE_SYS_SOCKET_H
+#ifdef   HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
 #include <stdio.h>
@@ -78,7 +78,7 @@ static void         sel_unknown( Select_t *selfd );
 /*
  *  select() system call
  */
-int
+LIBW32_API int
 w32_select(
     int nfs, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, const struct timeval *tm)
 {
@@ -118,7 +118,7 @@ sel_build(
     int type, fd_set *fds, u_int *selcnt, Select_t *selfds )
 {
     u_int invalid = 0, idx, fd;
-    long osf;
+    SOCKET osf = 0;
 
     if (fds == NULL) {
         return 0;
@@ -138,19 +138,23 @@ sel_build(
 
             selfds[fd].s_fd = (int)fds->fd_array[idx];
 
-            if ((osf = w32_sockhandle((int)fds->fd_array[idx])) == -1) {
+            if ((osf = w32_sockhandle((int)fds->fd_array[idx])) == INVALID_SOCKET) {
                 selfds[fd].s_handle = (HANDLE)0;
                 selfds[fd].s_type = FD_UNKNOWN;
                 invalid++;
 
             } else {
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+#endif
                 selfds[fd].s_handle = (HANDLE)osf;
 
                 switch (GetFileType((HANDLE)osf)) {
                 case FILE_TYPE_CHAR: {          // char file
                         DWORD mode;
 
-                        if (GetConsoleMode( (HANDLE)osf, &mode ) == 0) {
+                        if (GetConsoleMode((HANDLE)osf, &mode ) == 0) {
                             selfds[fd].s_type = FD_CONSOLE;
                             selfds[fd].s_poll = sel_console;
                         } else {
@@ -159,6 +163,9 @@ sel_build(
                         }
                     }
                     break;
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic pop
+#endif
 
                 case FILE_TYPE_DISK:            // disk file
                     selfds[fd].s_type = FD_BLOCK;
@@ -200,12 +207,11 @@ sel_build(
 
 
 static int
-sel_wait( u_int cnt, Select_t *selfds, DWORD timeout )
+sel_wait(u_int cnt, Select_t *selfds, DWORD timeout)
 {
-    DWORD stick;
+    DWORD  stick, ret;
     HANDLE waitfor[MAXIMUM_WAIT_OBJECTS];       // system limit
     u_int i = 0;
-    int ret;
 
     if (cnt > sizeof(waitfor)/sizeof(waitfor[0]))
         return -EINVAL;
@@ -215,20 +221,22 @@ sel_wait( u_int cnt, Select_t *selfds, DWORD timeout )
         i++;
     }
 
+    assert(0 == WAIT_OBJECT_0);
     stick = GetTickCount();                     // start tick
+
     for (;;) {
-        // Wait for event/timeout
+        // wait for event/timeout
         if ((ret = WaitForMultipleObjects (cnt, waitfor, FALSE, timeout)) == WAIT_FAILED) {
             return -EIO;
         }
 
-        // Timeout
+        // timeout
         if (ret == WAIT_TIMEOUT) {
             break;
         }
 
-        // Who caused this ??
-        if (ret >= WAIT_OBJECT_0 && ret <= (int)(WAIT_OBJECT_0 + cnt + 1)) {
+        // event
+        if (ret <= (DWORD)(WAIT_OBJECT_0 + cnt + 1)) {
             i = ret - WAIT_OBJECT_0;
             assert(waitfor[i] == selfds[i].s_handle);
             (selfds[i].s_poll)( selfds+i );
@@ -236,14 +244,14 @@ sel_wait( u_int cnt, Select_t *selfds, DWORD timeout )
                 return i+1;
         }
 
-        // Calculate next timeout frame...
-        if (timeout != INFINITE)
-        {
+        // calculate next timeout frame...
+        if (timeout != INFINITE) {
             DWORD ctick, ttick;                 // current and total ticks
 
             ctick = GetTickCount();
-            if ((ttick = sel_ticks( stick, ctick )) > timeout)
+            if ((ttick = sel_ticks( stick, ctick )) > timeout) {
                 break;
+            }
             timeout -= ttick;
             stick = ctick;
         }
@@ -297,6 +305,7 @@ sel_console(Select_t *selfd)
 static void
 sel_block(Select_t *selfd)
 {
+    __PUNUSED(selfd)
     assert(0);                                  // TODO
 }
 
@@ -304,6 +313,7 @@ sel_block(Select_t *selfd)
 static void
 sel_pipe(Select_t *selfd)
 {
+    __PUNUSED(selfd)
     assert(0);                                  // TODO
 }
 

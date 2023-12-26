@@ -1,9 +1,9 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.16 2022/03/20 13:48:58 cvsuser Exp $
+# $Id: Makefile.in,v 1.18 2023/12/26 17:01:00 cvsuser Exp $
 # winxsh - top level makefile.
 #
 #
-# Copyright (c) 2015 - 2022, Adam Young.
+# Copyright (c) 2015 - 2023, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -46,6 +46,9 @@ PKG_VERSION	= @PACKAGE_VERSION@
 ifeq ("","$(PKG_VERSION)")
 PKG_VERSION	= 0.3.0
 endif
+PKG_VERSION_1	=$(word 1,$(subst ., ,$(PKG_VERSION)))
+PKG_VERSION_2	=$(word 2,$(subst ., ,$(PKG_VERSION)))
+PKG_VERSION_3	=$(word 3,$(subst ., ,$(PKG_VERSION)))
 
 PATH_SEPARATOR	= @PATH_SEPARATOR@
 
@@ -122,6 +125,15 @@ ifeq ($(BUSYBOX),busybox)
 BUSYBOX=	$(shell which busybox 2>/dev/null)
 endif
 
+QUIETOUT:=	>/dev/null 2>&1
+ifeq ($(VERBOSE),1)
+QUIETOUT:=
+else ifeq ($(VERBOSE),0)
+else ifeq ($(VERBOSE),)
+else
+$(error VERBOSE: unexpected value 0 or 1 required, $(VERBOSE) given]))
+endif
+
 ifeq ("$(BUILD_TYPE)","")	#default
 
 .PHONY:				help clean vclean build package
@@ -130,9 +142,13 @@ ifneq ("$(word 1,$(MAKECMDGOALS))","debug")
 ifneq ("$(word 1,$(MAKECMDGOALS))","release")
 	@$(BUSYBOX) echo -n -e '\
 		|\n\
-		| make [release or debug] target \n\
+		| make [VERBOSE=1] [release or debug] target \n\
 		|\n\
-		|	Build one or more of the following targets recursively within each sub-directory. \n\
+		|	Build one or more of the following targets recursively within each sub-directory\n\
+		|	for the toolchain @TOOLCHAIN@. \n\
+		|\n\
+		| Options: \n\
+		|	VERBOSE - increase run-time diagnostics; suppress stderr filtering. \n\
 		|\n\
 		| Targets: \n\
 		|\n\
@@ -169,7 +185,7 @@ endif
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)
 LW=		$(D_LIB)/$(LP)
 
 D_ETC=		$(D_BIN)/etc
@@ -183,11 +199,13 @@ D_LOCALE=	$(D_BIN)/locale
 CC=		@CC@
 CXX=		@CXX@
 AR=		@AR@
+RANLIB=		@RANLIB@
 RM=		@RM@
 RMDIR=		@RMDIR@
 CP=		@CP@
 RC=		@RC@
 PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 TAR=		@TAR@
 INSTALL=	@INSTALL@
 INSTALL_PROGRAM=@INSTALL_PROGRAM@
@@ -203,6 +221,12 @@ endif
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq ("gcc","@CC@")
+#CWARN+=	-Wno-shadow -Wno-type-limits
+CWARN+=		-Wno-sign-compare -Wno-missing-prototypes
+CWARN+=		-Wno-unused-variable -Wno-unused-parameter -Wno-unused-parameter -Wno-unused-function
+CWARN+=		-Wno-missing-field-initializers -Wno-implicit-fallthrough
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 LDDEBUG=	@LDDEBUG@
@@ -228,7 +252,7 @@ RMDFLAGS=	-rf
 # Targets
 
 ifeq ("wcl386","$(CC)")
-ifeq ("@TOOLCHAIN@","owc20")
+ifeq ("owc20","@TOOLCHAIN@")
 CLBRNAME=	clbr20
 MT7RNAME=	mt7r20
 PLBRNAME=	plbr20
@@ -237,9 +261,18 @@ CLBRNAME=	clbr19
 MT7RNAME=	mt7r19
 PLBRNAME=	plbr19
 endif
+
+	# As path format is dependent on which variant,
+	# firstly resolve using WATCOM envvar, otherwise fallback to which.
+LIBCLBRPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(CLBRNAME).dll))
+ifeq ("","$(LIBCLBRPATH)")
 LIBCLBRPATH=	$(shell which $(CLBRNAME).dll)
 LIBMT7RPATH=	$(shell which $(MT7RNAME).dll)
 LIBPLBRPATH=	$(shell which $(PLBRNAME).dll)
+else
+LIBMT7RPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(MT7RNAME).dll))
+LIBPLBRPATH=	$(subst \,/,$(wildcard $(WATCOM)/binnt/$(PLBRNAME).dll))
+endif
 endif
 
 BUILDINFO=	include/buildinfo.h
@@ -271,7 +304,7 @@ IMPORT+=\
 endif
 
 #########################################################################################
-# rules
+# Rules
 
 .DEFAULT:
 .PHONY:			build
@@ -279,7 +312,7 @@ build:			directories buildinfo libs bins import
 
 .PHONY:				help
 help:
-	@$(BUSYBOX) echo -e '\
+	@$(BUSYBOX) echo -e "\
 		|\n\
 		| make [release or debug] target \n\
 		|\n\
@@ -291,7 +324,7 @@ help:
 		|	package - build all packages. \n\
 		|	clean   - delete everything which can be remade. \n\
 		|	help    - command line usage. \n\
-		'
+		"
 
 .PHONY:				release
 release:
@@ -406,8 +439,9 @@ clean:
 		$(MAKE) -C rlogind clean
 		$(MAKE) -C slogin clean
 
+.PHONY:		vclean
 vclean:			clean
-		-@$(RM) $(IMPORT) >nul 2>&1
+		-$(RM) $(IMPORT) $(QUIETOUT)
 		-@$(RM) $(RMDFLAGS) $(D_BIN)/* $(D_MACROS)/* $(D_HELP)/* $(D_LIB)/* $(D_OBJ)/*
 		-rmdir $(D_BIN) $(D_MACROS) $(D_HELP) $(D_LIB) $(D_OBJ)
 

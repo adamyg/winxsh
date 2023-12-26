@@ -1,13 +1,13 @@
 #ifndef LIBW32_GETOPT_H_INCLUDED
 #define LIBW32_GETOPT_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_getopt_h,"$Id: getopt.h,v 1.9 2022/03/15 12:15:36 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_getopt_h,"$Id: getopt.h,v 1.10 2023/12/26 17:01:01 cvsuser Exp $")
 __CPRAGMA_ONCE
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win <getopt.h>
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -35,11 +35,11 @@ __CPRAGMA_ONCE
 
 __BEGIN_DECLS
 
-LIBW32_API extern int   opterr;                 /* if error message should be printed */
-LIBW32_API extern int   optind;                 /* index into parent argv vector */
-LIBW32_API extern int   optopt;                 /* character checked for validity */
-LIBW32_API extern int   optreset;               /* reset getopt */
-LIBW32_API extern char *optarg;
+LIBW32_VAR int          opterr;                 /* if error message should be printed */
+LIBW32_VAR int          optind;                 /* index into parent argv vector */
+LIBW32_VAR int          optopt;                 /* character checked for validity */
+LIBW32_VAR int          optreset;               /* reset getopt */
+LIBW32_VAR char         *optarg;
 
 /*
  *  GNU like getopt_long() and BSD4.4 getsubopt()/optreset extensions.
@@ -62,6 +62,10 @@ struct option {
 LIBW32_API int          getopt(int nargc, char * const *nargv, const char *options);
 LIBW32_API int          getopt_long(int argvc, char * const *argv, const char *options, const struct option *long_options, int *idx);
 LIBW32_API int          getopt_long2(int argvc, char * const *argv, const char *options, const struct option *long_options, int *idx, char *buf, int buflen);
+
+#if defined(LIBW32_LIBRARY)
+extern void __w32_getopt_globals(void);
+#endif
 
 __END_DECLS
 

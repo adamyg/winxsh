@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_util_c,"$Id: w32_util.c,v 1.8 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_util_c,"$Id: w32_util.c,v 1.9 2023/12/26 17:01:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 util unix functionality.
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -13,6 +13,7 @@ __CIDENT_RCSID(gr_w32_util_c,"$Id: w32_util.c,v 1.8 2022/03/15 12:15:38 cvsuser 
  * The applications are free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, version 3.
+ * or (at your option) any later version.
  *
  * Redistributions of source code must retain the above copyright
  * notice, and must be distributed with the license document above.
@@ -255,9 +256,9 @@ w32_utf2wc(const char *src, wchar_t *dest, size_t maxlen)
     assert(src), assert(dest), assert(maxlen);
 
     dest[0] = 0;
-    if ((ret = MultiByteToWideChar(CP_UTF8, 0, src, -1, dest, maxlen)) > 0) {
+    if ((ret = MultiByteToWideChar(CP_UTF8, 0, src, -1, dest, (int)maxlen)) > 0) {
         assert(ret <= (int)maxlen);
-        if (ret == maxlen)
+        if (ret == (int)maxlen)
             dest[maxlen - 1] = 0;
 
     } else {
@@ -354,9 +355,9 @@ w32_wc2utf(const wchar_t *src, char *dest, size_t maxlen)
     assert(src), assert(dest), assert(maxlen);
 
     dest[0] = 0;
-    if ((ret = WideCharToMultiByte(CP_UTF8, 0, src, -1, dest, maxlen, NULL, NULL)) > 0) {
+    if ((ret = WideCharToMultiByte(CP_UTF8, 0, src, -1, dest, (int)maxlen, NULL, NULL)) > 0) {
         assert(ret <= (int)maxlen);
-        if (ret == maxlen) {
+        if (ret == (int)maxlen) {
             dest[maxlen - 1] = 0;
             --ret;
         }
@@ -531,8 +532,8 @@ w32_ostype(void)
     if (! platform) {
         OSVERSIONINFO ovi = {0};
         ovi.dwOSVersionInfoSize = sizeof(ovi);
-        GetVersionEx(&ovi);
-            // TODO: replace with RtlGetVersion() as GetVersionEx() is now defunct; 8.1+.
+
+        GetVersionEx(&ovi);             // dependent on app-manifest
         switch (ovi.dwPlatformId) {
         case VER_PLATFORM_WIN32s:
         case VER_PLATFORM_WIN32_WINDOWS:
@@ -572,7 +573,11 @@ w32_ostype(void)
             platform = OSTYPE_WIN_NT;           // or 2000
 
             if (ovi.dwMajorVersion >= 10) {
-                platform = OSTYPE_WIN_10;       // Windows 10+
+                if (ovi.dwBuildNumber >= 22000) {
+                    platform = OSTYPE_WIN_11;   // Windows 11
+                } else {
+                    platform = OSTYPE_WIN_10;   // Windows 10
+                }
 
             } else if (6 == ovi.dwMajorVersion) {
                 platform = OSTYPE_WIN_VISTA;
@@ -614,21 +619,21 @@ w32_getexedir(char *buf, int maxlen)
 
 
 LIBW32_API const char *
-w32_syserrorA(DWORD dwError, char *buf, int buflen)
+w32_syserrorA(DWORD dwError, char *buf, size_t buflen)
 {
     return w32_vsyserrorA(dwError, buf, buflen, NULL);
 }
 
 
 LIBW32_API const char *
-w32_vsyserrorA(DWORD dwError, char *buf, int buflen, ...)
+w32_vsyserrorA(DWORD dwError, char *buf, size_t buflen, ...)
 {
     if (buf && buflen > 0) {
         const DWORD ret = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
                                 FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, dwError,
-                                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, --buflen /*nul*/, NULL);
+                                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, (DWORD)(--buflen) /*nul*/, NULL);
         if (0 == ret) {                         // error, overflow etc
-            int len;
+            size_t len;
 
             if ((len = buflen) > sizeof("unknown error")) {
                 len = sizeof("unknown error");
@@ -636,9 +641,10 @@ w32_vsyserrorA(DWORD dwError, char *buf, int buflen, ...)
             memcpy(buf, "unknown error", len * sizeof(char));
 
         } else {
-            int idx = 1, len = (DWORD)ret; 
+            size_t len = (size_t)ret; 
             const char *arg;
             va_list ap;
+            int idx = 1; 
 
             // remove trailing whitespace
             while (--len) {
@@ -657,7 +663,7 @@ w32_vsyserrorA(DWORD dwError, char *buf, int buflen, ...)
 
                 while (NULL != (cursor = strchr(cursor, '%'))) {
                     if (cursor[1] == ('0' + idx)) {
-                        int arglen = strlen(arg);
+                        size_t arglen = strlen(arg);
 
                         len -= 2; // %x being replace
                         if ((len + arglen) >= buflen) {
@@ -684,21 +690,21 @@ w32_vsyserrorA(DWORD dwError, char *buf, int buflen, ...)
 
 
 LIBW32_API const wchar_t *
-w32_syserrorW(DWORD dwError, wchar_t *buf, int buflen)
+w32_syserrorW(DWORD dwError, wchar_t *buf, size_t buflen)
 {
     return w32_vsyserrorW(dwError, buf, buflen, NULL);
 }
 
 
 LIBW32_API const wchar_t *
-w32_vsyserrorW(DWORD dwError, wchar_t *buf, int buflen, ...)
+w32_vsyserrorW(DWORD dwError, wchar_t *buf, size_t buflen, ...)
 {
     if (buf && buflen > 0) {
         const DWORD ret = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
                                 FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, dwError,
-                                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, --buflen /*nul*/,  NULL);
+                                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, (DWORD)(--buflen) /*nul*/,  NULL);
         if (0 == ret) {                         // error, overflow etc
-            int len;
+            size_t len;
 
             if ((len = buflen) > sizeof("unknown error")) {
                 len = sizeof("unknown error");
@@ -706,7 +712,7 @@ w32_vsyserrorW(DWORD dwError, wchar_t *buf, int buflen, ...)
             memcpy(buf, L"unknown error", len * sizeof(wchar_t));
 
         } else {
-            int idx = 1, len = (DWORD)ret; 
+            size_t idx = 1, len = (size_t)ret;
             const wchar_t *arg;
             va_list ap;
 
@@ -727,7 +733,7 @@ w32_vsyserrorW(DWORD dwError, wchar_t *buf, int buflen, ...)
 
                 while (NULL != (cursor = wcschr(cursor, '%'))) {
                     if (cursor[1] == ('0' + idx)) {
-                        int arglen = wcslen(arg);
+                        size_t arglen = wcslen(arg);
 
                         len -= 2; // %x being replace
                         if ((len + arglen) >= buflen) {

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_link_c, "$Id: w32_link.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_link_c, "$Id: w32_link.c,v 1.2 2023/12/26 17:01:03 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 link() system calls.
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -255,13 +255,20 @@ my_CreateHardLinkW(LPCWSTR lpFileName, LPCWSTR lpExistingFileName)
     if (NULL == x_CreateHardLinkW) {
         HINSTANCE hinst;                        // Vista+
 
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         if (0 == (hinst = LoadLibraryA("Kernel32")) ||
                 0 == (x_CreateHardLinkW =
                         (CreateHardLinkW_t)GetProcAddress(hinst, "CreateHardLinkW"))) {
                                                 // XP+
             x_CreateHardLinkW = my_CreateHardLinkImpW;
-            (void)FreeLibrary(hinst);
+            if (hinst) FreeLibrary(hinst);
         }
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic pop
+#endif
     }
     return x_CreateHardLinkW(lpFileName, lpExistingFileName, NULL);
 }
@@ -280,7 +287,7 @@ my_CreateHardLinkImpW(LPCWSTR lpFileName, LPCWSTR lpExistingFileName, LPSECURITY
         WIN32_STREAM_ID wsi = { 0 };
         void *ctx = NULL;
         HANDLE handle;
-        int wlen;
+        DWORD wlen;
         DWORD cnt;
 
         if (INVALID_HANDLE_VALUE ==             /* source image */
@@ -291,7 +298,7 @@ my_CreateHardLinkImpW(LPCWSTR lpFileName, LPCWSTR lpExistingFileName, LPSECURITY
             return FALSE;
         }
 
-        wlen = wcslen(lpFileName);
+        wlen = (DWORD)wcslen(lpFileName);
         wsi.dwStreamId = BACKUP_LINK;
         wsi.dwStreamAttributes = 0;
         wsi.dwStreamNameSize = 0;
@@ -321,13 +328,20 @@ my_CreateHardLinkA(LPCSTR lpFileName, LPCSTR lpExistingFileName)
     if (NULL == x_CreateHardLinkA) {
         HINSTANCE hinst;                        // Vista+
 
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         if (0 == (hinst = LoadLibraryA("Kernel32")) ||
                 0 == (x_CreateHardLinkA =
                         (CreateHardLinkA_t)GetProcAddress(hinst, "CreateHardLinkA"))) {
                                                 // XP+
             x_CreateHardLinkA = my_CreateHardLinkImpA;
-            (void)FreeLibrary(hinst);
+            if (hinst) FreeLibrary(hinst);
         }
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic pop
+#endif
     }
     return x_CreateHardLinkA(lpFileName, lpExistingFileName, NULL);
 }
@@ -347,7 +361,7 @@ my_CreateHardLinkImpA(LPCSTR lpFileName, LPCSTR lpExistingFileName, LPSECURITY_A
         WIN32_STREAM_ID wsi = { 0 };
         void *ctx = NULL;
         HANDLE handle;
-        int wlen;
+        DWORD wlen;
         DWORD cnt;
 
         if (INVALID_HANDLE_VALUE ==             /* source image */
@@ -358,7 +372,7 @@ my_CreateHardLinkImpA(LPCSTR lpFileName, LPCSTR lpExistingFileName, LPSECURITY_A
             return FALSE;
         }
 
-        wlen = mbstowcs(wpath, lpFileName, MAX_PATH) * sizeof(WCHAR);
+        wlen = (DWORD)mbstowcs(wpath, lpFileName, MAX_PATH) * sizeof(WCHAR);
         wsi.dwStreamId = BACKUP_LINK;
         wsi.dwStreamAttributes = 0;
         wsi.dwStreamNameSize = 0;

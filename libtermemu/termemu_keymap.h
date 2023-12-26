@@ -1,14 +1,14 @@
 #ifndef TERMEMU_KEYMAP_H_INCLUDED
 #define TERMEMU_KEYMAP_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_keymap_h,"$Id: termemu_keymap.h,v 1.7 2022/03/20 08:22:55 cvsuser Exp $")
+__CIDENT_RCSID(termemu_keymap_h,"$Id: termemu_keymap.h,v 1.8 2023/12/22 17:07:44 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * termemu keyboard mapping
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -47,10 +47,11 @@ typedef struct action {
 typedef struct event {
 	unsigned modifiers;	// TSM_XXX_MASK(s)
 	unsigned vkkey;		// VK_xxxx key code; otherwise 0.
-        const char *vkname;     // VK symbol name; otherwise NULL.
+	unsigned vkkeyalt;      // Alternative VK_xxxx key code; otherwise 0.
+	const char *vkname;     // VK symbol name; otherwise NULL.
 	int vkenhanced;		// Whether an enhanced VK, 1 otherwise 0.
 	int xkbkey;		// XKB_XXX key symbol; otherwise -1.
-        const char *xkbname;    // XKB symbol name; otherwise NULL.
+	const char *xkbname;    // XKB symbol name; otherwise NULL.
 	int ascii;	        // ASCII character value; otherwise -1
 	int unicode;		// Unicode character value; otherwise -1
 } termemu_event_t;
@@ -67,4 +68,3 @@ extern int			termemu_keymap_execute(termemu_keymap_t *keymap, const termemu_even
 __END_DECLS
 
 #endif //TERMEMU_KEYMAP_H_INCLUDED
-

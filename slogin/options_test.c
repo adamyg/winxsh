@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_test_c,"$Id: options_test.c,v 1.10 2022/03/20 13:25:21 cvsuser Exp $")
+__CIDENT_RCSID(options_test_c,"$Id: options_test.c,v 1.11 2023/12/22 17:07:46 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win slogin
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

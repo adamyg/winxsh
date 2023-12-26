@@ -1,14 +1,14 @@
 #ifndef LIBW32_GRP_H_INCLUDED
 #define LIBW32_GRP_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_grp_h,"$Id: grp.h,v 1.1 2022/03/15 12:15:36 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_grp_h,"$Id: grp.h,v 1.2 2023/12/26 17:01:01 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 <grp.h> implementation
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -34,6 +34,7 @@ __CPRAGMA_ONCE
 
 #include <sys/cdefs.h>                          /* __BEGIN_DECLS, __PDECL */
 #include <sys/utypes.h>                         /* uid_t */
+#include <stddef.h>                             /* size_t */
 
 __BEGIN_DECLS
 

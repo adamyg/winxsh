@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
 /*
  * win32 sys/uio.h
  *
- * Copyright (c) 1998 - 2020, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -28,7 +28,7 @@ __CPRAGMA_ONCE
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -38,7 +38,11 @@ __CPRAGMA_ONCE
 #include <limits.h>         /* INT_MAX */
 
 #define IOV_MAX             64
+#if !defined(__MINGW32__)
+#if !defined(SSIZE_MAX)
 #define SSIZE_MAX           INT_MAX
+#endif
+#endif
 
 __BEGIN_DECLS
 

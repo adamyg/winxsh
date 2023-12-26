@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_mkstemp_c, "$Id: w32_mkstemp.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_mkstemp_c, "$Id: w32_mkstemp.c,v 1.2 2023/12/26 17:01:03 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 mkstemp() implementation
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -382,12 +382,12 @@ gettempA_tmp(char *result, const char *path, int suffixlen, int *fildes, unsigne
      */
     if (path && 0 == memcmp(path, "/tmp/", 5)) {
         char t_path[MAX_PATH], *p;
-        int pathlen = strlen(path + 5),
+        size_t pathlen = strlen(path + 5),
             tmplen = (int)GetTempPathA(_countof(t_path), t_path);
                 // TMP, TEMP, USERPROFILE environment variables, default windows directory.
 
         if (pathlen && tmplen) {
-            if ((pathlen + tmplen) >= _countof(t_path)) {
+            if ((pathlen + tmplen) >= (int)_countof(t_path)) {
                 errno = ENAMETOOLONG;
 
             } else {
@@ -557,12 +557,12 @@ gettempW_tmp(wchar_t *result, const wchar_t *path, int suffixlen, int *fildes, u
      */
     if (path && 0 == wmemcmp(path, L"/tmp/", 5)) {
         wchar_t t_path[MAX_PATH], *p;
-        int pathlen = wcslen(path + 5),
+        size_t pathlen = wcslen(path + 5),
             tmplen = (int)GetTempPathW(_countof(t_path), t_path);
                 // TMP, TEMP, USERPROFILE environment variables, default windows directory.
 
         if (pathlen && tmplen) {
-            if ((pathlen + tmplen) >= (_countof(t_path) + 1)) {
+            if ((pathlen + tmplen) >= (int)(_countof(t_path) + 1)) {
                 errno = ENAMETOOLONG;
 
             } else {

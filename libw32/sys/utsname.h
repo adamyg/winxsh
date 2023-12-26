@@ -6,7 +6,7 @@ __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
- * Copyright (c) 2012 - 2022, Adam Young.
+ * Copyright (c) 2012 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -47,4 +47,3 @@ LIBW32_API int          uname(struct utsname *buf);
 __END_DECLS
 
 #endif  /*LIBW32_SYS_UTSNAME_H_INCLUDED*/
-

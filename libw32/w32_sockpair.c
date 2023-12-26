@@ -1,10 +1,10 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_sockpair_c,"$Id: w32_sockpair.c,v 1.6 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_sockpair_c,"$Id: w32_sockpair.c,v 1.7 2023/12/26 17:01:04 cvsuser Exp $")
 
 /*
  * win32 socket file-descriptor support
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2023 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -23,7 +23,7 @@ __CIDENT_RCSID(gr_w32_sockpair_c,"$Id: w32_sockpair.c,v 1.6 2022/03/15 12:15:38 
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -175,9 +175,9 @@ w32_socketpair_fd(int af, int type, int proto, int sock[2])
         int s0 = -1, s1 = -1;
 
         if (sock[0] < WIN32_FILDES_MAX ||
-                (s0 = _open_osfhandle((long)sock[0], 0)) == -1 ||
+                (s0 = _open_osfhandle((OSFHANDLE)sock[0], 0)) == -1 ||
             sock[1] < WIN32_FILDES_MAX ||
-                (s1 = _open_osfhandle((long)sock[1], 0)) == -1) {
+                (s1 = _open_osfhandle((OSFHANDLE)sock[1], 0)) == -1) {
 
             closesocket((SOCKET)sock[1]);
             if (s0 >= 0) _close(s0);
@@ -210,8 +210,8 @@ w32_socketpair_native(int af, int type, int proto, int sock[2])
     int addr2_len = sizeof (addr2);
     int nerr;
 
-    sock[0] = INVALID_SOCKET;
-    sock[1] = INVALID_SOCKET;
+    sock[0] = -1;
+    sock[1] = -1;
 
     assert(af == AF_INET && type == SOCK_STREAM && (0 == proto || IPPROTO_IP == proto || IPPROTO_TCP == proto));
 
@@ -221,7 +221,11 @@ w32_socketpair_native(int af, int type, int proto, int sock[2])
         goto error;
 
     memset((void*)&addr1, 0, sizeof(addr1));
+#if defined(__MINGW32__)
+    addr1.sin_family = (short)af;
+#else
     addr1.sin_family = (ADDRESS_FAMILY)af;
+#endif
     addr1.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr1.sin_port = 0;
 
@@ -237,7 +241,8 @@ w32_socketpair_native(int af, int type, int proto, int sock[2])
     if (listen(listen_sock, 1))
         goto error;
 
-    if ((sock[0] = socket(af, type, proto)) == INVALID_SOCKET)
+    // note: safe to convert handles from 64 to 32; only lower 32-bits are used
+    if ((sock[0] = (int)socket(af, type, proto)) == (int)INVALID_SOCKET)
         goto error;
 
 #undef connect
@@ -245,7 +250,7 @@ w32_socketpair_native(int af, int type, int proto, int sock[2])
         goto error;
 
 #undef accept
-    if ((sock[1] = accept(listen_sock, 0, 0)) == INVALID_SOCKET)
+    if ((sock[1] = (int)accept(listen_sock, 0, 0)) == (int)INVALID_SOCKET)
         goto error;
 
 #undef getpeername
@@ -272,10 +277,10 @@ error:
     if (listen_sock != INVALID_SOCKET)
         closesocket(listen_sock);
 
-    if (sock[0] != INVALID_SOCKET)
+    if (sock[0] != (int)INVALID_SOCKET)
         closesocket(sock[0]);
 
-    if (sock[1] != INVALID_SOCKET)
+    if (sock[1] != (int)INVALID_SOCKET)
         closesocket(sock[1]);
 
     WSASetLastError(nerr);

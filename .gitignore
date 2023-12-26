@@ -7,7 +7,7 @@ old/
 bin
 bin.*/
 lib.*/
-objects*/
+obj.*/
 msvc*/
 crash/
 CVS/

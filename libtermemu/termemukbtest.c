@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.10 2022/03/20 08:22:56 cvsuser Exp $")
+__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.11 2023/12/22 17:07:45 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console keyboard test application
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -364,28 +364,32 @@ KeyboardPush(HANDLE console, BYTE *status, const termemu_event_t *evt)
 {
 	const unsigned vkkey =
 		(evt->ascii ? (evt->ascii < 0x7f ? tolower(evt->ascii) : evt->ascii)
-			: (evt->vkkey + (evt->vkenhanced ? 0x1ff : 0xff)));
+			: ((evt->vkkeyalt ? evt->vkkeyalt : evt->vkkey) + (evt->vkenhanced ? 0x1ff : 0xff)));
 	const unsigned modifiers = evt->modifiers;
 
 	if (vkkey) {
 		status[vkkey] |= VKS_PRESS|VKS_DONE;
 
-		status[VK_CAPITAL+0xff]	= GetKeyState(VK_CAPITAL)?VKS_ON:0;
-		status[VK_SCROLL+0xff]	= GetKeyState(VK_SCROLL) ?VKS_ON:0;
-		status[VK_NUMLOCK+0xff]	= GetKeyState(VK_NUMLOCK)?VKS_ON:0;
-		status[VK_APPS+0xff]	= GetKeyState(VK_APPS)   ?VKS_ON:0;
-		status[VK_SHIFT+0xff]	= 0;
-		status[VK_CONTROL+0xff] = 0;
-		status[VK_MENU+0xff]	= 0;
-		status[VK_MENU+0x1ff]	= 0;
+		status[VK_CAPITAL+0xff]  = GetKeyState(VK_CAPITAL)?VKS_ON:0;
+		status[VK_SCROLL+0xff]   = GetKeyState(VK_SCROLL) ?VKS_ON:0;
+		status[VK_NUMLOCK+0xff]  = GetKeyState(VK_NUMLOCK)?VKS_ON:0;
+		status[VK_APPS+0xff]     = GetKeyState(VK_APPS)   ?VKS_ON:0;
+		status[VK_LSHIFT+0xff]   = 0;
+		status[VK_RSHIFT+0xff]   = 0;
+		status[VK_LCONTROL+0xff] = 0;
+		status[VK_RCONTROL+0xff] = 0;
+		status[VK_MENU+0xff]     = 0;
+		status[VK_MENU+0x1ff]    = 0;
 
 		switch(vkkey) {
 		case VK_CAPITAL	+0x0ff:
 		case VK_SCROLL	+0x0ff:
 		case VK_NUMLOCK	+0x0ff:
 		case VK_APPS	+0x0ff:
-		case VK_SHIFT	+0x0ff:
-		case VK_CONTROL	+0x0ff:
+		case VK_LSHIFT	+0x0ff:
+		case VK_RSHIFT	+0x0ff:
+		case VK_LCONTROL+0x0ff:
+		case VK_RCONTROL+0x0ff:
 		case VK_MENU	+0x0ff:
 		case VK_MENU	+0x1ff:
 			status[vkkey] = VKS_PRESS;
@@ -451,14 +455,14 @@ KeyboardStatus(HANDLE console, BYTE *status)
 		    {VK(NUMPAD4),L"4"},{VK(NUMPAD5),L"5"},{VK(NUMPAD6),L"6"},{-1},
 		    {0}};
 	static const struct row row5[] = {
-		{VK(SHIFT),L"LSH"},{'\\'},{'z'},{'x'},{'c'},{'v'},{'b'},{'n'},{'m'},
-		    {','},{'.'},{'/'},{VK(SHIFT),L"RSH"},{EK(UP),L"\u25B2"},{EK(DELETE),L"Del"},
+		{VK(LSHIFT),L"LSH"},{'\\'},{'z'},{'x'},{'c'},{'v'},{'b'},{'n'},{'m'},
+		    {','},{'.'},{'/'},{VK(RSHIFT),L"RSH"},{EK(UP),L"\u25B2"},{EK(DELETE),L"Del"},
 		    {VK(NUMPAD1),L"1"},{VK(NUMPAD2),L"2"},{VK(NUMPAD3),L"3"},{EK(RETURN),L"CR"},
 		    {0}};
 	static const struct row row6[] = {
 		{VK(CONTROL),L"LC"},{NK()},{VK(MENU),L"Alt"},{' ',L"               <SPACE>                "},
-		    {EK(MENU),L"AGr"},{VK(APPS),L"\u2261"},{VK(CONTROL),L"RC"},{EK(LEFT),L"\u25C4"},{EK(DOWN),L"\u25BC"},{EK(RIGHT),L"\u25BA"},
-		    {VK(NUMPAD0),L"0"},{-1},{VK(DECIMAL),L"."},
+		    {EK(MENU),L"AGr"},{VK(APPS),L"\u2261"},{EK(CONTROL),L"RC"},{EK(LEFT),L"\u25C4"},{EK(DOWN),L"\u25BC"},{EK(RIGHT),L"\u25BA"},
+		    {VK(NUMPAD0),L" 0  <INS> "},{VK(DECIMAL),L"."},
 		    {0}};
 	static const struct row *rows[] =
 		{ row1, row2, row3, row4, row5, row6, NULL };

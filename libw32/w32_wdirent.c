@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_wdirent_c,"$Id: w32_wdirent.c,v 1.1 2022/03/15 12:15:39 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_wdirent_c,"$Id: w32_wdirent.c,v 1.2 2023/12/26 17:01:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -7,7 +7,7 @@ __CIDENT_RCSID(gr_w32_wdirent_c,"$Id: w32_wdirent.c,v 1.1 2022/03/15 12:15:39 cv
  *
  *      _wopendir, _wclosedir, _wreaddir, _wseekdir, _wrewindir, _wtelldir
  *
- * Copyright (c) 2021 Adam Young.
+ * Copyright (c) 2021 - 2023 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -97,7 +97,8 @@ _wopendir(const wchar_t *dirname)
         *path = fullpath;
     LPVOID OldValue = NULL;
     _WDIR *dp;
-    int i, len;
+    size_t len;
+    int i;
 
     /* Copy to working buffer */
     if (NULL == dirname) {
@@ -735,7 +736,7 @@ d_Wow64DisableWow64FsRedirection(PVOID *OldValue)
                                                 // XP+
             x_Wow64DisableWow64FsRedirection = my_Wow64DisableWow64FsRedirection;
             x_Wow64RevertWow64FsRedirection = NULL;
-            FreeLibrary(hinst);
+            if (hinst) FreeLibrary(hinst);
         }
 #else
         x_Wow64DisableWow64FsRedirection = my_Wow64DisableWow64FsRedirection;

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(ConPty_cpp,"$Id: ConPty.cpp,v 1.11 2022/03/20 13:48:58 cvsuser Exp $")
+__CIDENT_RCSID(ConPty_cpp,"$Id: ConPty.cpp,v 1.12 2023/12/26 17:01:07 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * Windows 10 ConPTY interface
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

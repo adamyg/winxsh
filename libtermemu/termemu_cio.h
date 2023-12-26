@@ -1,14 +1,14 @@
 #ifndef TERMEMU_CIO_H_INCLUDED
 #define TERMEMU_CIO_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_cio_h,"$Id: termemu_cio.h,v 1.4 2022/03/20 08:22:55 cvsuser Exp $")
+__CIDENT_RCSID(termemu_cio_h,"$Id: termemu_cio.h,v 1.5 2023/12/22 17:07:44 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

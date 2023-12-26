@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_dir_c,"$Id: w32_dir.c,v 1.8 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_dir_c,"$Id: w32_dir.c,v 1.9 2023/12/26 17:01:02 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -7,7 +7,7 @@ __CIDENT_RCSID(gr_w32_dir_c,"$Id: w32_dir.c,v 1.8 2022/03/15 12:15:37 cvsuser Ex
  *
  *      mkdir, rmdir, chdir
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

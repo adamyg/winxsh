@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.5 2022/03/20 13:48:59 cvsuser Exp $
+# $Id: Makefile.in,v 1.6 2023/12/26 17:01:07 cvsuser Exp $
 # winrsh makefile.
 #
 #
-# Copyright (c) 2015 - 2022 Adam Young.
+# Copyright (c) 2015 - 2023 Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -64,7 +64,7 @@ endif
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/rsh
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/rsh
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
@@ -134,7 +134,7 @@ $(D_OBJ)/%$(O):		$(D_GR)/%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
 
 $(D_OBJ)/%.res: 	%.rc
-		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
+		$(RC) -Fo$@ -I../include -I../libNTService $<
 
 #end
 

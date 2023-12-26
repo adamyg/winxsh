@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_err_c,"$Id: w32_err.c,v 1.6 2020/05/17 19:56:06 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_err_c,"$Id: w32_err.c,v 1.7 2023/12/26 17:01:02 cvsuser Exp $")
 
 /*
  * Copyright (c) 1993
@@ -32,6 +32,7 @@ __CIDENT_RCSID(gr_w32_err_c,"$Id: w32_err.c,v 1.6 2020/05/17 19:56:06 cvsuser Ex
 
 #include "win32_internal.h"
 #include <unistd.h>
+#include <err.h>
 
 #include <errno.h>
 #include <stdarg.h>
@@ -61,7 +62,7 @@ vwarni(const char *fmt, va_list ap)
 	vwarnxi(fmt, ap);
 	if (fmt != NULL)
 		fputs(": ", stderr);
-	fprintf(stderr, "%s\n", w32_strerror(sverrno)); 
+	fprintf(stderr, "%s\n", w32_strerror(sverrno));
 }
 
 

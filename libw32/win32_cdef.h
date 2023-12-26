@@ -4,7 +4,7 @@
 /*
  * internal definitions
  *
- * Copyright (c) 2016 - 2022 Adam Young.
+ * Copyright (c) 2016 - 2023 Adam Young.
  *
  * The applications are free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as

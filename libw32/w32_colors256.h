@@ -3,7 +3,7 @@
 /*
  * RGB Colors -- win32 slang emulation.
  *
- * Copyright (c) 2015 - 2020, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -22,7 +22,7 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 

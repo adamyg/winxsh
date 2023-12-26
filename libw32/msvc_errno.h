@@ -1,7 +1,5 @@
-#ifndef LIBW32_MSVC_ERRNO_H_INCLUDED
-#define LIBW32_MSVC_ERRNO_H_INCLUDED
 /*
- *  $Id: msvc_errno.h,v 1.3 2022/03/15 12:15:36 cvsuser Exp $
+ *  $Id: msvc_errno.h,v 1.4 2023/12/26 17:01:01 cvsuser Exp $
  *  MSVC errno filter
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -69,4 +67,3 @@
 #undef EWOULDBLOCK      //140
 
 //end
-#endif /*LIBW32_MSVC_ERRNO_H_INCLUDED*/

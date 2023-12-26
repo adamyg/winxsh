@@ -4,7 +4,7 @@
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -28,9 +28,8 @@
  * ==end==
  */
 
-#include <cstdio>
-#include <cstdarg>
-#include <cassert>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "NTServiceIIO.h"
 
@@ -42,83 +41,83 @@ namespace NTService {
         static IDiagnostics& Get() {
             static struct StdioDiagnosticsIOImpl : public IDiagnostics {
                 virtual void ferror(const char *fmt, ...) {
-                    va_list ap;
-                    va_start(ap, fmt);
-                    verror(fmt, ap);
-                    va_end(ap);
+                        va_list ap;
+                        va_start(ap, fmt);
+                        verror(fmt, ap);
+                        va_end(ap);
                 }
 
                 virtual void fwarning(const char *fmt, ...) {
-                    va_list ap;
-                    va_start(ap, fmt);
-                    vwarning(fmt, ap);
-                    va_end(ap);
+                        va_list ap;
+                        va_start(ap, fmt);
+                        vwarning(fmt, ap);
+                        va_end(ap);
                 }
 
                 virtual void finfo(const char *fmt, ...) {
-                    va_list ap;
-                    va_start(ap, fmt);
-                    vinfo(fmt, ap);
-                    va_end(ap);
+                        va_list ap;
+                        va_start(ap, fmt);
+                        vinfo(fmt, ap);
+                        va_end(ap);
                 }
 
                 virtual void fdebug(const char *fmt, ...) {
-                    va_list ap;
-                    va_start(ap, fmt);
-                    vdebug(fmt, ap);
-                    va_end(ap);
+                        va_list ap;
+                        va_start(ap, fmt);
+                        vdebug(fmt, ap);
+                        va_end(ap);
                 }
 
                 ///////////////////////////////////////////////////////////////////
 
                 virtual void verror(const char *fmt, va_list ap) {
-                    const size_t len = strlen(fmt);
-                    vfprintf(stderr, fmt, ap);
-                    if (!len || fmt[len-1] != '\n') fputc('\n', stderr);
+                        const size_t len = strlen(fmt);
+                        vfprintf(stderr, fmt, ap);
+                        if (!len || fmt[len-1] != '\n') fputc('\n', stderr);
                 }
 
                 virtual void vwarning(const char *fmt, va_list ap) {
-                    const size_t len = strlen(fmt);
-                    vfprintf(stdout, fmt, ap);
-                    if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(fmt);
+                        vfprintf(stdout, fmt, ap);
+                        if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
                 }
 
                 virtual void vinfo(const char *fmt, va_list ap) {
-                    const size_t len = strlen(fmt);
-                    vfprintf(stdout, fmt, ap);
-                    if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(fmt);
+                        vfprintf(stdout, fmt, ap);
+                        if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
                 }
 
                 virtual void vdebug(const char *fmt, va_list ap) {
-                    const size_t len = strlen(fmt);
-                    vfprintf(stdout, fmt, ap);
-                    if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(fmt);
+                        vfprintf(stdout, fmt, ap);
+                        if (!len || fmt[len-1] != '\n') fputc('\n', stdout);
                 }
 
                 ///////////////////////////////////////////////////////////////////
 
                 virtual void error(const char *msg) {
-                    const size_t len = strlen(msg);
-                    fputs(msg, stderr);
-                    if (!len || msg[len-1] != '\n') fputc('\n', stderr);
+                        const size_t len = strlen(msg);
+                        fputs(msg, stderr);
+                        if (!len || msg[len-1] != '\n') fputc('\n', stderr);
                 }
 
                 virtual void warning(const char *msg) {
-                    const size_t len = strlen(msg);
-                    fputs(msg, stdout);
-                    if (!len || msg[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(msg);
+                        fputs(msg, stdout);
+                        if (!len || msg[len-1] != '\n') fputc('\n', stdout);
                 }
 
                 virtual void info(const char *msg) {
-                    const size_t len = strlen(msg);
-                    fputs(msg, stdout);
-                    if (!len || msg[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(msg);
+                        fputs(msg, stdout);
+                        if (!len || msg[len-1] != '\n') fputc('\n', stdout);
                 }
 
                 virtual void debug(const char *msg) {
-                    const size_t len = strlen(msg);
-                    fputs(msg, stdout);
-                    if (!len || msg[len-1] != '\n') fputc('\n', stdout);
+                        const size_t len = strlen(msg);
+                        fputs(msg, stdout);
+                        if (!len || msg[len-1] != '\n') fputc('\n', stdout);
                 }
 
             } diag_;

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.17 2022/03/20 09:30:05 cvsuser Exp $")
+__CIDENT_RCSID(rlogin_c,"$Id: rlogin.c,v 1.18 2023/12/22 17:07:45 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogin
  *
- * Copyright (c) 2005 - 2022, Adam Young.
+ * Copyright (c) 2005 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

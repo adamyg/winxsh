@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_rwlock_c,"$Id: w32_rwlock.c,v 1.1 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_rwlock_c,"$Id: w32_rwlock.c,v 1.2 2023/12/26 17:01:04 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 rwlock functionality/emulation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -36,14 +36,18 @@ __CIDENT_RCSID(gr_w32_rwlock_c,"$Id: w32_rwlock.c,v 1.1 2022/03/15 12:15:38 cvsu
  * ==extra==
  */
 
+#if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x601)
+#undef _WIN32_WINNT
+#endif
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT        0x0601              /* enable vista features */
 #endif
 
 #include <sys/rwlock.h>
 
-#define  WINDOWS_MEAN_AND_LEAN
-#include <windows.h>
+#include "win32_include.h"
+
+#include <stdio.h>
 #include <assert.h>
 
 typedef void (WINAPI *InitializeSRWLock_t)(PSRWLOCK);
@@ -60,7 +64,8 @@ typedef struct {
 } xpsrwlock_t;
 
 typedef struct {
-    unsigned                magic;
+    LONG                    magic;
+    LONG                    status;
 #define RW_MAGIC                0x57333272      /* W32r */
     union {
         SRWLOCK             srw;                /* Slim Reader/Writer (SRW) Locks (vista+) */
@@ -91,6 +96,10 @@ initialisation(void)
         /*
          *  resolve
          */
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         if (0 != (library = LoadLibrary("Kernel32"))) {
             initialize_srw_lock         = (InitializeSRWLock_t) GetProcAddress(library, "InitializeSRWLock");
             acquire_srw_lock_shared     = (AcquireSRWLockShared_t) GetProcAddress(library, "AcquireSRWLockShared");
@@ -106,6 +115,9 @@ initialisation(void)
 
             FreeLibrary(library);
         }
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic pop
+#endif
 
         /*
          *  local implemenation
@@ -136,12 +148,25 @@ rwlock_init(struct rwlock *rwlock)
 
 
 LIBW32_API void
+rwlock_destroy(struct rwlock *rwlock)
+{
+    rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
+
+    assert(RW_MAGIC == rw->magic);
+    assert(0 == rw->status);
+    rw->magic = 0;
+}
+
+
+LIBW32_API void
 rwlock_rdlock(struct rwlock *rwlock)
 {
     rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
 
     assert(RW_MAGIC == rw->magic);
     acquire_srw_lock_shared(&rw->srw);
+    assert(-1 != rw->status);
+    InterlockedIncrement(&(rw)->status);
 }
 
 
@@ -151,7 +176,9 @@ rwlock_wrlock(struct rwlock *rwlock)
     rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
 
     assert(RW_MAGIC == rw->magic);
-    acquire_srw_lock_exclusive (&rw->srw);
+    acquire_srw_lock_exclusive(&rw->srw);
+    assert(0 == rw->status);
+    rw->status = -1;
 }
 
 
@@ -161,6 +188,8 @@ rwlock_rdunlock(struct rwlock *rwlock)
     rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
 
     assert(RW_MAGIC == rw->magic);
+    assert(rw->status > 0);
+    InterlockedDecrement(&(rw)->status);
     release_srw_lock_shared(&rw->srw);
 }
 
@@ -171,7 +200,40 @@ rwlock_wrunlock(struct rwlock *rwlock)
     rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
 
     assert(RW_MAGIC == rw->magic);
+    assert(-1 == rw->status);
+    rw->status = 0;
     release_srw_lock_exclusive(&rw->srw);
+}
+
+
+LIBW32_API void
+rwlock_unlock(struct rwlock *rwlock)
+{
+    rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
+
+    assert(0 != rw->status);
+    if (rw->status < 0) {
+        rwlock_wrunlock(rwlock);
+    } else {
+        rwlock_rdunlock(rwlock);
+    }
+}
+
+
+// extension
+LIBW32_API int
+rwlock_status(struct rwlock *rwlock)
+{
+    rwlock_imp_t *rw = (rwlock_imp_t *)rwlock;
+
+    //
+    //  -2 = invalid
+    //   0 = unlocked.
+    //  -1 = locked exclusive.
+    //  >0 = reader count.
+    //
+    if (NULL == rw || RW_MAGIC != rw->magic) return -2;
+    return (int) rw->status;
 }
 
 

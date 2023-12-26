@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.6 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.7 2023/12/26 17:01:04 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 popen implementation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,7 +31,7 @@ __CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.6 2022/03/15 12:15:38 cvsuse
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
  * IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
  * 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
- * Group. Copyright remains with the authors and the original Standard can be obtained 
+ * Group. Copyright remains with the authors and the original Standard can be obtained
  * online at http://www.opengroup.org/unix/online.html.
  * ==extra==
  */
@@ -250,7 +250,7 @@ PipeA(const char *cmd, const char *mode)
             argv[2] = cmd;
         } else {
             argv[2] = cmd2 = WIN32_STRDUP(cmd);
-            strncpy(strstr("2>&1", cmd2), "    ", 4);
+            memcpy(strstr("2>&1", cmd2), "    ", 4);
             redirect_error = TRUE;
         }
         argv[3] = NULL;
@@ -280,7 +280,7 @@ PipeA(const char *cmd, const char *mode)
 
     if ('r' == p->readOrWrite) {
         if (NULL == (p->file = _fdopen(         // readable end of the pipe
-                _open_osfhandle((long)out_read,
+                _open_osfhandle((OSFHANDLE)out_read,
                     _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
                     'b' == textOrBinary ? "rb" : "rt"))) {
             goto pipe_error;
@@ -289,7 +289,7 @@ PipeA(const char *cmd, const char *mode)
 
     } else {
         if (NULL == (p->file = _fdopen(         // writeable end of the pipe
-                _open_osfhandle((long)in_write,
+                _open_osfhandle((OSFHANDLE)in_write,
                     _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
                     'b' == textOrBinary ? "wb" : "wt"))) {
             goto pipe_error;
@@ -433,7 +433,7 @@ PipeW(const wchar_t *cmd, const char *mode)
 
     if ('r' == p->readOrWrite) {
         if (NULL == (p->file = _fdopen(         // readable end of the pipe
-                _open_osfhandle((long)out_read,
+                _open_osfhandle((OSFHANDLE)out_read,
                     _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
                     'b' == textOrBinary ? "rb" : "rt"))) {
             goto pipe_error;
@@ -442,7 +442,7 @@ PipeW(const wchar_t *cmd, const char *mode)
 
     } else {
         if (NULL == (p->file = _fdopen(         // writeable end of the pipe
-                _open_osfhandle((long)in_write,
+                _open_osfhandle((OSFHANDLE)in_write,
                     _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
                     'b' == textOrBinary ? "wb" : "wt"))) {
             goto pipe_error;
@@ -620,8 +620,10 @@ w32_pclose(FILE *file)
         if (pipe) {
             int status = 0, ret = 0;
 
-            if ('w' == pipe->readOrWrite) fclose(file); Close2(pipe->hIn, "pclose/stdin");
-            if ('r' == pipe->readOrWrite) fclose(file); Close2(pipe->hOut, "pclose/stdout");
+            if ('w' == pipe->readOrWrite) fclose(file);
+            Close2(pipe->hIn,  "pclose/stdin");
+            if ('r' == pipe->readOrWrite) fclose(file);
+            Close2(pipe->hOut, "pclose/stdout");
             Close2(pipe->hErr, "pclose/stderr");
             if (! w32_child_wait(pipe->handle, &status, FALSE /*block*/)) {
                 ret = -1;
@@ -744,7 +746,7 @@ DisplayErrorA(
     int len;
 
     len = _snprintf(buffer, sizeof(buffer),
-            "Internal Error: %s = %d (%s).\n", msg, rc, rcmsg);
+            "Internal Error: %s = %u (%s).\n", msg, (unsigned)rc, rcmsg);
     WriteConsoleA(hOutput, buffer, len, NULL, NULL);
 }
 

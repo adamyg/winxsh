@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_cio_c,"$Id: termemu_cio.c,v 1.8 2022/03/20 08:22:55 cvsuser Exp $")
+__CIDENT_RCSID(termemu_cio_c,"$Id: termemu_cio.c,v 1.9 2023/12/22 17:07:44 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -65,6 +65,7 @@ struct w2xkb {
 #define XKB(__v)		__XKBVALUE(XKB_KEY_ ## __v), #__v
 	unsigned xkbkey;
 	const char *xkbname;
+	WORD vkkeyalt;				// altenbative VK_ specials.
 };
 
 #define DO_CONTROL_KEYS
@@ -72,7 +73,7 @@ struct w2xkb {
 static const struct w2xkb	w2xkbs_standard[] = {
     //	{ VK(LBUTTON),			XKB() },
     //	{ VK(RBUTTON),			XKB() },
-    //	{ VK(CANCEL),			XKB(Break) },	//Ctrl-C
+    //	{ VK(CANCEL),			XKB(Break) },	// Ctrl-C
     //	{ VK(MBUTTON),			XKB() },
     //	{ VK(XBUTTON1), 		XKB() },
     //	{ VK(XBUTTON2), 		XKB() },
@@ -87,33 +88,33 @@ static const struct w2xkb	w2xkbs_standard[] = {
 	    // 0xe-0xf : undefined
 
 #if defined(DO_CONTROL_KEYS)
-    	{ VKSCAN(SHIFT, 0x002a),	XKB(Shift_L) },
-    	{ VKSCAN(SHIFT, 0x0036),	XKB(Shift_R) },
-    	{ VK(SHIFT),	                XKB(Shift_L) }, //catch ScanCode issues
+    	{ VKSCAN(SHIFT, 0x002a),	XKB(Shift_L), VK_LSHIFT },
+    	{ VKSCAN(SHIFT, 0x0036),	XKB(Shift_R), VK_RSHIFT },
+    	{ VK(SHIFT),	                XKB(Shift_L) }, // catch ScanCode issues
     	{ VK(CONTROL),			XKB(Control_L) },
-	{ VK(MENU),			XKB(Alt_L) },
-#endif
-        { VK(PAUSE),			XKB(Pause) },   //also Ctrl-NumLock
-	{ VK(CAPITAL),			XKB(Caps_Lock) },
-	    // 0x16 : undefined
-
-    //	{ VK(KANA),			},		//IME Kana mode
-    //	{ VK(HANGUEL),			},		//IME Hanguel mode (maintained for compatibility; use VK(HANGUL)
-    //	{ VK(HANGUL),			},		//IME Hangul mode
-    //	{ VK(JUNJA),			},		//IME Junja mode
-    //	{ VK(FINAL),			},		//IME final mode
-    //	{ VK(HANJA),			},		//IME Hanja mode
-    //	{ VK(KANJI,			},		//IME Kanji mode
-	    // 0x1a : undefined
-
-	{ VK(ESCAPE),			XKB(Escape) },
-    //	{ VK(CONVERT),			},		//IME convert
-    //	{ VK(NONCONVERT)		},		//IME nonconvert
-    //	{ VK(ACCEPT)			},		//IME accept
-    //	{ VK(MODECHANGE)		},		//IME mode change request
-    //	{ VK(SPACE),			XKB(Space) },	//SPACE key
-	{ VK(PRIOR),			XKB(KP_Prior) },//also KP_Page_Up
-	{ VK(NEXT),			XKB(KP_Next) }, //also KP_Page_Down
+	{ VK(MENU),			XKB(Alt_L) },      
+#endif                                                     
+        { VK(PAUSE),			XKB(Pause) },   // also Ctrl-NumLock
+	{ VK(CAPITAL),			XKB(Caps_Lock) },  
+	    // 0x16 : undefined                            
+                                                           
+    //	{ VK(KANA),			},		// IME Kana mode
+    //	{ VK(HANGUEL),			},		// IME Hanguel mode (maintained for compatibility; use VK(HANGUL)
+    //	{ VK(HANGUL),			},		// IME Hangul mode
+    //	{ VK(JUNJA),			},		// IME Junja mode
+    //	{ VK(FINAL),			},		// IME final mode
+    //	{ VK(HANJA),			},		// IME Hanja mode
+    //	{ VK(KANJI,			},		// IME Kanji mode
+	    // 0x1a : undefined                            
+                                                           
+	{ VK(ESCAPE),			XKB(Escape) },     
+    //	{ VK(CONVERT),			},		// IME convert
+    //	{ VK(NONCONVERT)		},		// IME nonconvert
+    //	{ VK(ACCEPT)			},		// IME accept
+    //	{ VK(MODECHANGE)		},		// IME mode change request
+    //	{ VK(SPACE),			XKB(Space) },	// SPACE key
+	{ VK(PRIOR),			XKB(KP_Prior) },// also KP_Page_Up
+	{ VK(NEXT),			XKB(KP_Next) }, // also KP_Page_Down
 	{ VK(HOME),			XKB(KP_Home) },
 	{ VK(END),			XKB(KP_End) },
 	{ VK(LEFT),			XKB(KP_Left) },
@@ -123,7 +124,7 @@ static const struct w2xkb	w2xkbs_standard[] = {
 	{ VK(SELECT),			XKB(Select) },
 	{ VK(PRINT),			XKB(Print) },
 	{ VK(EXECUTE),			XKB(Execute) },
-        { VK(SNAPSHOT), 		XKB(Print) },   //Print-Screen
+        { VK(SNAPSHOT), 		XKB(Print) },   // Print-Screen
 	{ VK(INSERT),			XKB(KP_Insert) },
 	{ VK(DELETE),			XKB(KP_Delete) },
 	{ VK(HELP),			XKB(Help) },
@@ -184,18 +185,23 @@ static const struct w2xkb	w2xkbs_standard[] = {
 	    // 136-143	Unassigned
 
 #if defined(DO_CONTROL_KEYS)
-	{ VK(NUMLOCK),			XKB(Num_Lock) },//Enhanced key
+	{ VK(NUMLOCK),			XKB(Num_Lock) },// Enhanced key
 	{ VK(SCROLL),			XKB(Scroll_Lock) },
 #endif
 	    // 146-150	OEM specific
 	    // 151-159	Unassigned
 
+	//  VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
+	//  Used only as parameters to GetAsyncKeyState() and GetKeyState().
+	//  No other API or message will distinguish left and right keys in this way.
+	//
     //	{ VK(LSHIFT),			XKB() },
     //	{ VK(RSHIFT),			XKB() },
     //	{ VK(LCONTROL), 		XKB() },
     //	{ VK(RCONTROL), 		XKB() },
     //	{ VK(LMENU),			XKB() },
     //	{ VK(RMENU),			XKB() },
+
 	{ VK(BROWSER_BACK),		XKB(XF86Back) },
 	{ VK(BROWSER_FORWARD),		XKB(XF86Forward) },
 	{ VK(BROWSER_REFRESH),		XKB(XF86Refresh) },
@@ -302,6 +308,7 @@ termemu_cio_keyevent(const KEY_EVENT_RECORD *key, termemu_event_t *evt)
 	//
 	evt->modifiers  = termemu_cio_modifiers(key->dwControlKeyState, 1);
 	evt->vkkey      = wVirtualKeyCode;
+        evt->vkkeyalt   = 0;
 	evt->vkname     = NULL;
 	evt->vkenhanced = 0;
 	evt->xkbkey     = XKB_KEY_NoSymbol;
@@ -317,9 +324,10 @@ termemu_cio_keyevent(const KEY_EVENT_RECORD *key, termemu_event_t *evt)
 		for (;vkkey < vkend; ++vkkey) { // Specialised enhanced keys.
 			if (vkkey->wVirtualKeyCode == wVirtualKeyCode &&
 				    (vkkey->wVirtualScanCode == 0xffff || vkkey->wVirtualScanCode == wVirtualScanCode)) {
-				evt->vkname  = vkkey->vkname;
-				evt->xkbkey  = vkkey->xkbkey;
-				evt->xkbname = vkkey->xkbname;
+				evt->vkname   = vkkey->vkname;
+				evt->xkbkey   = vkkey->xkbkey;
+				evt->xkbname  = vkkey->xkbname;
+				evt->vkkeyalt = vkkey->vkkeyalt;
 				evt->vkenhanced = 1;
 				return 1;
 			}
@@ -331,9 +339,10 @@ termemu_cio_keyevent(const KEY_EVENT_RECORD *key, termemu_event_t *evt)
 		for (;vkkey < vkend; ++vkkey) { // General or non-specialised enhanced keys.
 			if (vkkey->wVirtualKeyCode == wVirtualKeyCode &&
 				    (vkkey->wVirtualScanCode == 0xffff || vkkey->wVirtualScanCode == wVirtualScanCode)) {
-				evt->vkname  = vkkey->vkname;
-				evt->xkbkey  = vkkey->xkbkey;
-				evt->xkbname = vkkey->xkbname;
+ 				evt->vkname   = vkkey->vkname;
+				evt->xkbkey   = vkkey->xkbkey;
+				evt->xkbname  = vkkey->xkbname;
+				evt->vkkeyalt = vkkey->vkkeyalt; 
 				return 2;
 			}
 		}

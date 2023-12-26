@@ -1,5 +1,5 @@
-#ifndef GR_SYS_RWLOCK_H_INCLUDED
-#define GR_SYS_RWLOCK_H_INCLUDED
+#ifndef LIBW32_SYS_RWLOCK_H_INCLUDED
+#define LIBW32_SYS_RWLOCK_H_INCLUDED
 #include <edidentifier.h>
 __CIDENT_RCSID(gr_libw32_sys_rwlock_h,"$Id: rwlock.h,v 1.2 2022/02/24 15:33:51 cvsuser Exp $")
 __CPRAGMA_ONCE
@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
 /*
  * win32 <rwlock.h> implementation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -35,7 +35,11 @@ __CPRAGMA_ONCE
 #include <sys/cdefs.h>
 
 typedef struct rwlock {
-    unsigned int        opaque[16];
+#if defined(_WIN64)
+    unsigned char       opaque[128];
+#else
+    unsigned char       opaque[64];
+#endif
 } rwlock_t;
 
 #define RWLOCK_INITIALIZER      {0xffff}
@@ -48,9 +52,9 @@ LIBW32_API void         rwlock_rdlock(struct rwlock *rw);
 LIBW32_API void         rwlock_wrlock(struct rwlock *rw);
 LIBW32_API void         rwlock_rdunlock(struct rwlock *rw);
 LIBW32_API void         rwlock_wrunlock(struct rwlock *rw);
+LIBW32_API void         rwlock_unlock(struct rwlock *rw);
+LIBW32_API int          rwlock_status(struct rwlock *rw);
 
 __END_DECLS
 
-#endif /*GR_SYS_RWLOCK_H_INCLUDED*/
-
-
+#endif /*WIN32_SYS_RWLOCK_H_INCLUDED*/

@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
  *
  * win32 <sys/endian.h> implementation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2023, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

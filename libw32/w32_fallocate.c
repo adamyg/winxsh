@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_fallocate_c, "$Id: w32_fallocate.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_fallocate_c, "$Id: w32_fallocate.c,v 1.2 2023/12/26 17:01:02 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 posix_fallocate() system calls
  *
- * Copyright (c) 2018 - 2022 Adam Young.
+ * Copyright (c) 2018 - 2023 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
