@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.18 2023/12/26 17:01:07 cvsuser Exp $")
+__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.19 2023/12/26 17:44:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -329,7 +329,7 @@ version(void)
 
                 fprintf(stderr,
                         "Licensed under GNU General Public License version 3.0.\n"\
-                        "Copyright (C) 2020 - 2022, Adam Young.\n"\
+                        "Copyright (C) 2020 - 2023, Adam Young.\n"\
                         "Copyright (C) 1990, 1993, The Regents of the University of California.\n"\
                         "All rights reserved\n\n");
 
