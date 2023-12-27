@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.9 2023/12/24 15:01:40 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceConfig_cpp, "$Id: NTServiceConfig.cpp,v 1.10 2023/12/27 14:22:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*

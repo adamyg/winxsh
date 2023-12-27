@@ -5,7 +5,7 @@ ref
 bin
 bin.*
 lib.*
-objects*
+obj.*
 Makefile
 buildinfo.h
 BUILDNUMBER

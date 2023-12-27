@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.5 2022/03/17 03:44:19 cvsuser Exp $
+# $Id: Makefile.in,v 1.6 2023/12/27 14:22:58 cvsuser Exp $
 # libNTService makefile.
 #
 # Copyright (c) 2020 - 2023, Adam Young.
