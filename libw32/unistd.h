@@ -8,7 +8,7 @@ __CPRAGMA_ONCE
 /*
  * win32 <unistd.h> header (_MSC_VER, __WATCOMC__ and __MINGW32__)
  *
- * Copyright (c) 1998 - 2023, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -40,8 +40,8 @@ __CPRAGMA_ONCE
 #if (_MSC_VER != 1900)                          /* MSVC 19/2015 */
 #if (_MSC_VER <  1910 || _MSC_VER > 1916)       /* MSVC 2017: 19.10 .. 16 */
 #if (_MSC_VER > 1929)                           /* MSVC 2019: 19.20 .. 29 */
-#if (_MSC_VER > 1937)                           /* MSVC 2022: 19.30 .. 37*/
-#error unistd.h: untested MSVC Version (2005 -- 2019.37)
+#if (_MSC_VER > 1942)                           /* MSVC 2022: 19.30 .. 42 */
+#error unistd.h: untested MSVC Version (2005 -- 2022 19.42)
 	//see: https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B
 #endif //2022
 #endif //2019
@@ -719,7 +719,7 @@ LIBW32_API size_t       strlcat (char *dst, const char *src, size_t siz);
 LIBW32_API size_t       strlcpy (char *dst, const char *src, size_t siz);
 //#endif //libcompat
 
-#if (_MSC_VER <= 1600)
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
 LIBW32_API unsigned long long strtoull (const char * nptr, char ** endptr, int base);
 LIBW32_API long long    strtoll (const char * nptr, char ** endptr, int base);
 #endif
