@@ -54,7 +54,7 @@ jobs:
         "%programfiles(x86)%\Inno Setup 5\ISCC" -DBUILD_INFO=1 -DBUILD_TYPE=release ".\releases\xsh-inno-setup.iss"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: xsh-package
         path: ./releases/xsh-build*-setup.exe
