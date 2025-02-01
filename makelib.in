@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.12 2023/12/26 17:01:00 cvsuser Exp $
+# $Id: makelib.in,v 1.13 2025/02/01 19:57:27 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
@@ -34,7 +34,7 @@
 
 $PACKAGE	= 'winsh';
 $PACKAGE_NAME	= 'WinSSH/WinRSH';
-$PACKAGE_VERSION = '0.3.0';
+$PACKAGE_VERSION = '0.3.1';
 
 $PACKAGE_URL	= 'https://github.com/adamyg/winxsh';
 
