@@ -1,3 +1,12 @@
+Sun Feb  2 12:43:33 2025 adamy
+
+	* version 0.3.1/build-61
+
+	* submodule updates
+
+		o mbedtls - 3.6.2
+		o libssh2 - 1.11.1
+
 Sun Mar 20 18:59:48 2022 adamy
 
 	* version 0.3.0
@@ -17,7 +26,7 @@ Mon Nov  8 20:34:27 2021 adamy
 
 	* submodule updates
 
-		o libssh2 - 1.10,0
+		o libssh2 - 1.10.0
 		o mbedtls - 2.27.0
 
 Mon Jun  8 20:59:04 2020 adamy
