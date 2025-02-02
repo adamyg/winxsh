@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_user_c,"$Id: w32_user.c,v 1.5 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_user_c,"$Id: w32_user.c,v 1.7 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 user identification functionality
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -42,6 +42,8 @@ __CIDENT_RCSID(gr_w32_user_c,"$Id: w32_user.c,v 1.5 2022/03/15 12:15:38 cvsuser 
 
 #include "win32_internal.h"
 #include "win32_child.h"
+#include "win32_misc.h"
+
 #include <pwd.h>
 #include <grp.h>
 #include <unistd.h>
@@ -307,7 +309,7 @@ getlogin_r (char *name, size_t namesize)
     }
 
     initialise_user();
-    length = strlen(x_passwd_name);
+    length = (int)strlen(x_passwd_name);
     if (namesize <= (size_t)length) {
         errno = ERANGE;
         return -1;
@@ -478,7 +480,8 @@ RID(PSID sid)
 }
 
 
-#if defined(_MSC_VER) && (_MSC_VER < 1500)
+#if (defined(_MSC_VER) && (_MSC_VER < 1500)) || \
+    (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 #define TokenElevation  20
 typedef struct _TOKEN_ELEVATION {
     DWORD TokenIsElevated;

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.10 2022/03/20 13:48:58 cvsuser Exp $")
+__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.13 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * rlogind serice adapter
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -37,6 +37,8 @@ __CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.10 2022/03/20 13:48:58 cvsuser 
 #include <time.h>
 #include <fcntl.h>
 #include <io.h>
+
+#include <cassert>
 
 #include "Service.h"                            // public header
 
@@ -124,9 +126,9 @@ Service::ConfigLogger()
 //      if (ConfigGet("LoggerLevel, szValue, sizeof(szValue))) {
 //              profile.default_level(szValue);
 //              setlogmask(xxx);
-//      } 
+//      }
 
-      	if (ConfigGet("LoggerPurge", szValue, sizeof(szValue)))
+        if (ConfigGet("LoggerPurge", szValue, sizeof(szValue)))
                 profile.purge_period(szValue);
 
         if (! logger_.start(profile)) {
@@ -174,7 +176,7 @@ Service::ServiceRun()
                 HANDLE hSocketEvent;
 
                 // Service accept loop
-         
+
                 hSocketEvent = WSACreateEvent();
                 WSAEventSelect((SOCKET)s, hSocketEvent, FD_ACCEPT | FD_CLOSE);
                 for (;;) {
@@ -367,7 +369,7 @@ Service::ResolveRelative(const char *path)
         char t_szAppPath[_MAX_PATH] = {0};
         const char *basename = NULL;
 
-        if ('.' == path[0] && ('/' == path[1] || '\\' == path[1])) {               
+        if ('.' == path[0] && ('/' == path[1] || '\\' == path[1])) {
                 if (0 == _access(path, 0)) {
                        return path;             // exists within CWD.
                 }
@@ -382,7 +384,7 @@ Service::ResolveRelative(const char *path)
 
                 const char *d1 = strrchr(t_szAppPath, '/'), *d2 = strrchr(t_szAppPath, '\\'),
                     *d = (d1 > d2 ? d1 : d2);   // last delimitor
-                len = (d ? (d - t_szAppPath) : len);
+                len = (d ? (int)(d - t_szAppPath) : len);
 
                 snprintf(t_szAppPath + len, sizeof(t_szAppPath) - len, "\\%s", basename);
                 t_szAppPath[sizeof(t_szAppPath) - 1] = 0;
@@ -429,7 +431,7 @@ Service::ConfigClose()
         }
         CNTService::ConfigClose();
 }
- 
+
 
 //virtual
 bool
@@ -446,11 +448,11 @@ Service::ConfigSet(const char *csKey, const char *szValue)
         return CNTService::ConfigSet(csKey, szValue);
 }
 
- 
+
 //virtual
 bool
 Service::ConfigSet(const char *csKey, DWORD dwValue)
-{   
+{
         if (options_->ini_file) {
                 const char *sep;
                 if (NULL != (sep = strchr(csKey, '\\'))) {
@@ -466,7 +468,7 @@ Service::ConfigSet(const char *csKey, DWORD dwValue)
 //virtual
 int
 Service::ConfigGet(const char *csKey, char *szBuffer, size_t dwSize, unsigned flags)
-{   
+{
         if (options_->ini_file) {
                 const char *sep;
 
@@ -535,3 +537,4 @@ Service::ConfigGet(const char *csKey, DWORD &dwValue, unsigned flags)
 }
 
 //end
+

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.16 2022/03/20 13:48:58 cvsuser Exp $")
+__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.19 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogind
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -320,7 +320,7 @@ Session::doit(struct sockaddr_storage *fromp)
                                                 continue;
                                 //      if (res->ai_addrlen != fromp->ss_len)
                                 //              continue;
-                                        if (getnameinfo(res->ai_addr, res->ai_addrlen,
+                                        if (getnameinfo(res->ai_addr, (socklen_t)res->ai_addrlen,
                                                 raddr, sizeof(raddr), NULL, 0, niflags) == 0
                                                         && strcmp(naddr, raddr) == 0) {
                                                 hostname = res->ai_canonname
@@ -569,7 +569,7 @@ STDOUT_TRACE(std::cout << "read socket : " << fcc << "\n";)
                                 fbp = fibuf;
                         top:    for (cp = fibuf; cp < fibuf+fcc-1; cp++) {
                                         if (cp[0] == magic[0] && cp[1] == magic[1]) {
-                                                left = fcc - (cp-fibuf);
+                                                left = (int)(fcc - (cp-fibuf));
                                                 n = ptycontrol(cp, left);
                                                 if (n) {
 STDOUT_TRACE(std::cout << "read socket : ptycontrol : " << n << "\n";)
@@ -697,7 +697,7 @@ Session::remote_fatal(const char *msg, int syserr)
         if (!confirmed_)
                 *bp++ = '\001';                 /* error indicator */
 
-        space = ep - bp;
+        space = (int)(ep - bp);
         if (syserr) {
                 len = snprintf(bp, space, "rlogind: %s: %s\r\n", msg, strerror(errno));
         } else {
@@ -708,7 +708,7 @@ Session::remote_fatal(const char *msg, int syserr)
                 len = space;                
         }
 
-        (void) sockwrite(netf_, message_, (bp + len) - message_);
+        (void) sockwrite(netf_, message_, (int)((bp + len) - message_));
 
         if (bp[len-1] == '\n') bp[len-2] = 0;   // \r\n
         throw bp + 9;                           // "rlogind: "

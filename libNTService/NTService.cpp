@@ -1,15 +1,15 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.12 2022/03/17 03:44:20 cvsuser Exp $")
+__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.16 2025/02/02 17:05:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * Based on the MSDN example service framework.
  * All rights reserved.
  *
- * This file is part of the WinRSH/WinSSH project.
+ * This file is part of inetd-win32.
  *
  * The applications are free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as
@@ -36,6 +36,7 @@ __CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.12 2022/03/17 03:44:20 cvs
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <assert.h>
 
@@ -49,8 +50,10 @@ extern "C" _WCRTLINK extern int asctime_s(char *__s, size_t __maxsize, const str
 
 #include "NTServMsg.h"                          // event msg identifiers
 
+#if !defined(__MINGW32__)
 #pragma comment(lib, "Version.lib")             // GetFileVersion
 #pragma comment(lib, "Dbghelp.lib")             // EnumModules
+#endif
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -59,12 +62,27 @@ extern "C" _WCRTLINK extern int asctime_s(char *__s, size_t __maxsize, const str
 
 #if defined(__WATCOMC__)
 #include <imagehlp.h>
+
+#elif defined(__MINGW32__)
+#include <imagehlp.h>
+#include <strings.h>
+#if !defined(_MAX_PATH)
+#define _MAX_PATH MAX_PATH
+#endif
+#if !defined(ERROR_FILE_TOO_LARGE)
+#define ERROR_FILE_TOO_LARGE 223
+#endif
+#pragma GCC diagnostics ignored "-Wmissing-field-initializers"
+#define _strnicmp(__a,__b,__c) strncasecmp(__a,__b,__c)
+#define _stricmp(__a,__b) strcasecmp(__a,__b)
+
 #else
 #pragma warning(disable:4091) // typedef ': ignored on left of '' when no variable is declared)
 #include <dbghelp.h>
 #include <comdef.h>
 #endif
 #include <psapi.h>
+
 
 CNTService* CNTService::__serviceInstance = NULL;
         // Service singleton --
@@ -74,9 +92,9 @@ CNTService::CNTService(const char* szServiceName, NTService::IDiagnostics &diags
                 diags_(&diags), registry_(szServiceName, diags),
                 m_iMajorVersion(1), m_iMinorVersion(0), m_iReleaseVersion(0),
                 m_hStopEvent(NULL), m_hEventSource(NULL),
-                m_hServiceStatus(NULL), m_Status(),
-                m_dwCheckPoint(0),
+                m_hServiceStatus((SERVICE_STATUS_HANDLE)NULL), m_Status(),
                 m_dwControlsAccepted(0),
+                m_dwCheckPoint(0),
                 m_bIsRunning(false),
                 m_bRunAsConsole(false),
                 m_bConsoleTrap(false),
@@ -91,7 +109,7 @@ CNTService::CNTService(const char* szServiceName, NTService::IDiagnostics &diags
         __serviceInstance = this;
 
         ::GetSystemTimeAsFileTime(&m_startTime);
-        ::GetModuleFileName(NULL, m_szModule, sizeof(m_szModule)-1);
+        ::GetModuleFileNameA(NULL, m_szModule, sizeof(m_szModule)-1);
         m_szModule[sizeof(m_szModule) - 1] = 0;
 
         // Set the default service name and version
@@ -103,7 +121,7 @@ CNTService::CNTService(const char* szServiceName, NTService::IDiagnostics &diags
         strncpy(m_szServiceName, szServiceName, sizeof(m_szServiceName)-1);
         m_szServiceName[sizeof(m_szServiceName) - 1] = 0;
 
-        m_hStopEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+        m_hStopEvent = ::CreateEventA(NULL, TRUE, FALSE, NULL);
         assert(NULL != m_hStopEvent);
 
         // set up the initial service status
@@ -137,6 +155,7 @@ CNTService::~CNTService()
 //                              SetStatus(SERVICE_START_PENDING);
 //                      }
 //              }
+
                 if (m_hServiceStatus) {
                         if (m_Status.dwCurrentState != SERVICE_STOPPED) {
                                 SetStatus(SERVICE_STOPPED);
@@ -167,7 +186,7 @@ CNTService::DefaultServiceName(const char *arg0, char *buf, size_t buflen)
 
         const char *dot, *p1 = strrchr(arg0, '\\'),
                 *p2 = strrchr(arg0, '/');
-        int t_length, length = buflen - 1 /*nul*/;
+        size_t t_length, length = buflen - 1 /*nul*/;
 
         if (p1 || p2) {                         // last component.
                 arg0 = (p1 > p2 ? p1 : p2) + 1;
@@ -359,7 +378,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                         break;
                 case 'A': { //-A,--arg
                                 // TODO: allow client validation
-                                const int needed = strlen(options.optarg());
+                                const size_t needed = (int)strlen(options.optarg());
                                 char *cursor = arguments.buffer,
                                     *end = (cursor + sizeof(arguments.buffer)) - 1;
 
@@ -454,12 +473,12 @@ bool CNTService::IsInstalled() const
 bool CNTService::Install(const InstallArguments &arguments)
 {
         // Open the Service Control Manager
-        SC_HANDLE hSCM = ::OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+        SC_HANDLE hSCM = ::OpenSCManagerA(NULL, NULL, SC_MANAGER_ALL_ACCESS);
         if (!hSCM) return false;
 
         // Executable file path
         char szBinaryPathName[_MAX_PATH + 32];
-        DWORD pathlen = ::GetModuleFileName(NULL, szBinaryPathName, _MAX_PATH);
+        DWORD pathlen = ::GetModuleFileNameA(NULL, szBinaryPathName, _MAX_PATH);
 
         if (NULL != strchr(szBinaryPathName, ' ')) {
                 //
@@ -475,7 +494,7 @@ bool CNTService::Install(const InstallArguments &arguments)
 
         szBinaryPathNameEx[0] = 0;
         if (arguments.additional) {             // Append argument
-                const DWORD needed = strlen(arguments.additional) + 2 /*space+nul*/;
+                const size_t needed = strlen(arguments.additional) + 2 /*space+nul*/;
                 if (needed >= (sizeof(szBinaryPathName) - pathlen)) {
                         ::SetLastError(ERROR_FILE_TOO_LARGE);
                         return false;
@@ -561,7 +580,7 @@ bool CNTService::Install(const InstallArguments &arguments)
         snprintf(csKey, sizeof(csKey) - 1, "%s\\%s", HKEY_NT_LOG_EVENT, m_szServiceName);
         csKey[sizeof(csKey) - 1] = 0;
 
-        if (::RegCreateKey(HKEY_LOCAL_MACHINE, csKey, &hKey) != ERROR_SUCCESS) {
+        if (::RegCreateKeyA(HKEY_LOCAL_MACHINE, csKey, &hKey) != ERROR_SUCCESS) {
                 ::CloseServiceHandle(hService);
                 ::CloseServiceHandle(hSCM);
                 return false;
@@ -572,12 +591,12 @@ bool CNTService::Install(const InstallArguments &arguments)
                 (void) memmove(szBinaryPathName, szBinaryPathName + 1, pathlen -= 2);
                 szBinaryPathName[pathlen] = 0;
         }
-        ::RegSetValueEx(hKey, "EventMessageFile", 0, REG_EXPAND_SZ, (CONST BYTE *)szBinaryPathName, (DWORD)pathlen + 1);
+        ::RegSetValueExA(hKey, "EventMessageFile", 0, REG_EXPAND_SZ, (CONST BYTE *)szBinaryPathName, (DWORD)pathlen + 1);
 
         // Set the supported types flags.
         DWORD dwData = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
 
-        ::RegSetValueEx(hKey, "TypesSupported", 0, REG_DWORD, (CONST BYTE*)&dwData, sizeof(DWORD));
+        ::RegSetValueExA(hKey, "TypesSupported", 0, REG_DWORD, (CONST BYTE*)&dwData, sizeof(DWORD));
         ::RegCloseKey(hKey);
 
         LogEvent(EVENTLOG_INFORMATION_TYPE, EVMSG_INSTALLED, m_szServiceName);
@@ -592,11 +611,11 @@ bool CNTService::Install(const InstallArguments &arguments)
 bool CNTService::Uninstall()
 {
         // Open the Service Control Manager
-        SC_HANDLE hSCM = ::OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+        SC_HANDLE hSCM = ::OpenSCManagerA(NULL, NULL, SC_MANAGER_ALL_ACCESS);
         if (!hSCM) return false;
 
         BOOL bResult = FALSE;
-        SC_HANDLE hService = ::OpenService(hSCM, m_szServiceName, DELETE);
+        SC_HANDLE hService = ::OpenServiceA(hSCM, m_szServiceName, DELETE);
         if (hService) {
                 bool bIsRunning = m_bIsRunning;
 
@@ -623,7 +642,7 @@ bool CNTService::Uninstall()
 
                                 // Delete registry entries for logging message support
                                 HKEY hKey = 0;
-                                if (::RegOpenKeyEx(HKEY_LOCAL_MACHINE, HKEY_NT_LOG_EVENT, 0, KEY_WRITE, &hKey) == ERROR_SUCCESS) {
+                                if (::RegOpenKeyExA(HKEY_LOCAL_MACHINE, HKEY_NT_LOG_EVENT, 0, KEY_WRITE, &hKey) == ERROR_SUCCESS) {
                                         ::RegDeleteKey(hKey, m_szServiceName);
                                         ::RegCloseKey(hKey);
                                 }
@@ -705,6 +724,26 @@ void CNTService::ConfigClose()
 }
 
 
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+static int
+asctime_s(char *buf, size_t buflen, const struct tm *tm)
+{
+        static const char day[][4] = {
+                "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+                };
+        static const char mon[][4] = {
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                };
+
+        snprintf(buf, buflen, "%.3s %.3s%3d %.2d:%.2d:%.2d %d\n", day[tm->tm_wday], mon[tm->tm_mon],
+                tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, 1900 + tm->tm_year);
+        buf[buflen - 1] = 0;
+        return 0;
+}
+#endif  //__MINGW32__
+
+
 //virtual
 bool CNTService::ConfigUpdateProfile()
 {
@@ -723,7 +762,7 @@ bool CNTService::ConfigUpdateProfile()
                 return true;
         }
                                                 // open/create
-        if (::RegCreateKeyEx(registry_.RootKey(), "Statistics", 0, "", 0,
+        if (::RegCreateKeyExA(registry_.RootKey(), "Statistics", 0, NULL, 0,
                         KEY_READ | KEY_WRITE, NULL, &hSubkey, &dwRet) == ERROR_SUCCESS) {
 
                 const time_t curtime = time(NULL);
@@ -814,11 +853,11 @@ void CNTService::LogEvent(WORD wType, DWORD dwID, const char* pszS1, const char*
 
         // Check the event source has been registered and if not then register it now
         if (! m_hEventSource) {
-                m_hEventSource = ::RegisterEventSource(NULL, m_szServiceName);
+                m_hEventSource = ::RegisterEventSourceA(NULL, m_szServiceName);
         }
 
         if (m_hEventSource) {
-                ::ReportEvent(m_hEventSource, wType, 0, dwID, NULL, iStr, 0, ps, NULL);
+                ::ReportEventA(m_hEventSource, wType, 0, dwID, NULL, iStr, 0, ps, NULL);
         }
 
         if (m_bRunAsConsole) {
@@ -836,6 +875,7 @@ bool CNTService::SetVersion(unsigned major, unsigned minor, unsigned release /*=
         if (m_bIsRunning || registry_.is_open()) {
                 return false;
         }
+
         m_iMajorVersion = major;
         m_iMinorVersion = minor;
         m_iReleaseVersion = release;
@@ -972,8 +1012,8 @@ void CNTService::ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv)
 
         // Register the control request handler
         pService->m_Status.dwCurrentState = SERVICE_START_PENDING;
-        pService->m_hServiceStatus = ::RegisterServiceCtrlHandler(pService->m_szServiceName, ControlHandler);
-        if (NULL == pService->m_hServiceStatus) {
+        pService->m_hServiceStatus = ::RegisterServiceCtrlHandlerA(pService->m_szServiceName, ControlHandler);
+        if ((SERVICE_STATUS_HANDLE)NULL == pService->m_hServiceStatus) {
                 pService->LogEvent(EVENTLOG_ERROR_TYPE, EVMSG_CTRLHANDLERNOTINSTALLED);
                 return;
         }
@@ -1157,7 +1197,7 @@ void CNTService::ControlHandler(DWORD dwOpcode)
                 break;
         case SERVICE_CONTROL_TRIGGEREVENT:  // 0x20
                 break:
-     */
+        */
         default:
                 if (dwOpcode >= SERVICE_CONTROL_USER) {
                         if (! pService->OnUserControl(dwOpcode)) {
@@ -1185,7 +1225,6 @@ bool CNTService::OnInit()
                 ServiceTrace("%s - Version %d.%d",
                         m_szServiceName, m_iMajorVersion, m_iMinorVersion);
         }
-    //  ServiceTrace("NTService::OnInit()");
         if (! ConfigOpen()) {
                 return false;
         }
@@ -1467,7 +1506,7 @@ void CNTService::__ModuleEnumImp(HMODULE hModule, bool loaded /*=true*/)
 {
         char t_szModule[256], t_version[32];
 
-        t_szModule[0] = 0; ::GetModuleFileName(hModule, t_szModule, sizeof(t_szModule));
+        t_szModule[0] = 0; ::GetModuleFileNameA(hModule, t_szModule, sizeof(t_szModule));
         if (0 != strcmp(t_szModule, m_szModule)) {
                 if (! GetModuleVersion(t_szModule, t_version, sizeof(t_version))) {
                         t_version[0] = 0;       // unknown
@@ -1589,3 +1628,4 @@ void CNTService::ServiceTrace(const char *fmt, ...)
 }
 
 //end
+

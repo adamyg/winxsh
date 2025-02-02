@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_shell_c,"$Id: w32_shell.c,v 1.9 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_shell_c,"$Id: w32_shell.c,v 1.11 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 shell and sub-process support
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -25,7 +25,7 @@ __CIDENT_RCSID(gr_w32_shell_c,"$Id: w32_shell.c,v 1.9 2022/03/15 12:15:38 cvsuse
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
@@ -71,6 +71,8 @@ static int              ShellW(const wchar_t *shell, const wchar_t *cmd, const w
 static const char *     OutDirectA(const char *path, int *append);
 static const wchar_t *  OutDirectW(const wchar_t *path, int *append);
 static void             ShellCleanup(void *p);
+static int              IsAbsPathA(const char *path);
+static int              IsAbsPathW(const wchar_t *path);
 
 static const wchar_t *  ImportArgv(const char **argv);
 static const wchar_t ** ImportEnvv(const char **envv);
@@ -241,6 +243,9 @@ ShellA(const char *shell, const char *cmd,
     // command or interactive
     (void)memset(&args, 0, sizeof(args));
 
+    if (IsAbsPathA(shname))                     // abs-path
+        args.arg0 = shname;
+
     if (w32_iscommandA(shname)) {
         slash = shname - 1;
         while ((slash = strchr(slash + 1, XSLASHCHAR)) != NULL) {
@@ -276,7 +281,7 @@ ShellA(const char *shell, const char *cmd,
 
     } else {
         ShellCleanup((void *)&pd);
-        (void) w32_waitpid((int) hProc, &status, 0);
+        (void) w32_waitpid(w32_HTOI(hProc), &status, 0);
     }
 
     free(shname);
@@ -299,7 +304,7 @@ ShellW(const wchar_t *shell, const wchar_t  *cmd,
     HANDLE hInFile, hOutFile, hErrFile;
     struct procdata pd = {0};
     win32_spawnw_t args = {0};
-    const wchar_t *argv[4] = {0};
+    const wchar_t *argv[4] = {NULL};
     HANDLE hProc = 0;
     int status = 0;
 
@@ -383,6 +388,9 @@ ShellW(const wchar_t *shell, const wchar_t  *cmd,
     // command or interactive
     (void)memset(&args, 0, sizeof(args));
 
+     if (IsAbsPathW(shname))                     // abs-path
+        args.arg0 = shname;
+
     if (w32_iscommandW(shname)) {
         slash = shname - 1;
         while ((slash =  wcschr(slash + 1, XSLASHCHAR)) != NULL) {
@@ -408,7 +416,7 @@ ShellW(const wchar_t *shell, const wchar_t  *cmd,
         argv[2] = NULL;
     }
 
-    // create child process
+    // create child process   
     args.argv = argv;
     args._dwFlags = 0;
 
@@ -418,7 +426,7 @@ ShellW(const wchar_t *shell, const wchar_t  *cmd,
 
     } else {
         ShellCleanup((void *)&pd);
-        (void) w32_waitpid((int) hProc, &status, 0);
+        (void) w32_waitpid(w32_HTOI(hProc), &status, 0);
     }
 
     free(shname);
@@ -603,11 +611,11 @@ w32_spawnA2(
     //  Open LIBC compatible handles (if required) and launch child process
     //
     if ((*Stdin  >= 0 ||
-            (in  = _open_osfhandle((long)hInputWrite, _O_NOINHERIT)) >= 0) &&
+            (in  = _open_osfhandle((OSFHANDLE)hInputWrite, _O_NOINHERIT)) >= 0) &&
         (*Stdout >= 0 ||
-            (out = _open_osfhandle((long)hOutputRead, _O_NOINHERIT)) >= 0) &&
+            (out = _open_osfhandle((OSFHANDLE)hOutputRead, _O_NOINHERIT)) >= 0) &&
         (Stderr == NULL || *Stderr >= 0 ||
-            (err = _open_osfhandle((long)hErrorRead, _O_NOINHERIT)) >= 0)) {
+            (err = _open_osfhandle((OSFHANDLE)hErrorRead, _O_NOINHERIT)) >= 0)) {
         hProc = w32_child_execA(args, hInputRead, hOutputWrite, hErrorWrite);
     }
 
@@ -659,7 +667,7 @@ w32_spawnA2(
             Close(hErrorRead);
         }
     }
-    return (int)(hProc);
+    return w32_HTOI(hProc);
 }
 
 
@@ -746,11 +754,11 @@ w32_spawnW2(
     //  Open LIBC compatible handles (if required) and launch child process
     //
     if ((*Stdin  >= 0 ||
-            (in  = _open_osfhandle((long)hInputWrite, _O_NOINHERIT)) >= 0) &&
+            (in  = _open_osfhandle((OSFHANDLE)hInputWrite, _O_NOINHERIT)) >= 0) &&
         (*Stdout >= 0 ||
-            (out = _open_osfhandle((long)hOutputRead, _O_NOINHERIT)) >= 0) &&
+            (out = _open_osfhandle((OSFHANDLE)hOutputRead, _O_NOINHERIT)) >= 0) &&
         (Stderr == NULL || *Stderr >= 0 ||
-            (err = _open_osfhandle((long)hErrorRead, _O_NOINHERIT)) >= 0)) {
+            (err = _open_osfhandle((OSFHANDLE)hErrorRead, _O_NOINHERIT)) >= 0)) {
         hProc = w32_child_execW(args, hInputRead, hOutputWrite, hErrorWrite);
     }
 
@@ -802,7 +810,7 @@ w32_spawnW2(
             Close(hErrorRead);
         }
     }
-    return (int)(hProc);
+    return w32_HTOI(hProc);
 }
 
 
@@ -853,6 +861,26 @@ w32_exec(win32_exec_t *args)
 #endif  //UTF8FILENAMES
 
     return w32_execA(args);
+}
+
+
+static int
+IsAbsPathA(const char *path)
+{
+    if (path && *path) {
+        return (ISSLASH(path[0]) || path[1] == ':');
+    }
+    return 0;
+}
+
+
+static int
+IsAbsPathW(const wchar_t *path)
+{
+    if (path && *path) {
+        return (ISSLASH(path[0]) || path[1] == ':');
+    }
+    return 0;
 }
 
 
@@ -1061,7 +1089,7 @@ w32_execA(win32_exec_t *args)
     args->hInput  = hInputWrite;
     args->hOutput = hOutputRead;
     args->hError  = hErrorRead;
-    return (int)args->hProc;
+    return w32_HTOI(args->hProc);
 
 einval:;
     Close(hOutputReadTmp); Close(hInputWriteTmp); Close(hErrorReadTmp);
@@ -1119,7 +1147,7 @@ w32_execW(win32_execw_t *args)
     args->hInput  = hInputWrite;
     args->hOutput = hOutputRead;
     args->hError  = hErrorRead;
-    return (int)args->hProc;
+    return w32_HTOI(args->hProc);
 
 einval:;
     Close(hOutputReadTmp); Close(hInputWriteTmp); Close(hErrorReadTmp);
@@ -1141,7 +1169,7 @@ Dup(HANDLE old, HANDLE *dup, BOOL inherit)
 
     if (dup == NULL || old == INVALID_HANDLE_VALUE ||
             !DuplicateHandle(self, old, self, dup, 0, inherit, DUPLICATE_SAME_ACCESS)) {
-        *dup = INVALID_HANDLE_VALUE;
+        if (dup) *dup = INVALID_HANDLE_VALUE;
         return FALSE;
     }
     return TRUE;
@@ -1276,7 +1304,7 @@ DisplayErrorA(
     int len;
 
     len = _snprintf(buffer, sizeof(buffer),
-            "Internal Error: %s = %d (%s).\n", msg, rc, rcmsg);
+            "Internal Error: %s = %u (%s).\n", msg, (unsigned)rc, rcmsg);
     WriteConsoleA(hOutput, buffer, len, NULL, NULL);
 }
 
@@ -1291,7 +1319,7 @@ DisplayErrorW(
     int len;
 
     len = _snwprintf(buffer, _countof(buffer),
-            L"Internal Error: %s = %d (%s).\n", msg, rc, rcmsg);
+            L"Internal Error: %s = %u (%s).\n", msg, (unsigned)rc, rcmsg);
     WriteConsoleW(hOutput, buffer, len, NULL, NULL);
 }
 

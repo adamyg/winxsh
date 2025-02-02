@@ -1,10 +1,18 @@
-//$Id: crypto_globals.c,v 1.2 2022/03/20 10:09:49 cvsuser Exp $
+//$Id: crypto_globals.c,v 1.3 2025/02/01 19:25:39 cvsuser Exp $
 //
 //  libmbedcrypto support -
 //      retrieve the dynamic fprintf/snprintf/printf implementations (if required)
 //
 
 #include "crypto_globals.h"
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#pragma comment(lib, "BCrypt.lib") // BCryptGenRandom()
+#endif
+
+/*
+ *  Global instances
+ */
 
 #if defined(MBEDTLS_PLATFORM_FPRINTF_ALT)
 CRYPTO_MBEDAPI mbedtls_fprintf_t
@@ -23,20 +31,29 @@ get_mbedtls_printf(void) {
 }
 #endif
 
+
 #if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
 CRYPTO_MBEDAPI mbedtls_snprintf_t
 get_mbedtls_snprintf(void) {
 #undef mbedtls_snprintf
     return mbedtls_snprintf;
 }
+#else
+int mbedtls_platform_set_snprintf(int (*snprintf_func)(char *s, size_t n, const char *format, ...)) {
+    return 0; /*not-enabled*/
+}
 #endif
 
 
-#if defined(MBEDTLS_PLATFORM_SNPRINTF_ALT)
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
 CRYPTO_MBEDAPI mbedtls_vsnprintf_t
 get_mbedtls_vsnprintf(void) {
 #undef mbedtls_vsnprintf
     return mbedtls_vsnprintf;
+}
+#else
+int mbedtls_platform_set_vsnprintf(int (*vsnprintf_func)(char *s, size_t n, const char *format, va_list arg)) {
+    return 0; /*not-enabled*/
 }
 #endif
 

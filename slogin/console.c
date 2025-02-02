@@ -2,7 +2,7 @@
 /*
  * slogin console support.
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -164,12 +164,12 @@ console_prompt(BOOL echo, const char *msg, char *buffer, DWORD buffer_size)
 
 	buffer[0] = 0;
 	if (INVALID_HANDLE_VALUE == hStdOut || INVALID_HANDLE_VALUE == hStdIn) {
-	    	WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), msg, strlen(msg), &count, NULL);
+	    	WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), msg, (DWORD)strlen(msg), &count, NULL);
 		return 0;                       // console attached.
 	}
 
 	if (msg) {
-		if (! WriteConsoleA(hStdOut, msg, strlen(msg), &count, NULL)) {
+		if (! WriteConsoleA(hStdOut, msg, (DWORD)strlen(msg), &count, NULL)) {
                         return 0;               // not a console?
                 }
 	}
@@ -207,7 +207,7 @@ console_prompt(BOOL echo, const char *msg, char *buffer, DWORD buffer_size)
 
 	WriteConsoleA(hStdOut, "\r\n", 2, &count, NULL);
 	SetConsoleMode(hStdIn, console_mode);
-	return cursor - buffer;
+	return (DWORD)(cursor - buffer);
 }
 
 
@@ -249,7 +249,7 @@ console_getln(HANDLE hConsole, BOOL line_buffer, BOOL blocking, char *buffer, DW
 
 				} else { // overflow
 					WriteConsoleA(hConsole, "\a", 1, &count, NULL);
-			        }
+				}
 				++written;
 
 			} else {

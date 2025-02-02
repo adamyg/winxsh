@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_strlcpy_c,"$Id: w32_strlcpy.c,v 1.7 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_strlcpy_c,"$Id: w32_strlcpy.c,v 1.8 2023/12/26 17:01:05 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -20,14 +20,7 @@ __CIDENT_RCSID(gr_w32_strlcpy_c,"$Id: w32_strlcpy.c,v 1.7 2022/03/15 12:15:38 cv
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
- * ==end==
- *
- * Notice: Portions of this text are reprinted and reproduced in electronic form. from
- * IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
- * 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
- * Group. Copyright remains with the authors and the original Standard can be obtained
- * online at http://www.opengroup.org/unix/online.html.
+ * license for more details.
  * ==extra==
  *
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -148,9 +141,8 @@ __CIDENT_RCSID(gr_w32_strlcpy_c,"$Id: w32_strlcpy.c,v 1.7 2022/03/15 12:15:38 cv
 //       <Todd.Miller@courtesan.com>.
 */
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 
-#include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
 

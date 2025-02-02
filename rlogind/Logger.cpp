@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Logger_cpp, "$Id: Logger.cpp,v 1.8 2022/03/20 13:48:58 cvsuser Exp $")
+__CIDENT_RCSID(Logger_cpp, "$Id: Logger.cpp,v 1.11 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * Simple File logger.
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -148,11 +148,11 @@ LOGGER_TRACE(std::cout << "LOG: purged empty volume <" << filename_ << ">\n";)
             return created_;
         }
 
-        unsigned size() const {
+        size_t size() const {
             return size_;
         }
 
-        unsigned blocks() const {
+        size_t blocks() const {
             return blocks_;
         }
 
@@ -300,7 +300,7 @@ LOGGER_TRACE(std::cout << "LOG: purged empty volume <" << filename_ << ">\n";)
 #if defined(__WATCOMC__)
             return std::fwrite(buffer, 1, buflen, fp_);
 #else
-            return _fwrite_nolock(buffer, 1, buflen, fp_);
+            return (int)_fwrite_nolock(buffer, 1, (int)buflen, fp_);
 #endif
         }
 

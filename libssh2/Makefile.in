@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.12 2022/03/17 03:49:04 cvsuser Exp $
+# $Id: Makefile.in,v 1.15 2025/02/02 16:51:54 cvsuser Exp $
 # libssh2 makefile.
 #
 #
-# Copyright (c) 2015 - 2022, Adam Young.
+# Copyright (c) 2015 - 2025, Adam Young.
 # All rights reserved.
 #
 #
@@ -62,18 +62,30 @@ ifneq ("$(BUILD_TYPE)","release")
 RTSUFFIX=d
 endif
 
+QUIETOUT:=	>/dev/null 2>&1
+ifeq ($(VERBOSE),1)
+QUIETOUT:=
+else ifeq ($(VERBOSE),0)
+else ifeq ($(VERBOSE),)
+else
+$(error VERBOSE: unexpected value 0 or 1 required, $(VERBOSE) given]))
+endif
+
 # Directories
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/libssh2
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/libssh2
 
 # Common flags
 
 XFLAGS=
 
 CFLAGS=		@CFLAGS@
+ifeq (owc,$(findstring owc,"@TOOLCHAIN@"))
+CFLAGS+=	-wcd=124 -wcd=125 -wcd=136
+endif
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
@@ -89,20 +101,21 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) $(CRYPTOLIBS) @LIBS@ @EXTRALIBS@
 
 ARFLAGS=	rcv
 YFLAGS=		-d
 RMFLAGS=	-f
 
-############################################################
 
+#########################################################################################
 # Targets
 
 SSH2LIB=	$(D_LIB)/$(LP)ssh2_static$(A)
 SSH2DLL=	$(D_LIB)/$(LP)ssh2.la
 
-VERSION=	1.10.0
+#VERSION=	1.11.0
+VERSION=	1.11.1
 VERSIONSPEC=	$(subst .,:,$(VERSION))
 VERPACKED=	libssh2-$(VERSION).gr.tgz
 
@@ -110,8 +123,14 @@ SSH2BASE=	./libssh2-$(VERSION)
 SSH2SRC=	$(SSH2BASE)/src
 SSH2INCLUDE=	$(SSH2BASE)/include
 
-CINCLUDE+=	-I$(SSH2BASE)/win32 -I$(SSH2INCLUDE) -I./sdk
-CEXTRA+=	-DLIBSSH2_WIN32 -DLIBSSH2_HAVE_ZLIB
+CINCLUDE+=	-I$(SSH2BASE)/win32 -I$(SSH2INCLUDE)
+ifneq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
+ifeq ("yes","@ISWIN32@"))
+CINCLUDE+=	-I./sdk
+endif
+endif
+CEXTRA+=	-DLIBSSH2_HAVE_ZLIB
+	# also see libssh2/win32/libssh2_config.h
 
 ##CEXTRA+=	-DLIBSSH2_WINOPENSSL
 ##CEXTRA+=	-DLIBSSH2_WINCNG
@@ -119,16 +138,15 @@ CEXTRA+=	-DLIBSSH2_MBEDTLS
 			# Crypto backends (see: crypto.h):
 			# LIBSSH2_OPENSSL lib openssl
 			# LIBSSH2_WINCNG Windows crypto;
-			#   Note: current Windows enc engine wont allow OpenSSH connections.
+			# Note: current Windows enc engine wont allow OpenSSH connections.
 			# LIBSSH2_MBEDTLS mbedtls
 			#
-LDLIBS+=	libmbedcrypto_static.lib
-LDLIBS+=	libz_static.lib
-##LDLIBS+=	./sdk/bcrypt.lib ./sdk/crypt32.lib
+CRYPTOLIBS +=	libmbedcrypto_static.lib
+CRYPTOLIBS +=	libz_static.lib
 
 VPATH+=		$(SSH2SRC) $(SSH2BASE)/win32
 CRYPTO_CSOURCES=\
-	openssl.c wincng.c mbedtls.c
+	crypto.c userauth_kbd_packet.c
 			# os400qc3.c libgcrypt.c
 
 CSOURCES=\
@@ -138,23 +156,30 @@ CSOURCES=\
 	$(CRYPTO_CSOURCES) \
 	libssh2_helper.c
 
-#+1.9.0
+#1.9.0+
 CSOURCES+=\
 	blowfish.c bcrypt_pbkdf.c
 
-#+1.10.0
+#1.10.0+
 CSOURCES+=\
 	agent_win.c
+
+#1.11.1+
+CSOURCES+=\
+	cipher-chachapoly.c chacha.c poly1305.c
 
 LIBOBJS=\
 	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 
 DLLOBJS=\
 	$(subst $(O),.lo,$(LIBOBJS))
-ifeq ("mingw32","@build_os@")
+
+ifeq ("win32","@build_os@")
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
 DLLOBJS+=	$(D_OBJ)/libssh2_res.o
-else ifeq ("win32","@build_os@")
+else
 DLLOBJS+=	$(D_OBJ)/libssh2.res
+endif
 endif
 
 LIBS=		$(SSH2LIB)
@@ -162,6 +187,7 @@ DLLS=		$(SSH2DLL)
 TSKS=
 INSTALLED=
 
+#########################################################################################
 # Rules
 
 .PHONY:		build release debug
@@ -180,22 +206,22 @@ CEXTRA		+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
 
 $(SSH2LIB):		CEXTRA += -DLIBSSH2_STATIC
 $(SSH2LIB):		$(LIBOBJS)
-		$(RM) $(RMFLAGS) $@ >/dev/null 2>&1
+		$(RM) $(RMFLAGS) $@ $(QUIETOUT)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@
 
 INSTALLED+=	$(D_BIN)/libssh2.$(VERSION).dll
-$(SSH2DLL):		CEXTRA += -DLIBSSH2_DYANMIC -D_WINDLL
+$(SSH2DLL):		CEXTRA += -DLIBSSH2_DYNAMIC -DLIBSSH2_EXPORTS -D_WINDLL
 $(SSH2DLL):		$(DLLOBJS)
-		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
-			-rpath $(D_LIB) -bindir $(D_BIN) $(SSH2DEF) -o $@ $^ $(LDLIBS)
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ -version-number $(VERSIONSPEC) \
+			-rpath $(D_LIB) -bindir $(D_BIN) $(SSH2DEF) $^ $(LDLIBS)
 
 source:			.unpacked.$(VERSION)
 		$(MAKE) unpacked
 
 .unpacked.$(VERSION):	$(VERPACKED)
 		@echo "do not delete, managed file" > $@
-		@echo "unpacking source $VERPACKED"
+		@echo "unpacking source $(VERPACKED)"
 		@gzip -c -d $(VERPACKED) | tar -xvf -
 
 .PHONY:		object
@@ -214,10 +240,10 @@ installinc:		../include/.created
 
 clean:
 		@echo $(BUILD_TYPE) clean
-		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) >/dev/null 2>&1
-		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(INSTALLED) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
-		-@$(RM) $(LIBOBJS) >/dev/null 2>&1
-		-@$(RM) ../include/libssh2/*.h >/dev/null 2>&1
+		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) $(QUIETOUT)
+		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(INSTALLED) $(LIBS) $(CLEAN) $(XCLEAN) $(QUIETOUT)
+		-@$(RM) $(LIBOBJS) $(QUIETOUT)
+		-@$(RM) ../include/libssh2/*.h $(QUIETOUT)
 
 $(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
@@ -226,9 +252,9 @@ $(D_OBJ)/%.lo:		%.c
 		$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -o $@ -c $<
 
 $(D_OBJ)/%.res:		%.rc
-		$(RC) -fo $@ $<
+		$(RC) -I $(SSH2INCLUDE) -fo $@ $<
 
 $(D_OBJ)/%_res.o:	%.rc
-		$(RC) -o $@ $<
+		$(RC) -I $(SSH2INCLUDE) -o $@ $<
 
 #end

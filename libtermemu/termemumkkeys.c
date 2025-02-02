@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2015 - 2022, Adam Young.
+Copyright (c) 2015 - 2025, Adam Young.
 Copyright 1990, 1998 The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -28,9 +28,12 @@ from The Open Group.
 */
 
 static const char 
-mkkeys_ident[] = "$Id: termemumkkeys.c,v 1.4 2022/03/20 08:22:56 cvsuser Exp $";
+mkkeys_ident[] = "$Id: termemumkkeys.c,v 1.7 2025/02/02 16:52:25 cvsuser Exp $";
 
+#if !defined(_CRT_SECURE_NO_WARNINGS)
 #define  _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -311,7 +314,7 @@ next1:  ;
      */
     now = time(NULL);
     printf("/* This file is generated from <mkkeys> on %.24s */\n", ctime(&now));
-    printf("/* termemumkkeys: %.*s */\n", strlen(mkkeys_ident) - 6, mkkeys_ident + 5);
+    printf("/* termemumkkeys: %.*s */\n", (int)(strlen(mkkeys_ident) - 6), mkkeys_ident + 5);
     printf("/* $" "Id: $ */\n");
     printf("/* ------------------------ do not edit ------------------------ */\n");
     printf("\n" \

@@ -1,10 +1,15 @@
-//$Id: libssh2_helper.c,v 1.1 2020/04/30 20:52:42 cvsuser Exp $
+//$Id: libssh2_helper.c,v 1.2 2025/02/01 19:26:07 cvsuser Exp $
 //
 //  libssh2 support
 //
 
 #define  LIBSSH2_LIBRARY
 #include <libssh2_helper.h>
+
+
+#if defined(_MSC_VER) || defined(__WATCOMC__)
+#pragma comment(lib, "BCrypt.lib") // BCryptGenRandom(), +3.5.0
+#endif
 
 
 LIBSSH2_API int

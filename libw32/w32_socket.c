@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.15 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_socket_c,"$Id: w32_socket.c,v 1.17 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 socket () system calls
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -77,7 +77,7 @@ retry:;
         w32_sockerror();
         ret = -1;
     } else if ((ret = (int)s) < WIN32_FILDES_MAX &&
-                    (ret = _open_osfhandle((long)s, 0)) == -1) {
+                    (ret = _open_osfhandle((OSFHANDLE)s, 0)) == -1) {
         closesocket(s);
         errno = EMFILE;
     } else {
@@ -208,7 +208,7 @@ w32_accept_fd(int fd, struct sockaddr *addr, int *addrlen)
             w32_sockerror();
             ret = -1;
         } else if ((ret = (int)s) < WIN32_FILDES_MAX &&
-                         (ret = _open_osfhandle((long)s, 0)) == -1) {
+                         (ret = _open_osfhandle((OSFHANDLE)s, 0)) == -1) {
             (void) closesocket(s);
             errno = EMFILE;
         } else {
@@ -365,17 +365,22 @@ w32_recvfrom_fd(int fd, char *buf, int len, int flags,
 
 
 /*
- *  socksetblockingmode()
+ *  socknonblockingio()
  */
-LIBW32_API int         
-w32_sockblockingmode_fd(int fd, int enabled)
+LIBW32_API int
+w32_socknonblockingio_fd(int fd, int enabled)
 {
     SOCKET osf;
-    int ret;
+    int ret = 0;
 
     if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
         ret = -1;
     } else {
+        /* FIONBIO ---
+         *  enables or disables the blocking mode for the socket based on the numerical value of iMode.
+         *      If mode = 0, blocking is enabled; 
+         *      If mode != 0, non-blocking mode is enabled.
+         */
         u_long mode = (long)enabled;
         if ((ret = ioctlsocket(osf, FIONBIO, &mode)) == -1 /*SOCKET_ERROR*/) {
             w32_sockerror();
@@ -383,7 +388,28 @@ w32_sockblockingmode_fd(int fd, int enabled)
     }
     return ret;
 }
- 
+
+
+/*
+ *  sockinheritable
+ */
+LIBW32_API int
+w32_sockinheritable_fd(int fd, int enabled)
+{
+    SOCKET osf;
+    int ret = 0;
+
+    if ((osf = w32_sockhandle(fd)) == (SOCKET)INVALID_SOCKET) {
+        ret = -1;
+    } else {
+        if (! SetHandleInformation((HANDLE)osf, HANDLE_FLAG_INHERIT, enabled ? 1 : 0)) {
+            w32_sockerror();
+            ret = -1;
+        }
+    }
+    return ret;
+}
+
 
 /*
  *  sockwrite() system call; aka write() for sockets.

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_child_c,"$Id: w32_child.c,v 1.9 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_child_c,"$Id: w32_child.c,v 1.11 2025/02/02 08:46:57 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 sub-process support
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -68,7 +68,7 @@ typedef struct {
     int                 fd;
 } Redirect_t;
 
-static int              cmdis(const char *shell, int slen, const char *cmd);
+static int              cmdisA(const char *shell, int slen, const char *cmd);
 static int              cmdisW(const wchar_t *shell, int slen, const wchar_t *cmd);
 static int              TOLOWER(wchar_t ch);
 
@@ -322,7 +322,7 @@ w32_waitpid(int pid, int *status, int options)
         /*
          *  wait for the child whose process ID is equal to the value of pid.
          */
-        if (w32_child_wait((HANDLE)pid, status, options & WNOHANG)) {
+        if (w32_child_wait(w32_ITOH(pid), status, options & WNOHANG)) {
             ret = pid;
         }
     }
@@ -450,7 +450,7 @@ LIBW32_API int
 w32_kill(int pid, int value)
 {
     if (pid > 0) {
-        HANDLE hProc = (HANDLE)pid;
+        HANDLE hProc = w32_ITOH(pid);
 
         /* Still running ?? */
         if (WaitForSingleObject(hProc, 0) != WAIT_TIMEOUT) {
@@ -512,9 +512,9 @@ EnumWindowsProc(HWND hwnd, LPARAM lParam)
 
     (void) GetWindowThreadProcessId(hwnd, &pid);
     return pid != info->dwProcessId
-            || GetExitCodeProcess(info->hProcess, &status)
-                && status == STILL_ACTIVE       // value = 259
-                && PostMessage(hwnd, WM_CLOSE, 0, 0);
+            || (GetExitCodeProcess(info->hProcess, &status)
+                 && status == STILL_ACTIVE       // value = 259
+                 && PostMessage(hwnd, WM_CLOSE, 0, 0));
 }
 
 
@@ -556,16 +556,15 @@ w32_iscommandA(const char *shell)
 {
     const int slen = (int)strlen(shell);
 
-    if (cmdis(shell, slen, "cmd") ||
-            cmdis(shell, slen, "cmd.exe") ||
-            cmdis(shell, slen, "command") ||
-            cmdis(shell, slen, "command.com") ||
-            cmdis(shell, slen, "command.exe")) {
+    if (cmdisA(shell, slen, "cmd") ||
+            cmdisA(shell, slen, "cmd.exe") ||
+            cmdisA(shell, slen, "command") ||
+            cmdisA(shell, slen, "command.com") ||
+            cmdisA(shell, slen, "command.exe")) {
         return TRUE;
     }
     return FALSE;
 }
-
 
 
 LIBW32_API int
@@ -585,7 +584,7 @@ w32_iscommandW(const wchar_t *shell)
 
 
 static int
-cmdis(const char *shell, int slen, const char *cmd)
+cmdisA(const char *shell, int slen, const char *cmd)
 {
     const int clen = (int)strlen(cmd);
     const char *p = shell + slen - clen;
@@ -640,6 +639,7 @@ w32_child_execA(
         return 0;
     }
 
+    assert((NULL != args->cmd && NULL == args->argv) || (NULL == args->cmd && NULL != args->argv));
     if (! BuildVectorsA(args, &argblk, &envblk) != 0) {
         InternalError("BuildVector");
         return 0;
@@ -661,15 +661,17 @@ w32_child_execA(
     si.hStdOutput = hStdOut;
     si.hStdError  = hStdErr;
 
+#if !defined(NDEBUG)
     if (hStdIn)  { DWORD flags; assert(GetHandleInformation(hStdIn,  &flags) && (HANDLE_FLAG_INHERIT & flags)); }
     if (hStdOut) { DWORD flags; assert(GetHandleInformation(hStdOut, &flags) && (HANDLE_FLAG_INHERIT & flags)); }
     if (hStdErr) { DWORD flags; assert(GetHandleInformation(hStdErr, &flags) && (HANDLE_FLAG_INHERIT & flags)); }
+#endif
 
     si.dwFlags = STARTF_USESTDHANDLES;
     si.dwFlags |= STARTF_USESHOWWINDOW;
 
     /*
-     *  Launch the process that you want to redirect, as lpApplicationName is NULL, search path is:
+     *  Launch the process that you want to redirect, if lpApplicationName is NULL, search path is:
      *
      *   o The directory from which the application loaded.
      *   o The current directory for the parent process.
@@ -678,7 +680,7 @@ w32_child_execA(
      *   o The Windows directory. Use the GetWindowsDirectory function to get the path of this directory.
      *   o The directories that are listed in the PATH environment variable.
      */
-    if (0 == (hProc = ExecChildA(args, NULL, argblk, envblk, &si, &pi))) {
+    if (0 == (hProc = ExecChildA(args, args->arg0, argblk, envblk, &si, &pi))) {
         const char *path, *cmd = (args->argv ? args->argv[0] : args->cmd);
         char *pfin, *buf = NULL;
 
@@ -761,6 +763,7 @@ w32_child_execW(
         return 0;
     }
 
+    assert((NULL != args->cmd && NULL == args->argv) || (NULL == args->cmd && NULL != args->argv));
     if (! BuildVectorsW(args, &argblk, &envblk)) {
         InternalError("building arg and env");
         return 0;
@@ -782,15 +785,17 @@ w32_child_execW(
     si.hStdOutput = hStdOut;
     si.hStdError  = hStdErr;
 
+#if !defined(NDEBUG)
     if (hStdIn)  { DWORD flags; assert(GetHandleInformation(hStdIn,  &flags) && (HANDLE_FLAG_INHERIT & flags)); }
     if (hStdOut) { DWORD flags; assert(GetHandleInformation(hStdOut, &flags) && (HANDLE_FLAG_INHERIT & flags)); }
     if (hStdErr) { DWORD flags; assert(GetHandleInformation(hStdErr, &flags) && (HANDLE_FLAG_INHERIT & flags)); }
+#endif
 
     si.dwFlags = STARTF_USESTDHANDLES;
     si.dwFlags |= STARTF_USESHOWWINDOW;
 
     /*
-     *  Launch the process that you want to redirect, as lpApplicationName is NULL, search path is:
+     *  Launch the process that you want to redirect, if lpApplicationName/arg0 is NULL, search path is:
      *
      *   o The directory from which the application loaded.
      *   o The current directory for the parent process.
@@ -799,7 +804,7 @@ w32_child_execW(
      *   o The Windows directory. Use the GetWindowsDirectory function to get the path of this directory.
      *   o The directories that are listed in the PATH environment variable.
      */
-    if (0 == (hProc = ExecChildW(args, NULL, argblk, envblk, &si, &pi))) {
+    if (0 == (hProc = ExecChildW(args, args->arg0, argblk, envblk, &si, &pi))) {
         const wchar_t *path, *cmd = (args->argv ? args->argv[0] : args->cmd);
         wchar_t *pfin, *buf = NULL;
 
@@ -985,10 +990,71 @@ w32_child_wait(HANDLE hProc, int *status, int nowait)
         }
         CloseHandle(hProc);                     // process complete
         if (status) {
-            if (0 == (dwStatus & 0xff)) {
+            if (dwStatus > 0xff) {              // treat as signal
+                switch (dwStatus) {
+                case STATUS_ACCESS_VIOLATION:           // 0xC0000005L
+                case STATUS_IN_PAGE_ERROR:              // 0xC0000006L
+                case STATUS_INVALID_HANDLE:             // 0xC0000008L
+#if !defined(STATUS_INVALID_PARAMETER)
+#define STATUS_INVALID_PARAMETER 0xC000000DL
+#endif
+                case STATUS_INVALID_PARAMETER:          // 0xC000000DL
+                case STATUS_NO_MEMORY:                  // 0xC0000017L
+                    *status = SIGSEGV;
+                    break;
+                case STATUS_ILLEGAL_INSTRUCTION:        // 0xC000001DL
+                    *status = SIGILL;
+                    break;
+                case STATUS_NONCONTINUABLE_EXCEPTION:   // 0xC0000025L
+                case STATUS_INVALID_DISPOSITION:        // 0xC0000026L
+                case STATUS_ARRAY_BOUNDS_EXCEEDED:      // 0xC000008CL
+                    *status = SIGABRT;
+                    break;
+                case STATUS_FLOAT_DENORMAL_OPERAND:     // 0xC000008DL
+                case STATUS_FLOAT_DIVIDE_BY_ZERO:       // 0xC000008EL
+                case STATUS_FLOAT_INEXACT_RESULT:       // 0xC000008FL
+                case STATUS_FLOAT_INVALID_OPERATION:    // 0xC0000090L
+                case STATUS_FLOAT_OVERFLOW:             // 0xC0000091L
+                case STATUS_FLOAT_STACK_CHECK:          // 0xC0000092L
+                case STATUS_FLOAT_UNDERFLOW:            // 0xC0000093L
+                    *status = SIGFPE;
+                    break;
+                case STATUS_INTEGER_DIVIDE_BY_ZERO:     // 0xC0000094L
+                case STATUS_INTEGER_OVERFLOW:           // 0xC0000095L
+                    *status = SIGFPE;
+                    break;
+                case STATUS_PRIVILEGED_INSTRUCTION:     // 0xC0000096L
+                    *status = SIGILL;
+                    break;
+            //  case STATUS_STACK_OVERFLOW:             // 0xC00000FDL
+            //  case STATUS_DLL_NOT_FOUND:              // 0xC0000135L
+            //  case STATUS_ORDINAL_NOT_FOUND:          // 0xC0000138L
+            //  case STATUS_ENTRYPOINT_NOT_FOUND:       // 0xC0000139L
+                case STATUS_CONTROL_C_EXIT:             // 0xC000013AL
+                    *status = SIGBREAK;
+                    break;
+            //  case STATUS_DLL_INIT_FAILED:            // 0xC0000142L
+                case STATUS_FLOAT_MULTIPLE_FAULTS:      // 0xC00002B4L
+                case STATUS_FLOAT_MULTIPLE_TRAPS:       // 0xC00002B5L
+                    *status = SIGFPE;
+                    break;
+            //  case STATUS_REG_NAT_CONSUMPTION:        // 0xC00002C9L
+            //  case STATUS_HEAP_CORRUPTION:            // 0xC0000374L
+            //  case STATUS_STACK_BUFFER_OVERRUN:       // 0xC0000409L
+            //  case STATUS_INVALID_CRUNTIME_PARAMETER: // 0xC0000417L
+#if !defined(STATUS_ASSERTION_FAILURE)
+#define STATUS_ASSERTION_FAILURE 0xC0000420L
+#endif
+                case STATUS_ASSERTION_FAILURE:          // 0xC0000420L
+                    *status = SIGABRT;
+                    break;
+                default:
+                    *status = 0x7f;
+                    break;
+                }
+
+            } else {                            // application return value.
                 *status = (int)(dwStatus >> 8);
-            } else {
-                *status = (int)(dwStatus & 0xff);
             }
         }
         ret = TRUE;
@@ -1052,7 +1118,7 @@ BuildArgA(const char *cmd, const char **argv)
             /**/;
     }
 
-    if (len > (32 * 1024 * sizeof(char))) {
+    if (len > (int)(32 * 1024 * sizeof(char))) {
         errno = E2BIG;                          // command line too long >32k.
         return NULL;
     }
@@ -1136,7 +1202,7 @@ BuildEnvA(const char **envv)
      *  strings with nulls between and two null bytes at the end
      */
     for (cursor = ret, vp = envp, len = 0; *vp; ++len, ++vp) {
-        const int slen = strlen(*vp) + 1 /*nul*/;
+        const size_t slen = strlen(*vp) + 1 /*nul*/;
         memcpy(cursor, *vp, slen * sizeof(char));
         cursor += slen;
     }
@@ -1155,7 +1221,6 @@ BuildEnvA(const char **envv)
  *      null, "_wenviron" is used instead. File handle info is passed in the environment
  *      if _fileinfo is !0.
  */
-
 static int
 BuildVectorsW(win32_spawnw_t *args, wchar_t **argblk,  wchar_t **envblk)
 {
@@ -1196,7 +1261,7 @@ BuildArgW(const wchar_t *cmd, const wchar_t **argv)
             /**/;
     }
 
-    if (len > (32 * 1024 * sizeof(wchar_t))) {
+    if (len > (int)(32 * 1024 * sizeof(wchar_t))) {
         errno = E2BIG;                          // command line too long >32k.
         return NULL;
     }
@@ -1280,7 +1345,7 @@ BuildEnvW(const wchar_t **envv)
      *  strings with nulls between and two null bytes at the end
      */
     for (cursor = ret, vp = envp, len = 0; *vp; ++len, ++vp) {
-        const int slen = wcslen(*vp) + 1 /*nul*/;
+        const size_t slen = wcslen(*vp) + 1 /*nul*/;
         memcpy(cursor, *vp, slen * sizeof(wchar_t));
         cursor += slen;
     }

@@ -79,7 +79,7 @@ VS_VERSION_INFO VERSIONINFO
 
                                 VALUE "LegalCopyright",
                                         "Licensed under GNU General Public License version 3.0. \n"
-                                        "Copyright (C) 2020 - 2022, Adam Young. All rights reserved. \n"
+                                        "Copyright (C) 2020 - " WINSH_BUILD_YEAR ", Adam Young. All rights reserved. \n"
                                         "Copyright (C) 1990, 1993, The Regents of the University of California. \n"
 
                                 VALUE "LegalTrademarks",        "https://github.com/adamyg/winxsh"

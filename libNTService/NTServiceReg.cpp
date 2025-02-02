@@ -1,12 +1,12 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.4 2022/03/17 03:44:20 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.8 2025/02/02 17:05:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * CNTService - Classic window services framework (tweaked).
  * Service Control
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -42,6 +42,9 @@ __CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.4 2022/03/17 03:44:2
 #include "NTServiceReg.h"                       // public interface
 #include "NTServiceIO.h"                        // IDiagnostics
 
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#define LSTATUS LONG
+#endif
 
 CNTServiceReg::CNTServiceReg(const char* szServiceName, NTService::IDiagnostics &diags, const char *szCompany /*= 0*/) :
                 diags_(&diags), hRootKey_(0)
@@ -227,7 +230,7 @@ CNTServiceReg::Open(HKEY hParent, HKEY &hKey, NTService::IDiagnostics &diags, co
         }
 
         if (create) {                           // optional creation
-                if ((dwRet = ::RegCreateKeyEx(hParent, csKey, 0, "", 0,
+                if ((dwRet = ::RegCreateKeyEx(hParent, csKey, 0, NULL, 0,
                                     KEY_READ | (writable ? KEY_WRITE : 0), NULL, &subKey, &dwRet)) == ERROR_SUCCESS) {
                         hKey = subKey;
                         return true;
@@ -266,6 +269,10 @@ CNTServiceReg::GetValue(HKEY key, NTService::IDiagnostics &diags,
         DWORD t_dwSize, dwType, t_dwResult = 0;
         LSTATUS status;
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
         t_dwSize = dwSize, dwType = 0;
         if ((status = ::RegQueryValueEx(key, csKey, NULL,
                             &dwType, (BYTE *) szBuffer, &t_dwSize)) == ERROR_SUCCESS && REG_DWORD == dwType) {
@@ -274,6 +281,9 @@ CNTServiceReg::GetValue(HKEY key, NTService::IDiagnostics &diags,
                 dwSize = t_dwSize;
                 return true;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
         if (ERROR_MORE_DATA == status) {        // overflow
                 diags.fwarning("parameter <%s> too large", csKey);
@@ -381,14 +391,21 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
         //  Note: If szKey is NULL or an empty string, "",
         //  the function sets the type and data for the key's unnamed or default value.
         //
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
         dwSize = strlen(szValue) + 1 /*nul*/;
-        if ((dwRet = ::RegSetValueExA(key, csKey, NULL,
+        if ((dwRet = ::RegSetValueExA(key, csKey, 0,
                             REG_SZ, (const BYTE *)szValue, dwSize)) != ERROR_SUCCESS) {
                 char errmsg[256];
                 diags.ferror("Unable to update <%s>, error %u (%s)", csKey,
                         (unsigned)dwRet, StrError(dwRet, errmsg, sizeof(errmsg)));
                 return false;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
         return true;
 }
 
@@ -406,14 +423,24 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
         if (!csKey) return false;
         assert(NULL == strchr(csKey, '\\'));
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+#endif
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4312)
+#endif
         dwSize = sizeof(dwValue);
-        if ((dwRet = ::RegSetValueExA(key, csKey, NULL,
+        if ((dwRet = ::RegSetValueExA(key, csKey, 0,
                             REG_DWORD, (const BYTE *)dwValue, dwSize)) != ERROR_SUCCESS) {
                 char errmsg[256];
                 diags.ferror("Unable to update <%s>, error %u (%s)", csKey,
                         (unsigned)dwRet, StrError(dwRet, errmsg, sizeof(errmsg)));
                 return false;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
         return true;
 }
 
@@ -594,7 +621,7 @@ CNTServiceReg::StrError(DWORD dwError, char *buffer, size_t buflen)
         DWORD   len = ::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
                             FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL,
                             dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                                buffer, buflen - 1 /*nul*/, NULL);
+                                buffer, (DWORD)(buflen - 1 /*nul*/), NULL);
 
         if (0 == len) {
                 if ( !buffer || buflen < 32) {

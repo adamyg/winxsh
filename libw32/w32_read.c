@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_read_c,"$Id: w32_read.c,v 1.11 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_read_c,"$Id: w32_read.c,v 1.13 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
- * win32 read() implementation
+ * win32 read() system calls.
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -25,7 +25,7 @@ __CIDENT_RCSID(gr_w32_read_c,"$Id: w32_read.c,v 1.11 2022/03/15 12:15:38 cvsuser
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  *
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from

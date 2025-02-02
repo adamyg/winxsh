@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.5 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.7 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 time system calls
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -57,7 +57,7 @@ __CIDENT_RCSID(gr_w32_time_c,"$Id: w32_time.c,v 1.5 2022/03/15 12:15:38 cvsuser 
 #include <time.h>
 #include <unistd.h>
 #include <assert.h>
-
+#include <errno.h>
 
 /*
 //  NAME
@@ -125,6 +125,50 @@ w32_sleep (unsigned int secs)
 }
 
 
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" /*useconds_t*/
+#endif
+
+static void 
+sleepticks(__int64 ticks)
+{
+    HANDLE timer = 0;
+    LARGE_INTEGER due = {0};
+
+    if (ticks <= 0) return;
+    due.QuadPart = -ticks; // 100 nanosecond intervals, negative indicate relative time.
+    timer = CreateWaitableTimer(NULL, FALSE, NULL);
+    SetWaitableTimer(timer, &due, 0, NULL, NULL, FALSE);
+#if !defined(NDEBUG)
+    assert(0 == WaitForSingleObject(timer, INFINITE));
+#else
+    WaitForSingleObject(timer, INFINITE);
+#endif
+    CloseHandle(timer);
+}
+
+
+int
+usleep(useconds_t useconds)
+{
+    sleepticks(((__int64)useconds) * 10); // usec to 100-nanosecond interval.
+    return 0;
+}
+
+
+int
+nanosleep(const struct timespec *rqtp, struct timespec *rmtp /*notused*/)
+{
+    if (!rqtp || rqtp->tv_nsec > 999999999) {
+        errno = EINVAL;
+        return -1;
+    }
+    // 100 nanosecond intervals.
+    sleepticks((rqtp->tv_sec * 1000000 * 10) + (rqtp->tv_nsec / 100));
+    return 0;
+}
+
+
 /*
 //  NAME
 //
@@ -138,50 +182,80 @@ w32_sleep (unsigned int secs)
 //
 //  DESCRIPTION
 //
-//      The  gettimeofday()  function  shall  obtain  the  current  time,
-//      expressed  as  seconds  and  microseconds  since  the  Epoch, and
-//      store  it  in  the  timeval  structure  pointed  to  by  tp.  The
-//      resolution of the system clock is unspecified.
+//      The gettimeofday() function shall obtain the current time, expressed aa seconds and
+//      microseconds since the Epoch, and store it in the timeval structure pointed to by tp.
+//      The resolution of the system clock is unspecified.
 //
 //      If tzp is not a null pointer, the behavior is unspecified.
 //
 //  RETURN VALUE
-//
 //      The  gettimeofday()  function  shall  return 0 and no value shall
 //      be reserved to indicate an error.
 //
 //  ERRORS
-//
 //      No errors are defined.
 //
 */
 
+#if defined(__MINGW32__)
+#if !defined(__MINGW64_VERSION_MAJOR)
+extern int gettimeofday (struct timeval *p, void *z);
+#endif
+
+#else
+typedef void (WINAPI *GetSystemTimePreciseAsFileTime_t)(LPFILETIME lpSystemTimeAsFileTime);
+
+static unsigned long long
+GetSystemTimeNS100(void)
+{
+    static GetSystemTimePreciseAsFileTime_t fGetSystemTimePreciseAsFileTime = NULL;
+    FILETIME ft = {0};
+    unsigned long long ns100;
+
+    /* 
+     *  GetSystemTime(Precise)AsFileTime returns the number of 100-nanosecond intervals since January 1, 1601 (UTC).
+     *
+     *  GetSystemTimeAsFileTime has a resolution of approximately the TimerResolution (~15.6ms) on Windows XP.
+     *  On Windows 7 it appears to have sub-millisecond resolution. GetSystemTimePreciseAsFileTime (available on
+     *  Windows 8) has sub-microsecond resolution.
+     */
+    if (NULL == fGetSystemTimePreciseAsFileTime) {
+        HINSTANCE hinst;
+
+        if (0 == (hinst = LoadLibraryA("Kernel32")) ||
+                NULL == (fGetSystemTimePreciseAsFileTime =
+                            (GetSystemTimePreciseAsFileTime_t)GetProcAddress(hinst, "GetSystemTimePreciseAsFileTime"))) {
+            fGetSystemTimePreciseAsFileTime =
+                (GetSystemTimePreciseAsFileTime_t)GetProcAddress(hinst, "GetSystemTimeAsFileTime"); /*fall-back*/
+        }
+    }
+     
+    fGetSystemTimePreciseAsFileTime(&ft);
+
+    ns100 = ft.dwHighDateTime;
+    ns100 <<= 32UL;
+    ns100 |= ft.dwLowDateTime;
+    ns100 -= 116444736000000000LL; /* 1601->1970 epoch */
+
+    return ns100;
+}
+#endif
+
+
 LIBW32_API int
-w32_gettimeofday(
-    struct timeval *tv, /*struct timezone*/ void *tz)
+w32_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     __CUNUSED(tz)
     if (tv) {
-#if defined(_MSC_VER) || defined(__WATCOMC__)
-        struct _timeb lt;
-
-        _ftime(&lt);
-        tv->tv_sec = (long)(lt.time + lt.timezone);
-        tv->tv_usec = lt.millitm * 1000;
-        assert(4 == sizeof(tv->tv_sec));
-
-#elif defined(__MINGW32__)
+#if defined(__MINGW32__)
 #undef gettimeofday
-        return gettimeofday(tv, tz)
+        return gettimeofday(tv, tz);
 
 #else //DEFAULT
-        FILETIME ft;
-        long long hnsec;
+        const unsigned long long ns100 = GetSystemTimeNS100();
 
-        (void) GetSystemTimeAsFileTime(&ft);
-        hnsec = filetime_to_hnsec(&ft);
-        tv->tv_sec = hnsec / 10000000;
-        tv->tv_usec = (hnsec % 10000000) / 10;
+        tv->tv_sec = (long)(ns100 / 10000000);
+        tv->tv_usec = (ns100 % 10000000) / 10;
 #endif
         return 0;
     }
@@ -192,8 +266,7 @@ w32_gettimeofday(
 
 #if !defined(__MINGW32__)
 LIBW32_API int
-gettimeofday(
-    struct timeval *tv, struct timezone *tz)
+gettimeofday(struct timeval *tv, struct timezone *tz)
 {
     return w32_gettimeofday(tv, tz);
 }
@@ -318,24 +391,14 @@ w32_utime(const char *path, const struct utimbuf *times)
 LIBW32_API int
 w32_utimeA(const char *path, const struct utimbuf *times)
 {
-#if defined(__MINGW32__)
-#undef utime
-    return utime(path, (struct utimbuf *)times);
-#else
     return _utime(path, (struct _utimbuf *)times);
-#endif
 }
 
 
 LIBW32_API int
 w32_utimeW(const wchar_t *path, const struct utimbuf *times)
 {
-#if defined(__MINGW32__)
-#undef utime
-    return wutime(path, (struct utimbuf *)times);
-#else
     return _wutime(path, (struct _utimbuf *)times);
-#endif
 }
 
 /*end*/

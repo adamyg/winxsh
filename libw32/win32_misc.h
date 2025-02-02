@@ -1,14 +1,14 @@
 #ifndef LIBW32_WIN32_MISC_H_INCLUDED
 #define LIBW32_WIN32_MISC_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_misc_h,"$Id: win32_misc.h,v 1.7 2022/03/15 12:15:39 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_misc_h,"$Id: win32_misc.h,v 1.9 2025/02/02 08:46:58 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
- * win32 public interface.
+ * win32 public interface
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -32,11 +32,13 @@ __CPRAGMA_ONCE
  * ==end==
  */
 
+#include "win32_include.h"
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
 
 enum w32ostype {            /* generalised machine types, ignoring server */
+    OSTYPE_WIN_11,
     OSTYPE_WIN_10,
     OSTYPE_WIN_8,
     OSTYPE_WIN_7,
@@ -53,6 +55,9 @@ enum w32ostype {            /* generalised machine types, ignoring server */
 
 #define WIN32_PATH_MAX      1024                /* 255, unless UNC names are used */
 #define WIN32_LINK_DEPTH    8
+
+int                         w32_HTOI(HANDLE handle);
+HANDLE                      w32_ITOH(int pid);
 
 LIBW32_API enum w32ostype   w32_ostype(void);
 LIBW32_API int              w32_getexedir(char *buf, int maxlen);
@@ -72,10 +77,10 @@ LIBW32_API const wchar_t *  w32_selectfolderW(const wchar_t *message, wchar_t *p
 LIBW32_API int              w32_IsElevated(void);
 LIBW32_API int              w32_IsAdministrator(void);
 
-LIBW32_API const char *     w32_syserrorA(DWORD dwError, char *buf, int bufien);
-LIBW32_API const char *     w32_vsyserrorA(DWORD dwError, char *buf, int bufien, ...);
-LIBW32_API const wchar_t *  w32_syserrorW(DWORD dwError, wchar_t *buf, int buflen);
-LIBW32_API const wchar_t *  w32_vsyserrorW(DWORD dwError, wchar_t *buf, int buflen, ...);
+LIBW32_API const char *     w32_syserrorA(DWORD dwError, char *buf, size_t bufien);
+LIBW32_API const char *     w32_vsyserrorA(DWORD dwError, char *buf, size_t bufien, ...);
+LIBW32_API const wchar_t *  w32_syserrorW(DWORD dwError, wchar_t *buf, size_t buflen);
+LIBW32_API const wchar_t *  w32_vsyserrorW(DWORD dwError, wchar_t *buf, size_t buflen, ...);
 
 __END_DECLS
 

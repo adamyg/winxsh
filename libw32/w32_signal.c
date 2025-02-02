@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_signal_c,"$Id: w32_signal.c,v 1.1 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_signal_c,"$Id: w32_signal.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 signal support
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -32,7 +32,7 @@ __CIDENT_RCSID(gr_w32_signal_c,"$Id: w32_signal.c,v 1.1 2022/03/15 12:15:38 cvsu
 #include <unistd.h>
 #include <signal.h>
 
-#if !defined(__MINGW32__)
+#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
 /*
 //  NAME
 //      sigemptyset - initialize and empty a signal set
@@ -55,9 +55,10 @@ __CIDENT_RCSID(gr_w32_signal_c,"$Id: w32_signal.c,v 1.1 2022/03/15 12:15:38 cvsu
 LIBW32_API int
 sigemptyset(sigset_t *ss)
 {
-//  if (ss) {
-//      memset(ss, 0, sizeof(*ss));
-//  }
+    if (ss) {
+        memset(ss, 0, sizeof(*ss));
+        return 0;
+    }
     errno = EINVAL;
     return -1;
 }
@@ -66,6 +67,11 @@ sigemptyset(sigset_t *ss)
 LIBW32_API int
 sigaction(int sig, struct sigaction *sa, struct sigaction *osa)
 {
+    switch (sig) {
+    case SIGPIPE:
+        return 0;
+    }
+
 //  if (sa) {
 //      if (osa) {
 //          osa->sa_handler = signal(sig, (void (__cdecl *)(int))sa->sa_handler);
@@ -74,7 +80,6 @@ sigaction(int sig, struct sigaction *sa, struct sigaction *osa)
 //          signal(sig, (void (__cdecl *)(int))sa->sa_handler);
 //      }
 //  }
-
     errno = EINVAL;
     return -1;
 }

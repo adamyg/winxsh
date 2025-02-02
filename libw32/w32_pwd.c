@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_pwd_c,"$Id: w32_pwd.c,v 1.8 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_pwd_c,"$Id: w32_pwd.c,v 1.10 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 pwd(2) implementation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -50,6 +50,8 @@ __CIDENT_RCSID(gr_w32_pwd_c,"$Id: w32_pwd.c,v 1.8 2022/03/15 12:15:38 cvsuser Ex
 #include <Lm.h>
 
 #pragma comment(lib, "Netapi32.lib")
+
+struct WellKnownSID;
 
 static void                 fill_passwds(void);
 static int                  fill_builtin(const struct WellKnownSID *wksid, struct passwd *pwd, char *name, size_t namlen);
@@ -457,6 +459,12 @@ static struct WellKnownSID {
     DWORD SubAuth[2];
 
 } well_known_sids[] = {
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#define SECURITY_THIS_ORGANIZATION_RID 15
+#define SECURITY_LOCAL_SERVICE_RID 19
+#define SECURITY_NETWORK_SERVICE_RID 20
+#endif
+
     // See: "wmic sysaccount get name,sid"
     {"S-1-5-1", SECURITY_NT_AUTHORITY, 1, {SECURITY_DIALUP_RID}},
     {"S-1 5-2", SECURITY_NT_AUTHORITY, 1, {SECURITY_NETWORK_RID}},
@@ -545,8 +553,8 @@ fill_passwds(void)
             if (x_passwds) {
                 struct passwd *t_passwds = (struct passwd *)realloc(x_passwds,
                                             (sizeof(struct passwd) * ntotal) + cbufsz + bufsz);
-                const int addrdiff = ((char *)t_passwds - (char *)x_passwds) +
-                                        (sizeof(struct passwd) * count);
+                const ptrdiff_t addrdiff = ((char *)t_passwds - (char *)x_passwds) +
+                                            (sizeof(struct passwd) * count);
 
                 if (NULL == t_passwds) {        // realloc failure
                     NetApiBufferFree(users);
@@ -639,7 +647,7 @@ fill_builtin(const struct WellKnownSID *wksid,
             pSID = NULL;
         }
     } else {
-        if (! ConvertStringSidToSidA(wksid->name, &pSID)) {
+        if (! ConvertStringSidToSidA((char *)wksid->name, &pSID)) {
             pSID = NULL;
         }
     }
@@ -712,11 +720,11 @@ fill_passwd(void)
 }
 
 
-static int
+static size_t
 pw_strlen(const char *s, size_t *total)
 {
     if (s && *s) {
-        const int slen = strlen(s);
+        const size_t slen = strlen(s);
         *total += (slen + 1);
         return slen;
     }

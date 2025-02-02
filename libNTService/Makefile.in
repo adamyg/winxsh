@@ -1,11 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.5 2022/03/17 03:44:19 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2025/02/02 08:47:18 cvsuser Exp $
 # libNTService makefile.
 #
-# Copyright (c) 2020, Adam Young.
+# Copyright (c) 2020 - 2025, Adam Young.
 # All rights reserved.
-#
-# This file is part of the WinRSH/WinSSH project.
 #
 # The applications are free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -70,7 +68,7 @@ endif
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/libNTService
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/libNTService
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 
 # Common flags
@@ -78,6 +76,9 @@ D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
 XFLAGS=
 CFLAGS=		@CFLAGS@
 CWARN=		@CWARN@
+ifeq (gcc,$(findstring gcc,$(CC)))
+CWARN+=		-Wno-unused-result -Wno-unused-parameter -Wno-deprecated-declarations -Wno-write-strings
+endif
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
 CXXFLAGS=	@CXXFLAGS@
@@ -97,11 +98,11 @@ CEXTRA= 	@DEFS@
 
 ifeq ("$(BUILD_TYPE)","release")
 CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CXXFLAGS+=	$(CXXRELEASE) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+CXXFLAGS+=	$(CXXRELEASE) $(CXXWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDRELEASE) @LDFLAGS@
 else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
-CXXFLAGS+=	$(CXXDEBUG) $(CWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
+CXXFLAGS+=	$(CXXDEBUG) $(CXXWARN) $(CINCLUDE) @CXXINCLUDE@ $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
 LDLIBS=		-L$(D_LIB) @LIBS@ @EXTRALIBS@
@@ -110,9 +111,13 @@ ARFLAGS=	rcv
 YFLAGS=		-d
 RMFLAGS=	-f
 
-############################################################
+
+#########################################################################################
+# Targets
 
 LIBROOT=	NTService
+
+VPATH=		.
 
 CPPSOURCES=\
 	NTService.cpp\
@@ -123,15 +128,19 @@ CPPSOURCES=\
 RESOURCES=\
 	NTServMsg.rc
 
-VPATH=		.
-LIBOBJS=\
-	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES))) \
-	$(addprefix $(D_OBJ)/,$(subst .cpp,$(O),$(CPPSOURCES))) \
-	$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
+LIBOBJS+=	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
+LIBOBJS+=	$(addprefix $(D_OBJ)/,$(subst .cpp,$(O),$(CPPSOURCES)))
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
+LIBOBJS+=	$(addprefix $(D_OBJ)/,$(subst .rc,_res.o,$(RESOURCES)))
+else
+LIBOBJS+=	$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
+endif
 
 LIBRARY=	$(D_LIB)/$(LP)$(LIBROOT)$(A)
 
-############################################################
+
+#########################################################################################
+# Rules
 
 .PHONY:			build release debug
 build:		$(LIBRARY) $(TSKS)
@@ -155,12 +164,15 @@ clean:
 
 $(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
-		
+
 $(D_OBJ)/%$(O):		%.cpp
 		$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(D_OBJ)/%.res:		%.rc
-		$(RC) -nologo -Fo$@ -I. -I../include $<
+		$(RC) -I. -I../include -fo $@ $<
+
+$(D_OBJ)/%_res.o:	%.rc
+		$(RC) -I. -I../include -o $@ $<
 
 #end
 

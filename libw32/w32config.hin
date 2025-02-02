@@ -1,16 +1,13 @@
 #ifndef WIN32_CONFIG_H_INCLUDED
 #define WIN32_CONFIG_H_INCLUDED
-#include <edidentifier.h>
-__CIDENT_RCSID(gr_config_h, "$Id: w32config.hin,v 1.12 2022/03/15 12:15:39 cvsuser Exp $")
-__CPRAGMA_ONCE
 /* -*- mode: c; set-indent: 4; -*- */
-/* $Id: w32config.hin,v 1.12 2022/03/15 12:15:39 cvsuser Exp $
+/* $Id: w32config.hin,v 1.15 2025/02/02 08:46:58 cvsuser Exp $
  * Machine configuration.
  *
  * System dependent <config.h> configuration template,
  * Windows targets (see makelib.pl for details).
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2024, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,9 +28,11 @@ __CPRAGMA_ONCE
 
 #if !defined(_MSC_VER)
 #if !defined(__WATCOMC__)
+#if !defined(__MINGW32__)
 #error config.h: MSVC or WATCOMC targets only ...
 #endif
-#endif /*MSC || WATCOM*/
+#endif
+#endif /*MSC || WATCOM || MINGW */
 
 #undef MAKELIB_CC_COMPILER
 #undef MAKELIB_CC_VERSION
@@ -46,19 +45,17 @@ __CPRAGMA_ONCE
 #pragma warning (disable : 4706)                // assignment within conditional expression
 #pragma warning (disable : 4996)
 
-#if !defined(__cplusplus)
-    /*
-     *  <system_error> is incompatible with _CRT_NO_POSIX_ERROR_CODES.
-     */
-#if !defined(_CRT_NO_POSIX_ERROR_CODES)
-#define _CRT_NO_POSIX_ERROR_CODES               // disable POSIX error number, see <errno.h>
-#endif
+#if defined(_CRT_NO_POSIX_ERROR_CODES)
+#pragma message("<system_error> is incompatible with _CRT_NO_POSIX_ERROR_CODES.")
 #endif
 
 #elif defined(__WATCOMC__)
 #if !defined(__cplusplus)
 #pragma disable_message(136)                    // comparison equivalent to 'unsigned == 0'
 #pragma disable_message(138)                    // no newline at end of file
+#if (__WATCOMC__ >= 1300)                       // owc2.0
+#pragma disable_message(303)                    // parameter 'xxx' has been defined, but not referenced.
+#endif
 #endif
 #pragma disable_message(201)                    // unreachable code
 #pragma disable_message(202)                    // symbol 'xxx' has been defined, but not referenced
@@ -112,6 +109,9 @@ __CPRAGMA_ONCE
 #undef HAVE_WINCRYPT_H
 #undef HAVE_WINIOCTL_H
 #undef HAVE_BCRYPT_H
+#undef HAVE_AFUNIX_H
+#undef HAVE_INTRIN_H
+#undef HAVE_INTSAFE_H
 
 /* Explicit header checks */
 #undef HAVE_SYS_TYPES_H
@@ -132,6 +132,7 @@ __CPRAGMA_ONCE
 #undef HAVE_SYS_STATVFS_H
 #undef HAVE_SYS_VFS_H
 #undef HAVE_SYS_MMAN_H
+#undef HAVE_SYS_TIMEB_H
 #undef HAVE_WAIT_H
 #undef HAVE_POLL_H
 #undef HAVE_SYS_PRCTL_H
@@ -146,6 +147,7 @@ __CPRAGMA_ONCE
 #undef HAVE_STDATOMIC_H
 #undef HAVE_THREADS_H
 #undef HAVE_XTHREADS_H
+#undef HAVE_LIBPTHREAD
 
 #undef HAVE_THREAD_H
 #undef HAVE_PTHREAD_H
@@ -173,6 +175,7 @@ __CPRAGMA_ONCE
 #undef HAVE_STRING_H
 #undef HAVE_UNISTD_H
 #undef HAVE_MATH_H
+#undef HAVE_LANGINFO_H
 
 #undef HAVE_ARGZ_H
 #undef HAVE_LIBGEN_H
@@ -278,7 +281,8 @@ __CPRAGMA_ONCE
 #undef SIZEOF_LONG_LONG 4
 #undef SIZEOF_VOID_P 4
 #define SIZEOF_VOIDP SIZEOF_VOID_P
-#undef SIZEOF_WCHAR_T
+#undef SIZEOF_WCHAR_T 2
+#undef SIZEOF_TIME_T 4
 
 #undef HAVE_INLINE
 #undef HAVE___INLINE
@@ -386,7 +390,7 @@ __CPRAGMA_ONCE
  */
 
         /* environ support */
-	
+
 #undef HAVE_ENVIRON
 #undef HAVE__ENVIRON
 #undef HAVE___ENVIRON
@@ -457,9 +461,11 @@ __CPRAGMA_ONCE
 #undef HAVE_STRCASECMP
 #undef HAVE_STRNCASECMP
 #undef HAVE___STRCASECMP
+#undef HAVE___STRNCASECMP
 #undef HAVE_STRCHR
 #undef HAVE_STRERROR
 #undef HAVE_STRICMP
+#undef HAVE_STRNICMP
 #undef HAVE_STRRCHR
 #undef HAVE_STRDUP
 #undef HAVE_STRFTIME
@@ -467,6 +473,7 @@ __CPRAGMA_ONCE
 #undef HAVE_STRTOF
 #undef HAVE_STRTOLD
 #undef HAVE_STRTOLL
+#undef HAVE_STRTOULL
 #undef HAVE_STRVERSCMP
 #undef HAVE___STRVERSCMP
 #undef HAVE_STRNLEN
@@ -479,6 +486,7 @@ __CPRAGMA_ONCE
 #undef HAVE_STRCASESTR
 #undef HAVE_STRCASESTR_L
 #undef HAVE_STRTONUM
+#undef HAVE_STRTOK_R
 
 #undef HAVE_ISASCII
 #undef HAVE___ISASCII
@@ -492,7 +500,6 @@ __CPRAGMA_ONCE
 #undef HAVE_SETPGRP
 #undef HAVE_SETSID
 
-#undef HAVE_STRTOK_R
 #undef HAVE_STRERROR_L
 #undef HAVE_STRERROR_R
 
@@ -571,6 +578,21 @@ __CPRAGMA_ONCE
 #undef CLOSEDIR_VOID
 #undef GETPGRP_VOID
 
+#undef CCX_VA_ARGS
+#undef CC_VA_ARGS
+#undef HAVE_VA_ARGS
+#if !defined(HAVE_VA_ARGS)
+#if defined(__cplusplus)
+#if defined(CCX_VA_ARGS)
+#define HAVE_VA_ARGS 1
+#endif
+#else
+#if defined(CC_VA_ARGS)
+#define HAVE_VA_ARGS 1
+#endif
+#endif /*__cplusplus*/
+#endif /*!HAVE_VA_ARGS*/
+
 #undef HAVE_VA_COPY
 #undef HAVE___VA_COPY
 #undef HAVE_VPRINTF
@@ -584,11 +606,13 @@ __CPRAGMA_ONCE
 #undef HAVE__VSNPRINTF
 #undef HAVE_ASPRINTF
 #undef HAVE_VASPRINTF
+#undef HAVE_SPRINTF_S
 
 #undef HAVE_LOCALE_H
 #undef HAVE_SETLOCALE
 #undef HAVE_LANGINFO_CODESET
 #undef HAVE_LOCALE_CHARSET
+#undef HAVE_NL_LANGINFO
 
 #undef HAVE_VFORK_H
 #undef HAVE_FORK

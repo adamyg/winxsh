@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_mknod_c,"$Id: w32_mknod.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_mknod_c,"$Id: w32_mknod.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 mknod() system calls.
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *

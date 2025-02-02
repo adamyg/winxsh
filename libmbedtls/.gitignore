@@ -1,6 +1,10 @@
-mbedtls-2.13.0/
-mbedtls-2.16.6/
-mbedtls-2.27.0*/
+mbedtls-2.13.*
+readme_2_13_*
+mbedtls-2.16.*
+readme_2_16_*
+mbedtls-2.27.0/
+mbedtls-3.6.2/
+Makefile.in.*
 .unpacked.*
 Makefile
 *.err

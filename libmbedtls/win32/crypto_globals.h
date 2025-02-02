@@ -1,7 +1,7 @@
 #ifndef CRYPTO_GLOBALS_H_INCLUDED
 #define CRYPTO_GLOBALS_H_INCLUDED
 #pragma once
-//$Id: crypto_globals.h,v 1.2 2022/03/20 10:09:49 cvsuser Exp $
+//$Id: crypto_globals.h,v 1.3 2025/02/01 19:25:39 cvsuser Exp $
 //
 //  libmbedcrypto support
 //

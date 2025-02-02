@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -118,6 +118,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libtermemu\keysymdb.h" />
+    <ClInclude Include="..\..\libtermemu\termemu_cio.h" />
+    <ClInclude Include="..\..\libtermemu\termemu_keymap.h" />
+    <ClInclude Include="..\..\libtermemu\termemu_keysym.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libw32\libw32.vcxproj">

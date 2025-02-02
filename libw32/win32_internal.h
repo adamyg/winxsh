@@ -1,14 +1,14 @@
 #ifndef LIBW32_WIN32_INTERNAL_H_INCLUDED
 #define LIBW32_WIN32_INTERNAL_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_win32_internal_h,"$Id: win32_internal.h,v 1.10 2022/03/15 12:15:39 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_win32_internal_h,"$Id: win32_internal.h,v 1.12 2025/02/02 08:46:58 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * internal definitions.
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -42,7 +42,8 @@ __CPRAGMA_ONCE
 #include <unistd.h>
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400) || \
-    defined(__WATCOMC__)
+    defined(__WATCOMC__) || \
+    defined(__MINGW32__)
 #define WIN32_OPEN      _open
 #define WIN32_WOPEN     _wopen
 #define WIN32_CLOSE     _close
@@ -55,7 +56,6 @@ __CPRAGMA_ONCE
 #define WIN32_STRNICMP  _strnicmp
 #define WIN32_STRDUP    _strdup
 #define WIN32_STRDUPW   _wcsdup
-#define WIN32_TZSET     _tzset
 #else
 #define WIN32_OPEN      open
 #define WIN32_WOPEN     wopen
@@ -69,7 +69,20 @@ __CPRAGMA_ONCE
 #define WIN32_STRNICMP  strnicmp
 #define WIN32_STRDUP    strdup
 #define WIN32_STRDUPW   wcsdup
+#endif
+
+#if (defined(_MSC_VER) && _MSC_VER >= 1400) || \
+    defined(__MINGW32__)
+#define WIN32_TZSET     _tzset
+#else
 #define WIN32_TZSET     tzset
+#endif
+
+#if (defined(_MSC_VER) && defined(_WIN64)) || \
+    defined(__MINGW64__)
+#define OSFHANDLE       intptr_t
+#else
+#define OSFHANDLE       long
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
@@ -149,8 +162,8 @@ LIBW32_API SOCKET       w32_sockfd_get (int fd);
 LIBW32_API void         w32_sockfd_close (int fd, SOCKET s);
 LIBW32_API int          w32_issockfd (int fd, SOCKET *s);
 
-LIBW32_API int          w32_reparse_readA (const char *name, char *buf, int maxlen);
-LIBW32_API int          w32_reparse_readW (const wchar_t *name, wchar_t *buf, int maxlen);
+LIBW32_API int          w32_reparse_readA (const char *name, char *buf, size_t maxlen);
+LIBW32_API int          w32_reparse_readW (const wchar_t *name, wchar_t *buf, size_t maxlen);
 
 __END_DECLS
 

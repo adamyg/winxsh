@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.5 2022/03/20 13:48:59 cvsuser Exp $
+# $Id: Makefile.in,v 1.7 2025/02/02 08:46:30 cvsuser Exp $
 # winrsh makefile.
 #
 #
-# Copyright (c) 2015 - 2022 Adam Young.
+# Copyright (c) 2015 - 2025 Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -48,6 +48,8 @@ ifeq ("$(CXX)","")
 CXX=		$(CC)
 endif
 RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 RC=		@RC@
 
 # Configuration
@@ -64,8 +66,8 @@ endif
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/rsh
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/rlogin
 
 # Common flags
 
@@ -117,7 +119,7 @@ debug:
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)
@@ -134,7 +136,7 @@ $(D_OBJ)/%$(O):		$(D_GR)/%$(C)
 		$(CC) $(CFLAGS) -o $@ -c $<
 
 $(D_OBJ)/%.res: 	%.rc
-		$(RC) -nologo -Fo$@ -I../include -I../libNTService $<
+		$(RC) -Fo$@ -I../include -I../libNTService $<
 
 #end
 

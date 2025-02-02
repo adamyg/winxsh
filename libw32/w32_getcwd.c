@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getcwd_c,"$Id: w32_getcwd.c,v 1.6 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getcwd_c,"$Id: w32_getcwd.c,v 1.8 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 getcwd() implementation
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -36,6 +36,8 @@ __CIDENT_RCSID(gr_w32_getcwd_c,"$Id: w32_getcwd.c,v 1.6 2022/03/15 12:15:37 cvsu
  */
 
 #include "win32_internal.h"
+#include "win32_io.h"
+
 #include <ctype.h>
 #include <errno.h>
 
@@ -88,7 +90,7 @@ __CIDENT_RCSID(gr_w32_getcwd_c,"$Id: w32_getcwd.c,v 1.6 2022/03/15 12:15:37 cvsu
 */
 
 LIBW32_API char *
-w32_getcwd(char *path, int size)
+w32_getcwd(char *path, size_t size)
 {
     if (NULL == path || size <= 0) {
         errno = EINVAL;
@@ -124,14 +126,15 @@ w32_getcwd(char *path, int size)
             return NULL;
         }
 #endif  //UTF8FILENAMES
-    }
 
-    return w32_getcwdA(path, size);
+        return w32_getcwdA(path, size);
+    }
+    return NULL;
 }
 
 
 LIBW32_API char *
-w32_getcwdA(char *path, int size)
+w32_getcwdA(char *path, size_t size)
 {
     char t_path[WIN32_PATH_MAX];
 
@@ -183,7 +186,7 @@ w32_getcwdA(char *path, int size)
 
 
 LIBW32_API wchar_t *
-w32_getcwdW(wchar_t *path, int size)
+w32_getcwdW(wchar_t *path, size_t size)
 {
     wchar_t t_path[WIN32_PATH_MAX];
 

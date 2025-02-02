@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_grp_c, "$Id: w32_grp.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_grp_c, "$Id: w32_grp.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 pwd() implementation
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -478,7 +478,7 @@ setgroups(size_t size, const gid_t *gidset)
 static void
 fill_groups(void)
 {
-    DWORD resume_handle = 0;
+    DWORD_PTR resume_handle = 0;
     NET_API_STATUS nStatus;
     unsigned cbufsz = 0;
     char name[MAX_PATH];
@@ -537,8 +537,8 @@ fill_groups(void)
             if (x_groups) {
                 struct group *t_groups = (struct group *)realloc(x_groups,
                                             (sizeof(struct group) * ntotal) + cbufsz + bufsz);
-                const int addrdiff = ((char *)t_groups - (char *)x_groups) +
-                                        (sizeof(struct group) * count);
+                const ptrdiff_t addrdiff = ((char *)t_groups - (char *)x_groups) +
+                                            (sizeof(struct group) * count);
 
                 if (NULL == t_groups) {         // realloc failure
                     NetApiBufferFree(groups);
@@ -642,11 +642,11 @@ fill_group(void)
 }
 
 
-static int
+static size_t
 gr_strlen(const char *s, size_t *total)
 {
     if (s && *s) {
-        const int slen = strlen(s);
+        const size_t slen = strlen(s);
         *total += (slen + 1);
         return slen;
     }

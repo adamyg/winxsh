@@ -2,52 +2,67 @@ name: build
 on: [push]
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        config:
+        - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            toolchain: vc2022,
+            toolversion: vs170
+          }
 
     steps:
+
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Checkout submodules
       run: |
         git submodule update --init --recursive
 
-    - uses: ilammy/msvc-dev-cmd@v1
+    - name: MSVC setup
+      uses: ilammy/msvc-dev-cmd@v1
+      if: startsWith(matrix.config.name, 'Windows Latest MSVC')
       with:
         arch: x86
 
-    - name: Generating environment
+    - name: Generate
       shell: cmd
       run: |
+        @set BUSYBOX=./support/busybox
         @set PERL=c:/Strawberry/perl/bin/perl
-        c:/Strawberry/perl/bin/perl makelib.pl --perlpath=c:/Strawberry/perl/bin --busybox=./support/busybox --verbose vc2019
-        choco install innosetup --version=5.6.1 --force
+        c:/Strawberry/perl/bin/perl makelib.pl --perlpath=c:/Strawberry/perl/bin --busybox=%BUSYBOX% --verbose "${{ matrix.config.toolchain }}"
 
     - name: Compile
+      if: startsWith(matrix.config.name, 'Windows Latest')
       shell: cmd
       run: |
         @set PERL=c:/Strawberry/perl/bin/perl
         .\support\gmake-42 release build
 
-    - name: Package
+    - name: Installer
+      if: startsWith(matrix.config.name, 'Windows Latest MSVC') || startsWith(matrix.config.name, 'Windows Latest OWC')
       shell: cmd
       run: |
         @set PERL=c:/Strawberry/perl/bin/perl
+        choco install innosetup --version=5.6.1 --force
         @rem .\support\gmake-42 release package
         "%programfiles(x86)%\Inno Setup 5\ISCC" -DBUILD_INFO=1 -DBUILD_TYPE=release ".\releases\xsh-inno-setup.iss"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: xsh-package
         path: ./releases/xsh-build*-setup.exe
 
     - name: Release artifacts
+      if: startsWith(matrix.config.name, 'Windows Latest MSVC') || startsWith(matrix.config.name, 'Windows Latest OWC')
       uses: softprops/action-gh-release@v1
       with:
         files: ./releases/xsh-build*-setup.exe
         draft: true
+

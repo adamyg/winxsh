@@ -2,7 +2,7 @@
  * CNTService - Classic window services framework (tweaked).
  * Service Control
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -22,7 +22,7 @@
  * This project is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * License for more details.
+ * license for more details.
  * ==end==
  */
 
@@ -30,21 +30,21 @@
 #include "NTString.h"
 
 class CNTServiceControl {
-    CNTServiceControl(const class CNTServiceControl &) /*=delete*/;
-    CNTServiceControl& operator=(const CNTServiceControl &) /*=delete*/;
+        CNTServiceControl(const class CNTServiceControl &) /*=delete*/;
+        CNTServiceControl& operator=(const CNTServiceControl &) /*=delete*/;
 
 public:
-    CNTServiceControl(const char *svcname, NTService::IDiagnostics &diags = NTService::StdioDiagnosticsIO::Get());
-    ~ CNTServiceControl();
+        CNTServiceControl(const char *svcname, NTService::IDiagnostics &diags = NTService::StdioDiagnosticsIO::Get());
+        ~ CNTServiceControl();
 
-    int  ExecuteCommand(int argc, const char * const *argv, unsigned filter = 0);
-    void Start();
-    void UpdateDacl();
-    void Stop();
+        int  ExecuteCommand(int argc, const char * const *argv, unsigned filter = 0);
+        void Start();
+        void UpdateDacl();
+        void Stop();
 
 private:
-    NTService::IDiagnostics &diags_;
-    NTService::CString svcName_;
+        NTService::IDiagnostics &diags_;
+        NTService::CString svcName_;
 };
 
 //end

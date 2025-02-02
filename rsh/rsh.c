@@ -364,7 +364,7 @@ checkfd(struct pollfd *fdp, int outfd)
 		return 0;
 
 	errno = 0;
-	nr = w32_read(fdp->fd, buf, sizeof buf);
+	nr = w32_read((int)fdp->fd, buf, sizeof buf);
 
 	if (nr <= 0) {
 		if (errno != EAGAIN)
@@ -453,8 +453,8 @@ talk(int nflag, int rem)
 static char *
 copyargs(char **argv)
 {
-	int cc;
 	char **ap, *args, *p, *ep;
+	size_t cc;
 
 	cc = 0;
 	for (ap = argv; *ap; ++ap)

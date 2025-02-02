@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_tsm_c,"$Id: termemu_tsm.c,v 1.12 2022/03/20 08:22:55 cvsuser Exp $")
+__CIDENT_RCSID(termemu_tsm_c,"$Id: termemu_tsm.c,v 1.14 2025/02/02 13:58:14 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

@@ -53,7 +53,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../libw32;../../libw32/msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HAVE_CONFIG_H;LIBW32_LIBRARY;LIBW32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -67,7 +67,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../libw32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;HAVE_CONFIG_H;LIBW32_LIBRARY;LIBW32_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -106,6 +106,8 @@
     <ClCompile Include="..\..\libw32\w32_getlocale.c" />
     <ClCompile Include="..\..\libw32\w32_getopt.c" />
     <ClCompile Include="..\..\libw32\w32_getopt_long.c" />
+    <ClCompile Include="..\..\libw32\w32_getopt_vars.c" />
+    <ClCompile Include="..\..\libw32\w32_getrlimit.c" />
     <ClCompile Include="..\..\libw32\w32_getrusage.c" />
     <ClCompile Include="..\..\libw32\w32_getsubopt.c" />
     <ClCompile Include="..\..\libw32\w32_gistrerror.c" />
@@ -121,8 +123,10 @@
     <ClCompile Include="..\..\libw32\w32_mkstemp.c" />
     <ClCompile Include="..\..\libw32\w32_mmap.c" />
     <ClCompile Include="..\..\libw32\w32_neterr.c" />
+    <ClCompile Include="..\..\libw32\w32_pipe.c" />
     <ClCompile Include="..\..\libw32\w32_poll.c" />
     <ClCompile Include="..\..\libw32\w32_popen.c" />
+    <ClCompile Include="..\..\libw32\w32_proctitle.c" />
     <ClCompile Include="..\..\libw32\w32_progname.c" />
     <ClCompile Include="..\..\libw32\w32_pwd.c" />
     <ClCompile Include="..\..\libw32\w32_read.c" />
@@ -132,6 +136,7 @@
     <ClCompile Include="..\..\libw32\w32_reparse.c" />
     <ClCompile Include="..\..\libw32\w32_rwlock.c" />
     <ClCompile Include="..\..\libw32\w32_select.c" />
+    <ClCompile Include="..\..\libw32\w32_setrlimit.c" />
     <ClCompile Include="..\..\libw32\w32_shell.c" />
     <ClCompile Include="..\..\libw32\w32_signal.c" />
     <ClCompile Include="..\..\libw32\w32_sockbase.c" />
@@ -144,6 +149,7 @@
     <ClCompile Include="..\..\libw32\w32_string.c" />
     <ClCompile Include="..\..\libw32\w32_strlcat.c" />
     <ClCompile Include="..\..\libw32\w32_strlcpy.c" />
+    <ClCompile Include="..\..\libw32\w32_strsep.c" />
     <ClCompile Include="..\..\libw32\w32_strtoll.c" />
     <ClCompile Include="..\..\libw32\w32_strtoull.c" />
     <ClCompile Include="..\..\libw32\w32_sysdir.c" />

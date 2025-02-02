@@ -98,15 +98,6 @@
     <ClInclude Include="..\..\libtermemu\compat_stdint.h">
       <Filter>Header Files\libemu</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libtermemu\tsm\shl_array.h">
-      <Filter>Header Files\libemu</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\libtermemu\tsm\shl_htable.h">
-      <Filter>Header Files\libemu</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\libtermemu\tsm\shl_llog.h">
-      <Filter>Header Files\libemu</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libtermemu\shl_ring.h">
       <Filter>Header Files\libemu</Filter>
     </ClInclude>

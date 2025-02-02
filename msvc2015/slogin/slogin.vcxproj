@@ -164,9 +164,6 @@
     <ClInclude Include="..\..\libtermemu\termemu_tsm.h" />
     <ClInclude Include="..\..\libtermemu\termemu_vio.h" />
     <ClInclude Include="..\..\libtermemu\termios.h" />
-    <ClInclude Include="..\..\libtermemu\tsm\shl_array.h" />
-    <ClInclude Include="..\..\libtermemu\tsm\shl_htable.h" />
-    <ClInclude Include="..\..\libtermemu\tsm\shl_llog.h" />
     <ClInclude Include="..\..\slogin\console.h" />
     <ClInclude Include="..\..\slogin\options.h" />
   </ItemGroup>

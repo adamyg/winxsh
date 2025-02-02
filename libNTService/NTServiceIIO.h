@@ -4,7 +4,7 @@
 /*
  * CNTService - Classic window services framework (tweaked).
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -27,26 +27,28 @@
  * license for more details.
  * ==end==
  */
+ 
+#include <stdarg.h>
 
 namespace NTService {
 
-    // Diagnostics interface.
-    struct IDiagnostics {
-        virtual void ferror(const char *fmt, ...) = 0;
-        virtual void fwarning(const char *fmt, ...) = 0;
-        virtual void finfo(const char *fmt, ...) = 0;
-        virtual void fdebug(const char *fmt, ...) = 0;
+        // Diagnostics interface.
+        struct IDiagnostics {
+                virtual void ferror(const char *fmt, ...) = 0;
+                virtual void fwarning(const char *fmt, ...) = 0;
+                virtual void finfo(const char *fmt, ...) = 0;
+                virtual void fdebug(const char *fmt, ...) = 0;
 
-        virtual void verror(const char *fmt, va_list) = 0;
-        virtual void vwarning(const char *fmt, va_list) = 0;
-        virtual void vinfo(const char *fmt, va_list) = 0;
-        virtual void vdebug(const char *fmt, va_list) = 0;
+                virtual void verror(const char *fmt, va_list) = 0;
+                virtual void vwarning(const char *fmt, va_list) = 0;
+                virtual void vinfo(const char *fmt, va_list) = 0;
+                virtual void vdebug(const char *fmt, va_list) = 0;
 
-        virtual void error(const char *msg) = 0;
-        virtual void warning(const char *msg) = 0;
-        virtual void info(const char *msg) = 0;
-        virtual void debug(const char *msg) = 0;
-    };
+                virtual void error(const char *msg) = 0;
+                virtual void warning(const char *msg) = 0;
+                virtual void info(const char *msg) = 0;
+                virtual void debug(const char *msg) = 0;
+        };
 
 };  //namespace NTService
 

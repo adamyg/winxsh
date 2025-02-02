@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.10 2022/03/20 08:22:56 cvsuser Exp $")
+__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.13 2025/02/02 13:58:14 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console keyboard test application
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -28,7 +28,7 @@ __CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.10 2022/03/20 08:22:56 
  * License for more details.
  * ==end==
  */
- 
+
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
@@ -232,7 +232,7 @@ main(int argc, char *argv[])
 
 			cio = termemu_cio_keyevent(key, &evt);
 		}
-		
+
 		KeyboardPush(oconsole, vkstatus, &evt);
 		esc = (0x1b == key->uChar.AsciiChar ? esc + 1 : 0);
 
@@ -242,7 +242,7 @@ main(int argc, char *argv[])
 		if (key->uChar.AsciiChar >= 0x20 && key->uChar.AsciiChar <= 0x7f /*isprint*/) {
 			printf("VK:%u/0x%x SCAN:0x%04x Ascii(0x%x/%c)",
 			    key->wVirtualKeyCode, key->wVirtualKeyCode, key->wVirtualScanCode, key->uChar.AsciiChar, key->uChar.AsciiChar);
-		} else {				
+		} else {
 			printf("VK:%u/0x%x SCAN:0x%04x Unicode(0x%x)",
 			    key->wVirtualKeyCode, key->wVirtualKeyCode, key->wVirtualScanCode, key->uChar.UnicodeChar);
 		}
@@ -281,7 +281,7 @@ main(int argc, char *argv[])
 
 static void
 Verify(const termemu_event_t *evt)
-{	
+{
 #if defined(_DEBUG)	// Verify KeySymbol support functions
 	if (evt->xkbkey) {
 		const char *str = termemu_keysym_tostr(evt->xkbkey);
@@ -341,9 +341,9 @@ KeyboardExport(const char *out)
 
 		fprintf(f, "! exported keymap\n");
 		fprintf(f, "xterm.VT100.translations: #override \\n\\\n");
-		for (r = 0; r < recorded; ++r) {		
+		for (r = 0; r < recorded; ++r) {
 			if (r) {
-				if (0 == strcmp(events[r].str, events[r-1].str)) 
+				if (0 == strcmp(events[r].str, events[r-1].str))
 					continue; //dup; ignore
 				fprintf(f, " \\n\\\n");
 			}
@@ -364,28 +364,32 @@ KeyboardPush(HANDLE console, BYTE *status, const termemu_event_t *evt)
 {
 	const unsigned vkkey =
 		(evt->ascii ? (evt->ascii < 0x7f ? tolower(evt->ascii) : evt->ascii)
-			: (evt->vkkey + (evt->vkenhanced ? 0x1ff : 0xff)));
+			: ((evt->vkkeyalt ? evt->vkkeyalt : evt->vkkey) + (evt->vkenhanced ? 0x1ff : 0xff)));
 	const unsigned modifiers = evt->modifiers;
 
 	if (vkkey) {
 		status[vkkey] |= VKS_PRESS|VKS_DONE;
 
-		status[VK_CAPITAL+0xff]	= GetKeyState(VK_CAPITAL)?VKS_ON:0;
-		status[VK_SCROLL+0xff]	= GetKeyState(VK_SCROLL) ?VKS_ON:0;
-		status[VK_NUMLOCK+0xff]	= GetKeyState(VK_NUMLOCK)?VKS_ON:0;
-		status[VK_APPS+0xff]	= GetKeyState(VK_APPS)   ?VKS_ON:0;
-		status[VK_SHIFT+0xff]	= 0;
-		status[VK_CONTROL+0xff] = 0;
-		status[VK_MENU+0xff]	= 0;
-		status[VK_MENU+0x1ff]	= 0;
+		status[VK_CAPITAL+0xff]  = GetKeyState(VK_CAPITAL)?VKS_ON:0;
+		status[VK_SCROLL+0xff]   = GetKeyState(VK_SCROLL) ?VKS_ON:0;
+		status[VK_NUMLOCK+0xff]  = GetKeyState(VK_NUMLOCK)?VKS_ON:0;
+		status[VK_APPS+0xff]     = GetKeyState(VK_APPS)   ?VKS_ON:0;
+		status[VK_LSHIFT+0xff]   = 0;
+		status[VK_RSHIFT+0xff]   = 0;
+		status[VK_LCONTROL+0xff] = 0;
+		status[VK_RCONTROL+0xff] = 0;
+		status[VK_MENU+0xff]     = 0;
+		status[VK_MENU+0x1ff]    = 0;
 
 		switch(vkkey) {
 		case VK_CAPITAL	+0x0ff:
 		case VK_SCROLL	+0x0ff:
 		case VK_NUMLOCK	+0x0ff:
 		case VK_APPS	+0x0ff:
-		case VK_SHIFT	+0x0ff:
-		case VK_CONTROL	+0x0ff:
+		case VK_LSHIFT	+0x0ff:
+		case VK_RSHIFT	+0x0ff:
+		case VK_LCONTROL+0x0ff:
+		case VK_RCONTROL+0x0ff:
 		case VK_MENU	+0x0ff:
 		case VK_MENU	+0x1ff:
 			status[vkkey] = VKS_PRESS;
@@ -422,7 +426,7 @@ static void
 KeyboardStatus(HANDLE console, BYTE *status)
 {
 	struct row {
-		int vk;	
+		int vk;
 		const wchar_t *name;
 	};
 
@@ -433,7 +437,7 @@ KeyboardStatus(HANDLE console, BYTE *status)
 #define AS(__c)	    (__c)		    // ASCII
 
 	static const struct row row1[] = {
-		{VK(ESCAPE),L"ESC"},{VK(F1),L"F1"}, {VK(F2),L"F2"},{VK(F3),L"F3"},{VK(F4),L"F4"},{VK(F5),L"F5"},{VK(F6),L"F6"},{VK(F7),L"F7"}, 
+		{VK(ESCAPE),L"ESC"},{VK(F1),L"F1"}, {VK(F2),L"F2"},{VK(F3),L"F3"},{VK(F4),L"F4"},{VK(F5),L"F5"},{VK(F6),L"F6"},{VK(F7),L"F7"},
 		    {VK(F8),L"F8"},{VK(F9),L"F9"},{VK(F10),L"F10"},{VK(F11),L"F11"},{VK(F11),L"F12"},{VK(PRINT),L"PRT"},{VK(SCROLL),L"SLk"},{0}};
 	static const struct row row2[] = {
 		{223,L"¬"},{'1'},{'2'},{'3'},{'4'},{'5'},{'6'},{'7'},{'8'},
@@ -451,14 +455,14 @@ KeyboardStatus(HANDLE console, BYTE *status)
 		    {VK(NUMPAD4),L"4"},{VK(NUMPAD5),L"5"},{VK(NUMPAD6),L"6"},{-1},
 		    {0}};
 	static const struct row row5[] = {
-		{VK(SHIFT),L"LSH"},{'\\'},{'z'},{'x'},{'c'},{'v'},{'b'},{'n'},{'m'},
-		    {','},{'.'},{'/'},{VK(SHIFT),L"RSH"},{EK(UP),L"\u25B2"},{EK(DELETE),L"Del"},
+		{VK(LSHIFT),L"LSH"},{'\\'},{'z'},{'x'},{'c'},{'v'},{'b'},{'n'},{'m'},
+		    {','},{'.'},{'/'},{VK(RSHIFT),L"RSH"},{EK(UP),L"\u25B2"},{EK(DELETE),L"Del"},
 		    {VK(NUMPAD1),L"1"},{VK(NUMPAD2),L"2"},{VK(NUMPAD3),L"3"},{EK(RETURN),L"CR"},
 		    {0}};
 	static const struct row row6[] = {
 		{VK(CONTROL),L"LC"},{NK()},{VK(MENU),L"Alt"},{' ',L"               <SPACE>                "},
-		    {EK(MENU),L"AGr"},{VK(APPS),L"\u2261"},{VK(CONTROL),L"RC"},{EK(LEFT),L"\u25C4"},{EK(DOWN),L"\u25BC"},{EK(RIGHT),L"\u25BA"},
-		    {VK(NUMPAD0),L"0"},{-1},{VK(DECIMAL),L"."},
+		    {EK(MENU),L"AGr"},{VK(APPS),L"\u2261"},{EK(CONTROL),L"RC"},{EK(LEFT),L"\u25C4"},{EK(DOWN),L"\u25BC"},{EK(RIGHT),L"\u25BA"},
+		    {VK(NUMPAD0),L" 0  <INS> "},{VK(DECIMAL),L"."},
 		    {0}};
 	static const struct row *rows[] =
 		{ row1, row2, row3, row4, row5, row6, NULL };
@@ -474,7 +478,7 @@ KeyboardStatus(HANDLE console, BYTE *status)
 		}
 		coord.Y += 2;
 	}
-	coord.X = 0; 
+	coord.X = 0;
 	SetConsoleCursorPosition(console, coord);
 }
 
@@ -496,7 +500,7 @@ KeyboardKey(HANDLE console, int vk, const wchar_t *name, BYTE *status)
 
 		SetConsoleTextAttribute(console, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY|
 			((vkstatus & VKS_PRESS)  ? BACKGROUND_GREEN :
-			  ((vkstatus & VKS_DONE) ? BACKGROUND_RED   : 
+			  ((vkstatus & VKS_DONE) ? BACKGROUND_RED   :
 			   ((vkstatus & VKS_ON)  ? BACKGROUND_BLUE  : BACKGROUND_INTENSITY))));
 		if (vkstatus & VKS_PRESS) status[vk] &= ~VKS_PRESS;
 		len1 = wsprintfW(wbuf, L"%3s", (name ? name : t_name));
@@ -520,7 +524,7 @@ KeyboardKey(HANDLE console, int vk, const wchar_t *name, BYTE *status)
 static void
 ConsoleClear(HANDLE console)
 {
-	COORD coord = {0,0}; 
+	COORD coord = {0,0};
 	CONSOLE_SCREEN_BUFFER_INFO csbi = {0,0};
 	DWORD dwConSize;
 	DWORD cCharsWritten;

@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.7 2022/03/20 09:54:59 cvsuser Exp $
+# $Id: Makefile.in,v 1.9 2025/02/01 19:25:39 cvsuser Exp $
 # libmbedtls makefile.
 #
 #
-# Copyright (c) 2017 - 2022 Adam Young.
+# Copyright (c) 2017 - 2025 Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -65,18 +65,33 @@ ifneq ("$(BUILD_TYPE)","release")
 RTSUFFIX=d
 endif
 
+QUIETOUT:=	>/dev/null 2>&1
+ifeq ($(VERBOSE),1)
+QUIETOUT:=
+else ifeq ($(VERBOSE),0)
+else ifeq ($(VERBOSE),)
+else
+$(error VERBOSE: unexpected value 0 or 1 required, $(VERBOSE) given]))
+endif
+
 # Directories
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/objects@TOOLCHAINEXT@/$(BUILD_TYPE)/libmbedtls
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/libmbedtls
 
 # Common flags
 
 XFLAGS=
 
 CFLAGS=		@CFLAGS@
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
+CFLAGS+=	-mpclmul -msse2 -maes
+endif
+ifeq (owc,$(findstring owc,"@TOOLCHAIN@"))
+CFLAGS+=	-wcd=124 -wcd=136 -wcd=200 -wcd=201 -wcd=202
+endif
 CWARN=		@CWARN@
 CDEBUG=		@CDEBUG@
 CRELEASE=	@CRELEASE@
@@ -84,6 +99,9 @@ LDDEBUG=	@LDDEBUG@
 LDRELEASE=	@LDRELEASE@
 
 CINCLUDE=	-I. -I$(D_INC) @CINCLUDE@
+ifeq (owc,$(findstring owc,"@TOOLCHAIN@"))
+CINCLUDE+=	-I.\owc
+endif
 CEXTRA=		@DEFS@
 ifeq ("$(BUILD_TYPE)","release")
 CFLAGS+=	$(CRELEASE) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
@@ -92,13 +110,13 @@ else
 CFLAGS+=	$(CDEBUG) $(CWARN) $(CINCLUDE) $(CEXTRA) $(XFLAGS)
 LDFLAGS=	$(LDDEBUG) @LDFLAGS@
 endif
-LDLIBS=		-L$(D_LIB) @LIBS@ @LIBM@ @EXTRALIBS@
+LDLIBS=		-L$(D_LIB) BCrypt.lib @LIBS@ @LIBM@ @EXTRALIBS@
 
 ARFLAGS=	rcv
 RMFLAGS=	-f
 
-############################################################
 
+#########################################################################################
 # Targets
 
 MBEDCRYPTOLIB=	$(D_LIB)/$(LP)mbedcrypto_static$(A)
@@ -110,7 +128,8 @@ MBEDX509DLL=	$(D_LIB)/$(LP)mbedx509.la
 MBEDTLSLIB=	$(D_LIB)/$(LP)mbedtls_static$(A)
 MBEDTLSDLL=	$(D_LIB)/$(LP)mbedtls.la
 
-VERSION=	2.27.0
+##VERSION=	3.5.2
+VERSION=	3.6.2
 VERSION_1	=$(word 1,$(subst ., ,$(VERSION)))
 VERSION_2	=$(word 2,$(subst ., ,$(VERSION)))
 VERSION_3	=$(word 3,$(subst ., ,$(VERSION)))
@@ -125,75 +144,183 @@ CINCLUDE+=	-I./win32 -I$(MBEDINCLUDE)
 CEXTRA+=	-DLIBMBED_WIN32 -DLIBMBED_HAVE_ZLIB
 CEXTRA+=	-DMBEDTLS_EXPORTS -DKRML_VERIFIED_UINT128
 
-VPATH+=		$(MBEDSRC) $(MBEDBASE)/programs/test ./win32
+VPATH+=		$(MBEDSRC)
+VPATH+=		$(MBEDBASE)/programs/test
+VPATH+=		./win32
 
 #see: library/CMakelists.txt
-CRYPTO_SOURCES=	aes.c			aesni.c			arc4.c		\
-		aria.c			asn1parse.c		asn1write.c	\
-		base64.c		bignum.c		blowfish.c	\
-		camellia.c		ccm.c			chacha20.c	\
-		chachapoly.c		cipher.c		cipher_wrap.c	\
-		cmac.c			ctr_drbg.c		des.c		\
-		dhm.c			ecdh.c			ecdsa.c		\
-		ecjpake.c		ecp.c					\
-		ecp_curves.c		entropy.c		entropy_poll.c	\
-		error.c			gcm.c			havege.c	\
-		hkdf.c								\
-		hmac_drbg.c		md.c			md2.c		\
-		md4.c			md5.c					\
-		memory_buffer_alloc.c				nist_kw.c	\
-		oid.c			padlock.c		pem.c		\
-		pk.c			pk_wrap.c		pkcs12.c	\
-		pkcs5.c			pkparse.c		pkwrite.c	\
-		platform.c		platform_util.c		poly1305.c	\
-		ripemd160.c		rsa_internal.c		rsa.c  		\
-		sha1.c			sha256.c		sha512.c	\
-		threading.c		timing.c		version.c	\
-		version_features.c	xtea.c
+COMMON_SOURCES=\
+	constant_time.c
 
-X509_SOURCES=	certs.c			pkcs11.c		x509.c		\
-		x509_create.c		x509_crl.c		x509_crt.c	\
-		x509_csr.c		x509write_crt.c		x509write_csr.c
+CRYPTO_SOURCES=\
+	aes.c					\
+	aesce.c 				\
+	aria.c					\
+	asn1parse.c				\
+	asn1write.c				\
+	base64.c				\
+	bignum.c				\
+	bignum_core.c				\
+	bignum_mod.c				\
+	bignum_mod_raw.c			\
+	camellia.c				\
+	ccm.c					\
+	chacha20.c				\
+	chachapoly.c				\
+	cipher.c				\
+	cipher_wrap.c				\
+	cmac.c					\
+	ctr_drbg.c				\
+	des.c					\
+	dhm.c					\
+	ecdh.c					\
+	ecdsa.c					\
+	ecjpake.c				\
+	ecp.c					\
+	ecp_curves.c				\
+	ecp_curves_new.c			\
+	entropy.c				\
+	entropy_poll.c				\
+	error.c					\
+	gcm.c					\
+	hkdf.c					\
+	hmac_drbg.c				\
+	lmots.c					\
+	lms.c					\
+	md.c					\
+	md5.c					\
+	memory_buffer_alloc.c			\
+	nist_kw.c				\
+	oid.c					\
+	padlock.c				\
+	pem.c					\
+	pk.c					\
+	pk_wrap.c				\
+	pkcs12.c				\
+	pkcs5.c					\
+	pkparse.c				\
+	pkwrite.c				\
+	platform.c				\
+	platform_util.c				\
+	poly1305.c				\
+	psa_crypto.c				\
+	psa_crypto_aead.c			\
+	psa_crypto_cipher.c			\
+	psa_crypto_client.c			\
+	psa_crypto_driver_wrappers_no_static.c	\
+	psa_crypto_ecp.c			\
+	psa_crypto_ffdh.c			\
+	psa_crypto_hash.c			\
+	psa_crypto_mac.c			\
+	psa_crypto_pake.c			\
+	psa_crypto_rsa.c			\
+	psa_crypto_se.c				\
+	psa_crypto_slot_management.c		\
+	psa_crypto_storage.c			\
+	psa_its_file.c				\
+	psa_util.c				\
+	ripemd160.c				\
+	rsa.c					\
+	rsa_alt_helpers.c			\
+	sha1.c					\
+	sha256.c				\
+	sha512.c				\
+	sha3.c					\
+	threading.c				\
+	timing.c				\
+	version.c				\
+	version_features.c
 
-TLS_SOURCES=	debug.c			net_sockets.c		\
-		ssl_cache.c		ssl_ciphersuites.c	\
-		ssl_cli.c		ssl_cookie.c		\
-		ssl_msg.c					\
-		ssl_srv.c		ssl_ticket.c		\
-		ssl_tls.c		ssl_tls13_keys.c
+ifneq (owc,$(findstring owc,"@TOOLCHAIN@"))
+CRYPTO_SOURCES+=\
+	aesni.c
+endif
 
-CRYPTO_LIBOBJS=\
-	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CRYPTO_SOURCES)))
-CRYPTO_DLLOBJS=\
-	$(subst $(O),.lo,$(CRYPTO_LIBOBJS))			\
+ifeq ("$(VERSION)","3.6.2")
+CRYPTO_SOURCES+=\
+	block_cipher.c				\
+	pk_ecc.c
+endif
+
+X509_SOURCES=\
+	pkcs7.c					\
+	x509.c					\
+	x509_create.c				\
+	x509_crl.c				\
+	x509_crt.c				\
+	x509_csr.c				\
+	x509write.c				\
+	x509write_crt.c				\
+	x509write_csr.c
+
+TLS_SOURCES=\
+	debug.c					\
+	mps_reader.c				\
+	mps_trace.c				\
+	net_sockets.c				\
+	ssl_cache.c				\
+	ssl_ciphersuites.c			\
+	ssl_client.c				\
+	ssl_cookie.c				\
+	ssl_debug_helpers_generated.c		\
+	ssl_msg.c				\
+	ssl_ticket.c				\
+	ssl_tls.c				\
+	ssl_tls12_client.c			\
+	ssl_tls12_server.c			\
+	ssl_tls13_keys.c			\
+	ssl_tls13_server.c			\
+	ssl_tls13_client.c			\
+	ssl_tls13_generic.c
+
+#######
+CRYPTO_LIBOBJS:=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CRYPTO_SOURCES) $(COMMON_SOURCES)))
+CRYPTO_DLLOBJS:=\
+	$(subst $(O),.lo,$(CRYPTO_LIBOBJS))	\
 	$(D_OBJ)/crypto_globals.lo
-ifeq ("mingw32","win32")
+ifeq (owc,$(findstring owc,"@TOOLCHAIN@"))
+CRYPTO_LIBOBJS+=$(D_OBJ)/owc_aesni_$(VERSION).obj
+CRYPTO_DLLOBJS+=$(D_OBJ)/owc_aesni_$(VERSION).obj
+endif
+ifeq ("win32","@build_os@")
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
 CRYPTO_DLLOBJS+=$(D_OBJ)/libmbedtls_res.o
-else ifeq ("win32","win32")
+else
 CRYPTO_DLLOBJS+=$(D_OBJ)/libmbedtls.res
 endif
+endif
 
+#######
 X509_LIBOBJS=\
-	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(X509_SOURCES)))
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(X509_SOURCES) $(COMMON_SOURCES)))
 X509_DLLOBJS=\
-	$(subst $(O),.lo,$(X509_LIBOBJS))			\
+	$(subst $(O),.lo,$(X509_LIBOBJS))	\
+	$(D_OBJ)/alignment_linkage.lo		\
 	$(D_OBJ)/x509_globals.lo
-ifeq ("mingw32","win32")
+ifeq ("win32","@build_os@")
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
 X509_DLLOBJS+=	$(D_OBJ)/libmbedtls_res.o
-else ifeq ("win32","win32")
+else
 X509_DLLOBJS+=	$(D_OBJ)/libmbedtls.res
 endif
-
-TLS_LIBOBJS=\
-	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(TLS_SOURCES)))
-TLS_DLLOBJS=\
-	$(subst $(O),.lo,$(TLS_LIBOBJS))
-ifeq ("mingw32","win32")
-TLS_DLLOBJS+=	$(D_OBJ)/libmbedtls_res.o
-else ifeq ("win32","win32")
-TLS_DLLOBJS+=	$(D_OBJ)/libmbedtls.res
 endif
 
+#######
+TLS_LIBOBJS=\
+	$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(TLS_SOURCES) $(COMMON_SOURCES)))
+TLS_DLLOBJS=\
+	$(subst $(O),.lo,$(TLS_LIBOBJS))	\
+	$(D_OBJ)/alignment_linkage.lo
+ifeq ("win32","@build_os@")
+ifeq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
+TLS_DLLOBJS+=	$(D_OBJ)/libmbedtls_res.o
+else
+TLS_DLLOBJS+=	$(D_OBJ)/libmbedtls.res
+endif
+endif
+
+###
 LIBOBJS=	$(CRYPTO_LIBOBJS)	\
 		$(X509_LIBOBJS)		\
 		$(TLS_LIBOBJS)
@@ -211,11 +338,13 @@ DLLS=		$(MBEDCRYPTODLL)	\
 		$(MBEDTLSDLL)
 
 TARGET=		mbedtls_selftest$(E)
-TARGETOBJS=	$(D_OBJ)/selftest.obj
+TARGETOBJS=	$(D_OBJ)/selftest$(O)
 
 TSKS=		$(D_BIN)/$(TARGET)
 INSTALLED=
 
+
+#########################################################################################
 # Rules
 
 .PHONY: 	build release debug
@@ -227,18 +356,23 @@ release:
 debug:
 		$(MAKE) BUILD_TYPE=debug $(filter-out debug, $(MAKECMDGOALS))
 
-CEXTRA		+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D__STDC_WANT_LIB_EXT1__=1
+CEXTRA		+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
 
 #######
 $(MBEDCRYPTOLIB):	CEXTRA += -DLIBMBED_STATIC -DLIBMBEDCRYPTO_SOURCE
 $(MBEDCRYPTOLIB):	$(CRYPTO_LIBOBJS)
-		$(RM) $(RMFLAGS) $@ >/dev/null 2>&1
+		$(RM) $(RMFLAGS) $@ $(QUIETOUT)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@
+ 
+ifeq (owc,$(findstring owc,"@TOOLCHAIN@"))
+$(D_OBJ)/owc_aesni_$(VERSION).obj:	owc\aesni_$(VERSION).obj
+		@cp owc\aesni_$(VERSION).obj $(D_OBJ)\owc_aesni_$(VERSION).obj
+endif
 
 INSTALLED+=	$(D_BIN)/libmbedcrypto.$(VERSION).dll
 $(MBEDCRYPTODLL):	LIBNAME=libmbedcrypto
-$(MBEDCRYPTODLL):	LIBDEF=-export-symbols win32/libmbedcrypto.def
+$(MBEDCRYPTODLL):	LIBDEF=-export-symbols win32/libmbedcrypto.def.$(VERSION)
 $(MBEDCRYPTODLL):	CEXTRA += -DLIBMBED_DYNAMIC -DLIBMBEDCRYPTO_SOURCE -D_WINDLL
 $(MBEDCRYPTODLL):	$(CRYPTO_DLLOBJS)
 		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
@@ -247,37 +381,37 @@ $(MBEDCRYPTODLL):	$(CRYPTO_DLLOBJS)
 #######
 $(MBEDX509LIB):		CEXTRA += -DLIBMBED_STATIC -DLIBMBEDX509_SOURCE -DLIBMBEDX509
 $(MBEDX509LIB):		$(X509_LIBOBJS)
-		$(RM) $(RMFLAGS) $@ >/dev/null 2>&1
+		$(RM) $(RMFLAGS) $@ $(QUIETOUT)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@
 
 INSTALLED+=	$(D_BIN)/libmbedx509.$(VERSION).dll
 $(MBEDX509DLL):		LIBNAME=libmbedx509
-$(MBEDX509DLL):		LIBDEF=-export-symbols win32/libmbedx509.def
+$(MBEDX509DLL):		LIBDEF=-export-symbols win32/libmbedx509.def.$(VERSION)
 $(MBEDX509DLL):		CEXTRA += -DLIBMBED_DYNAMIC -DLIBMBEDX509_SOURCE -D_WINDLL
 $(MBEDX509DLL):		$(X509_DLLOBJS)
 		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
-			-rpath $(D_LIB) -bindir $(D_BIN) $(LIBDEF) -o $@ $^ -llibmbedcrypto $(LDLIBS)
+			-rpath $(D_LIB) -bindir $(D_BIN) $(LIBDEF) -o $@ $^ -lmbedcrypto $(LDLIBS)
 
 #######
 $(MBEDTLSLIB):		CEXTRA += -DLIBMBED_STATIC -DLIBMBEDTLS_SOURCE
 $(MBEDTLSLIB):		$(TLS_LIBOBJS)
-		$(RM) $(RMFLAGS) $@ >/dev/null 2>&1
+		$(RM) $(RMFLAGS) $@ $(QUIETOUT)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@
 
 INSTALLED+=	$(D_BIN)/libmbedtls.$(VERSION).dll
 $(MBEDTLSDLL):		LIBNAME=libmbedtls
-$(MBEDTLSDLL):		LIBDEF=-export-symbols win32/libmbedtls.def
+$(MBEDTLSDLL):		LIBDEF=-export-symbols win32/libmbedtls.def.$(VERSION)
 $(MBEDTLSDLL):		CEXTRA += -DLIBMBED_DYNAMIC -DLIBMBEDTLS_SOURCE -DLIBMBEDTLS -D_WINDLL
 $(MBEDTLSDLL):		$(TLS_DLLOBJS)
 		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -version-number $(VERSIONSPEC) \
-			-rpath $(D_LIB) -bindir $(D_BIN) $(LIBDEF) -o $@ $^ -llibmbedcrypto -llibmbedx509 $(LDLIBS)
+			-rpath $(D_LIB) -bindir $(D_BIN) $(LIBDEF) -o $@ $^ -lmbedcrypto -lmbedx509 $(LDLIBS)
 
 #######
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(TARGETOBJS)
-		$(CC) $(LDFLAGS) -o $@ $(TARGETOBJS) $(LDFLAGS) -llibmbedtls -llibmbedcrypto -llibmbedx509 $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(TARGETOBJS) $(LDFLAGS) -lmbedtls -lmbedcrypto -lmbedx509 $(LDLIBS) @LDMAPFILE@
 
 #######
 source:			.unpacked.$(VERSION)
@@ -285,16 +419,17 @@ source:			.unpacked.$(VERSION)
 
 .unpacked.$(VERSION):	$(VERPACKED)
 		@echo "do not delete, managed file" > $@
-		@echo "unpacking source $VERPACKED"
+		@echo "unpacking source $(VERPACKED)"
 		@gzip -c -d $(VERPACKED) | tar -xvf -
 
 .PHONY:		object
 object:			$(D_OBJ)/.created
 
 .PHONY:		installinc
-installinc:		../include/.created ../include/mbedtls/.created
+installinc:		../include/.created ../include/mbedtls/.created ../include/psa/.created
 		@echo publishing headers ...
 		-cp $(MBEDINCLUDE)/mbedtls/*.h ../include/mbedtls
+		-cp $(MBEDINCLUDE)/psa/*.h ../include/psa
 		-cp ./win32/*.h ../include/mbedtls
 
 %/.created:
@@ -303,10 +438,11 @@ installinc:		../include/.created ../include/mbedtls/.created
 
 clean:
 		@echo $(BUILD_TYPE) clean
-		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) >/dev/null 2>&1
-		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(INSTALLED) $(LIBS) $(CLEAN) $(XCLEAN) >/dev/null 2>&1
-		-@$(RM) $(LIBOBJS) >/dev/null 2>&1
-		-@$(RM) ../include/mbedtls/* >/dev/null 2>&1
+		-@$(LIBTOOL) --mode=clean $(RM) $(DLLS) $(DLLOBJS) $(QUIETOUT)
+		-@$(RM) $(RMFLAGS) $(BAK) $(TSKS) $(INSTALLED) $(LIBS) $(CLEAN) $(XCLEAN) $(QUIETOUT)
+		-@$(RM) $(LIBOBJS) $(QUIETOUT)
+		-@$(RM) ../include/mbedtls/* $(QUIETOUT)
+		-@$(RM) ../include/psa/* $(QUIETOUT)
 
 $(D_OBJ)/%$(O):		%.c
 		$(CC) $(CFLAGS) -o $@ -c $<

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_string_c,"$Id: w32_string.c,v 1.1 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_string_c,"$Id: w32_string.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 string functionality
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -26,14 +26,23 @@ __CIDENT_RCSID(gr_w32_string_c,"$Id: w32_string.c,v 1.1 2022/03/15 12:15:38 cvsu
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * license for more details.
  * ==end==
+ *
+ * Notice: Portions of this text are reprinted and reproduced in electronic form. from
+ * IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
+ * 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
+ * Group. Copyright remains with the authors and the original Standard can be obtained
+ * online at http://www.opengroup.org/unix/online.html.
+ * ==extra==
  */
 
 #include "win32_internal.h"
+
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
 
 
+#if defined(NEED_STRCASECMP)
 LIBW32_API int
 strcasecmp(const char *s1, const char *s2)
 {
@@ -43,9 +52,10 @@ strcasecmp(const char *s1, const char *s2)
     return stricmp(s1, s2);
 #endif
 }
+#endif
 
 
-
+#if defined(NEED_STRCASECMP)
 LIBW32_API int
 strncasecmp(const char *s1, const char *s2, size_t len)
 {
@@ -55,6 +65,7 @@ strncasecmp(const char *s1, const char *s2, size_t len)
     return strnicmp(s1, s2, len);
 #endif
 }
+#endif
 
 
 #if defined(NEED_STRNLEN)

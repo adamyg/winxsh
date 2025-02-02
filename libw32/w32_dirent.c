@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_dirent_c,"$Id: w32_dirent.c,v 1.2 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_dirent_c,"$Id: w32_dirent.c,v 1.4 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -7,7 +7,7 @@ __CIDENT_RCSID(gr_w32_dirent_c,"$Id: w32_dirent.c,v 1.2 2022/03/15 12:15:37 cvsu
  *
  *      opendir, closedir, readdir, seekdir, rewindir, telldir
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -170,8 +170,9 @@ opendirA(const char *dirname)
     char fullpath[ MAX_PATH ], symlink[ MAX_PATH ], reparse[ MAX_PATH ],
         *path = fullpath;
     LPVOID OldValue = NULL;
-    DIR  *dp;
-    int  i, len;
+    DIR *dp;
+    size_t len;
+    int i;
 
     /* Copy to working buffer */
     if (NULL == dirname) {
@@ -312,8 +313,9 @@ opendirW(const wchar_t *dirname)
     wchar_t fullpath[ MAX_PATH ], symlink[ MAX_PATH ], reparse[ MAX_PATH ],
         *path = fullpath;
     LPVOID OldValue = NULL;
-    DIR  *dp;
-    int  i, len;
+    DIR *dp;
+    size_t len;
+    int i;
 
     /* Copy to working buffer */
     if (NULL == dirname) {
@@ -1217,7 +1219,7 @@ d_Wow64DisableWow64FsRedirection(PVOID *OldValue)
                                                 // XP+
             x_Wow64DisableWow64FsRedirection = my_Wow64DisableWow64FsRedirection;
             x_Wow64RevertWow64FsRedirection = NULL;
-            FreeLibrary(hinst);
+            if (hInst) FreeLibrary(hinst);
         }
 #else
         x_Wow64DisableWow64FsRedirection = my_Wow64DisableWow64FsRedirection;

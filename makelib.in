@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# $Id: makelib.in,v 1.11 2022/03/20 10:53:57 cvsuser Exp $
+# $Id: makelib.in,v 1.15 2025/02/02 14:25:35 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # makelib configuration
 #
-# Copyright (c) 2020 - 2022, Adam Young.
+# Copyright (c) 2020 - 2025, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRsh/WinSSH
@@ -32,107 +32,196 @@
 
 ## Package
 
-$PACKAGE        = 'winsh';
-$PACKAGE_NAME   = 'WinSSH/WinRSH';
-$PACKAGE_VERSION = '0.3.0';
+$PACKAGE	= 'winsh';
+$PACKAGE_NAME	= 'WinSSH/WinRSH';
+$PACKAGE_VERSION = '0.3.1';
 
-$PACKAGE_URL    = 'https://github.com/adamyg/winxsh';
+$PACKAGE_URL	= 'https://github.com/adamyg/winxsh';
 
-$PACKAGE_PATH   = 'libw32';
-$PACKAGE_FILE   = 'package.h';
+$PACKAGE_PATH	= 'libw32';
+$PACKAGE_FILE	= 'package.h';
 
 ## External
 
-@LIBRARIES      = ();   # local libraries -l<xxx> lib<xxx>.lib
+@LIBRARIES	= ();	# local libraries -l<xxx> lib<xxx>.lib
 
-@LIBRARIES2     = (     # local libraries -l<xxx> xxx.lib
-        'libw32',
-        'libw32_static',
-        'libz',
-        'libz_static',
-        'libregex',
-        'libmagic',
-        'libmagic_static',
-        'libmbedcrypto',
-        'libmbedcrypto_static',
-        'libmbedtls',
-        'libmbedtls_static',
-        'libmbedx509',
-        'libmbedx509_static',
-        'libssh2',
-        'libssh2_static',
-        'libssh',
-        'libssh_static',
-        'libintl',
-        'libintl_static',
-        'libglib-2.0',
-        'libglib-2.0_static',
-        'libtermemu',
-        'libNTService'
-        );
+@LIBRARIES2	= (	# local libraries -l<xxx> xxx.lib
+	'libw32',
+	'libw32_static',
+	'libz',
+	'libz_static',
+	'libregex',
+	'libmagic',
+	'libmagic_static',
+	'libmbedcrypto',
+	'libmbedcrypto_static',
+	'libmbedtls',
+	'libmbedtls_static',
+	'libmbedx509',
+	'libmbedx509_static',
+	'libssh2',
+	'libssh2_static',
+	'libssh',
+	'libssh_static',
+	'libintl',
+	'libintl_static',
+	'libglib-2.0',
+	'libglib-2.0_static',
+	'libtermemu',
+	'libNTService'
+	);
 
-@OPTLIBRARIES    = ();  # optional libraries
+@TESTLIBRARIES	= ();	# library test
+@OPTLIBRARIES	 = ();	# optional libraries
 
 ## Makefiles
 
-@MAKEFILES       = (    # local makefiles
-        '.',
-        'libw32',
-        'libz',
-        'libmbedtls',
-        'libssh2',
-        'libssh',
-        'libtermemu',
-        'libNTService',
-        'rsh',
-        'rcmd',
-        'rlogin',
-        'rlogind',
-        'slogin'
-        );
+@MAKEFILES	 = (	# local makefiles
+	'.',
+	'libw32',
+	'libz',
+	'libmbedtls',
+	'libssh2',
+	'libssh',
+	'libtermemu',
+	'libNTService',
+	'rsh',
+	'rcmd',
+	'rlogin',
+	'rlogind',
+	'slogin'
+	);
 
 ## Toolchain
 
 sub
+ResolveWINKITx86()
+{
+        my $ProgramFiles = $ENV{"ProgramFiles(x86)"};
+        $ProgramFiles =~ s/\\/\//g;
+
+        my @WINKIT = (                                  # Vista+
+                # https://en.wikipedia.org/wiki/Microsoft_Windows_SDK
+                "${ProgramFiles}/Windows Kits/8.0/Lib/win8/um/x86",
+                "${ProgramFiles}/Windows Kits/8.1/Lib/winv6.3/um/x86",
+                "${ProgramFiles}/Windows Kits/10",
+                "${ProgramFiles}/Windows Kits/11"
+                );
+
+        my @sdks;
+        foreach (@WINKIT) {
+                my $sdk = $_;
+                next if (! -d $sdk);
+
+                if (/\/1[01]$/) {                       # "Lib/10.0.xxxxx.0/um/x86"
+                    my @winsdk10 = glob("'${sdk}/Lib/*/um/x86'");
+                    foreach (@winsdk10) {
+                        next if (! -f "$_/Kernel32.lib");
+                        push @sdks, $_;
+                    }
+
+                } else {
+                    next if (! -f "${sdk}/Kernel32.lib");
+                    push @sdks, $sdk;
+                }
+        }
+
+        die "cannot locate any suitable winsdks\n"
+                if (! scalar @sdks);
+
+        foreach (@sdks) {
+                print "WINKIT:   $_\n";
+        }
+
+        set_winsdk($sdks[0]);
+}
+
+
+sub
 Configure()
 {
-        # Visual studio
-        ################################################################################
+	################################################################################
+	# Common
 
-        if ($TOOLCHAIN =~ /^vs/) {
+	################################################################################
+	# Visual studio
 
-                set_msvc_runtime('dynamic', '$(RTSUFFIX)');
+	if ($TOOLCHAIN =~ /^vs(\d+)/) {
+                my $version = int($1);                  # vs140 etc
 
-                remove_define('WIN32');
-                add_define('HAVE_CONFIG_H');
-                add_define('_WIN32_WINNT=0x600');       # Windows SDK
+		set_msvc_runtime('dynamic', '$(RTSUFFIX)');
 
-              # add_define('LIBW32_DYNAMIC');           # libw32 bindings
-                add_define('LIBW32_STATIC');            # libw32 bindings
+		remove_define('WIN32');
+		add_define('HAVE_CONFIG_H');
+		add_define('_WIN32_WINNT=0x600');	# Windows SDK
+		add_define('_CRT_SECURE_NO_WARNINGS');
+		add_define('_CRT_SECURE_NO_DEPRECATE');
+		add_define('_CRT_NONSTDC_NO_DEPRECATE');
 
-                add_xinclude('$(ROOT)/libw32');         # Extra includes; C and compiler tests.
-                add_xinclude('$(ROOT)/libw32/msvc');    # MSVC specials
-              # add_application_library('libw32.lib');
-                add_application_library('libw32_static.lib');
-        }
+	      # add_define('LIBW32_DYNAMIC');		# libw32 bindings
+		add_define('LIBW32_STATIC');		# libw32 bindings
 
-        ################################################################################
-        # OpenWatcom
+		add_xinclude('$(ROOT)/libw32'); 	# Extra includes; C and compiler tests.
+                if ($version >= 160) {                  # MSVC specials
+		    add_xinclude('$(ROOT)/libw32/msvc_2019');   # 2019+
+                } else {
+		    add_xinclude('$(ROOT)/libw32/msvc');        # legacy
+                }
+	      # add_application_library('libw32.lib');
+		add_application_library('libw32_static.lib');
+	}
 
-        if ($TOOLCHAIN =~ /^owc/) {
+	################################################################################
+	# OpenWatcom
 
-                remove_define('WIN32');
-                add_define('HAVE_CONFIG_H');
-                add_define('_WIN32_WINNT=0x600');       # Windows SDK
+	if ($TOOLCHAIN =~ /^owc/) {
 
-              # add_define('LIBW32_DYNAMIC');           # libw32 bindings
-                add_define('LIBW32_STATIC');            # libw32 bindings
+		remove_define('WIN32');
+		add_define('HAVE_CONFIG_H');
+		add_define('_WIN32_WINNT=0x600');	# Windows SDK
+
+	      # add_define('LIBW32_DYNAMIC');		# libw32 bindings
+		add_define('LIBW32_STATIC');		# libw32 bindings
 
 
-                add_xinclude('$(ROOT)/libw32');         # Extra includes; C and compiler tests.
-              # add_application_library('libw32.lib');
-                add_application_library('libw32_static.lib');
-        }
+		add_xinclude('$(ROOT)/libw32'); 	# Extra includes; C and compiler tests.
+	      # add_application_library('libw32.lib');
+		add_application_library('libw32_static.lib');
+	}
+
+	################################################################################
+	# MingGW
+
+	if ($TOOLCHAIN =~ /^mingw/) {
+
+		set_cxx_standard(17);			# -stdc+17
+
+		remove_define('WIN32');
+		add_define('HAVE_CONFIG_H');
+		add_define('_WIN32_WINNT=0x501');	# Windows SDK
+		add_define('_WIN32_VER=0x501');
+
+		add_xinclude('$(ROOT)/libw32');
+		add_application_library('libw32.a');
+
+		if ($TOOLCHAIN =~ /^mingw(64|32)/) {	# newer libraries
+			add_system_library('-lDbghelp');
+			add_system_library('-lBcrypt');
+			add_system_library('-lNcrypt');
+		}
+
+		add_system_library('-lComctl32');	# updater, common controls
+		add_system_library('-lOleAut32');
+
+		add_system_library('-lMswsock');
+		add_system_library('-lCrypt32');
+		add_system_library('-lRpcrt4');
+		add_system_library('-lWinmm');
+		add_system_library('-lIphlpapi');
+		add_system_library('-lVersion');
+
+		push @TESTLIBRARIES, "pthread|LIBTHREAD";
+	}
 }
 
 

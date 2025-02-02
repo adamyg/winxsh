@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.6 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.8 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -31,20 +31,16 @@ __CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt.c,v 1.6 2022/03/15 12:15:37 cvsu
  * SUCH DAMAGE.
  */
 
+#if !defined(__MINGW32__)
+
 #include <sys/cdefs.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "getopt.h"
 
-LIBW32_API int      opterr = 1,                 /* if error message should be printed */
-                    optind = 1,                 /* index into parent argv vector */
-                    optopt = '?',               /* character checked for validity */
-                    optreset = 0;               /* reset getopt */
-
-LIBW32_API char *   optarg = NULL;              /* argument associated with option */
-
-static const char *__progname = "";
+static const char *__progname = "";             /* derived progname */
 
 #define	BADCH	(int)'?'
 #define	BADARG	(int)':'
@@ -63,8 +59,10 @@ getopt(int nargc, char * const *nargv, const char *ostr)
 	int ret;
 
 #if defined(_WIN32) || defined(WIN32)
-	if (optind == 1 && (__progname == NULL || __progname[0] == '\0'))
-		__progname = nargv[0];		/* MSVC special */
+	if (optind == 1 && (__progname == NULL || __progname[0] == '\0')) {
+		__w32_getopt_globals();		/* optidx etc binding */
+		__progname = nargv[0];		/* WIN32 special */
+	}
 #endif
 
 	if (optreset || !*place) {		/* update scanning pointer */
@@ -121,6 +119,14 @@ getopt(int nargc, char * const *nargv, const char *ostr)
 	}
 	return (optopt);			/* dump back option letter */
 }
+
+#else
+
+extern void __stdlibrary_has_getopt(void);
+
+void __stdlibrary_has_getopt(void) {}
+
+#endif  /*!__MINGW32__*/
 
 /*end*/
 

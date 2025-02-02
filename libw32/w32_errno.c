@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_errno_c,"$Id: w32_errno.c,v 1.9 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_errno_c,"$Id: w32_errno.c,v 1.11 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 errno mapping support
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -422,6 +422,9 @@ w32_errno_cnv(unsigned rc)
                 t_errno = EPIPE; break;
             case ERROR_PIPE_LISTENING:          /* 536          - Waiting for a process to open the other end of the pipe. */
                 t_errno = EPIPE; break;
+#if /*defined(__MINGW32__) ||*/ !defined(ERROR_CANT_WAIT)
+#define ERROR_CANT_WAIT 554
+#endif
             case ERROR_CANT_WAIT:               /* 554 (0x22A)  - Used to indicate that an operation cannot continue without blocking for I/O. */
                 t_errno = EAGAIN; break;
             case ERROR_OPERATION_ABORTED:       /* 995          - The I/O operation has been aborted because of either a thread exit or an application request. */
@@ -771,7 +774,9 @@ w32_strerror(int errnum)
 //  case EPROTOTYPE:        /*136*/ err = "Protype error"; break;
     case ETIME:             /*137*/ err = "Stream ioctl timeout"; break;
 //  case ETIMEDOUT:         /*138*/ err = "Connection timed out"; break;
+#if defined(ETXTBSY)
     case ETXTBSY:           /*139*/ err = "Text file busy"; break;
+#endif
 //  case EWOULDBLOCK:       /*140*/ err = "Operation would block"; break;
 
     /* BSD/SysV messages */
@@ -867,7 +872,7 @@ w32_strerror(int errnum)
 #endif
 
     default:
-        _snprintf(errbuffer, sizeof(errbuffer),
+        _snprintf(errbuffer, sizeof(errbuffer), "%s [%d]",
              (errnum >= WSABASEERR ? "unknown winsock error" : "unknown error"), errnum);
         err = errbuffer;
         break;

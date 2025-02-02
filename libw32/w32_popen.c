@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.6 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.8 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 popen implementation
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -31,7 +31,7 @@ __CIDENT_RCSID(gr_w32_popen_c,"$Id: w32_popen.c,v 1.6 2022/03/15 12:15:38 cvsuse
  * Notice: Portions of this text are reprinted and reproduced in electronic form. from
  * IEEE Portable Operating System Interface (POSIX), for reference only. Copyright (C)
  * 2001-2003 by the Institute of. Electrical and Electronics Engineers, Inc and The Open
- * Group. Copyright remains with the authors and the original Standard can be obtained 
+ * Group. Copyright remains with the authors and the original Standard can be obtained
  * online at http://www.opengroup.org/unix/online.html.
  * ==extra==
  */
@@ -219,15 +219,15 @@ PipeA(const char *cmd, const char *mode)
 
     for (++mode; *mode; ++mode) {
         switch (*mode) {
-        case 't':   //text mode.
+        case 't':   // text mode.
             if (textOrBinary) goto einvalid;
             textOrBinary = 't';
             break;
-        case 'b':   //binary mode.
+        case 'b':   // binary mode.
             if (textOrBinary) goto einvalid;
             textOrBinary = 'b';
             break;
-        case 'e':   //ignore, close on exec (linux)
+        case 'e':   // ignore, close on exec (linux)
             break;
         default:
             return NULL;
@@ -245,15 +245,46 @@ PipeA(const char *cmd, const char *mode)
     // detect the type of shell
     argv[0] = shell;
     if (w32_iscommand(shell)) {
-        argv[1] = "/C";
-        if (NULL == strstr("2>&1", cmd)) {      // redirect stderr to stdout ? */
-            argv[2] = cmd;
-        } else {
-            argv[2] = cmd2 = WIN32_STRDUP(cmd);
-            strncpy(strstr("2>&1", cmd2), "    ", 4);
+        // String is processed by examining the first character to verify whether it is an opening quotation mark. 
+        // If the first character is an opening quotation mark, it is stripped along with the closing quotation mark.
+        // Any text following the closing quotation marks is preserved.
+        const char *arg = cmd;
+        size_t len = strlen(arg);
+
+        // redirect stderr to stdout
+        if (NULL != strstr(arg, "2>&1")) {
+            char *o, *i;
+            if (NULL == (cmd2 = WIN32_STRDUP(arg)))
+                goto enomem;
+            for (o = strstr(cmd2, "2>&1"), i = o + 4;; ++i, ++o) {
+                if (0 == (*o = *i))             // remove 2>&1
+                    break;
+            }
+            len -= 4;
+            while (len && ' ' == cmd2[len - 1]) {
+                cmd2[--len] = 0;                // trim trailing white-space.
+            }
             redirect_error = TRUE;
+            assert(strlen(cmd2) == len);
+            arg = cmd2;
         }
+
+        // encase within quotes "cmd"\0.
+        if (strcspn(arg, "\" ") != len) {
+            if (NULL == cmd2 && NULL == (cmd2 = (char *)malloc(sizeof(char) * (len + 3))))
+                goto enomem;                    // note: size of buffer (len + 4) if cmd2 != NULL
+            (void) memmove(cmd2 + 1, arg, sizeof(char) * len);
+            cmd2[0] = '"';
+            cmd2[len + 1] = '"';
+            cmd2[len + 2] = 0;
+            assert(strlen(cmd2) == (len + 2));
+            arg = cmd2;
+        }
+
+        argv[1] = "/c";
+        argv[2] = arg;
         argv[3] = NULL;
+
     } else {
         argv[1] = "-i";
         argv[2] = cmd;
@@ -279,22 +310,30 @@ PipeA(const char *cmd, const char *mode)
     assert('r' == p->readOrWrite || 'w' == p->readOrWrite);
 
     if ('r' == p->readOrWrite) {
+        const int fd = 
+            _open_osfhandle((OSFHANDLE)out_read, _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT) | _O_RDONLY);
+        if (-1 == fd) 
+            goto pipe_error;
+
+        out_read = INVALID_HANDLE_VALUE;        // fd has ownership
         if (NULL == (p->file = _fdopen(         // readable end of the pipe
-                _open_osfhandle((long)out_read,
-                    _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
-                    'b' == textOrBinary ? "rb" : "rt"))) {
+                        fd, 'b' == textOrBinary ? "rb" : "rt"))) {
+            _close(fd);
             goto pipe_error;
         }
-        out_read = INVALID_HANDLE_VALUE;
 
     } else {
+        const int fd =
+            _open_osfhandle((OSFHANDLE)in_write, _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT));
+        if (-1 == fd) 
+            goto pipe_error;
+
+        in_write = INVALID_HANDLE_VALUE;        // fd has ownership
         if (NULL == (p->file = _fdopen(         // writeable end of the pipe
-                _open_osfhandle((long)in_write,
-                    _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
-                    'b' == textOrBinary ? "wb" : "wt"))) {
+                        fd, 'b' == textOrBinary ? "wb" : "wt"))) {
+            _close(fd);
             goto pipe_error;
         }
-        in_write = INVALID_HANDLE_VALUE;
     }
     setvbuf(p->file, NULL, _IONBF, 0);          // non-buffered
 
@@ -338,6 +377,11 @@ einvalid:
     errno = EINVAL;
     return NULL;
 
+enomem:
+    free(p);
+    errno = ENOMEM;
+    return NULL;
+
 #endif  /*USE_NATIVE_POPEN*/
 }
 
@@ -375,15 +419,15 @@ PipeW(const wchar_t *cmd, const char *mode)
 
     for (++mode; *mode; ++mode) {
         switch (*mode) {
-        case 't':   //text mode.
+        case 't':   // text mode.
             if (textOrBinary) goto einvalid;
             textOrBinary = 't';
             break;
-        case 'b':   //binary mode.
+        case 'b':   // binary mode.
             if (textOrBinary) goto einvalid;
             textOrBinary = 'b';
             break;
-        case 'e':   //ignore, close on exec (linux)
+        case 'e':   // ignore, close on exec (linux)
             break;
         default:
             return NULL;
@@ -391,25 +435,57 @@ PipeW(const wchar_t *cmd, const char *mode)
     }
     if (!textOrBinary) textOrBinary = 'b';      // optional, binary default.
 
-    if (NULL == (p = calloc(1, sizeof(*p)))) {
+    if (NULL == (p = (struct pipe *)calloc(1, sizeof(*p))))
         return NULL;
-    }
+
     p->magic = PIPE_MAGIC;
     p->readOrWrite = readOrWrite;
     p->textOrBinary = textOrBinary;
 
     // detect the type of shell
     argv[0] = shell;
+
     if (w32_iscommandW(shell)) {
-        argv[1] = L"/C";
-        if (NULL == wcsstr(L"2>&1", cmd)) {     // redirect stderr to stdout ? */
-            argv[2] = cmd;
-        } else {
-            argv[2] = cmd2 = WIN32_STRDUPW(cmd);
-            wcsncpy(wcsstr(L"2>&1", cmd2), L"    ", 4);
+        // String is processed by examining the first character to verify whether it is an opening quotation mark. 
+        // If the first character is an opening quotation mark, it is stripped along with the closing quotation mark.
+        // Any text following the closing quotation marks is preserved.
+        const wchar_t *arg = cmd;
+        size_t len = wcslen(arg);
+
+        // redirect stderr to stdout
+        if (NULL != wcsstr(arg, L"2>&1")) {
+            wchar_t *o, *i;
+            if (NULL == (cmd2 = WIN32_STRDUPW(arg)))
+                goto enomem;
+            for (o = wcsstr(cmd2, L"2>&1"), i = o + 4;; ++i, ++o) {
+                if (0 == (*o = *i))             // remove 2>&1
+                    break;
+            }
+            len -= 4;
+            while (len && ' ' == cmd2[len - 1]) {
+                cmd2[--len] = 0;                // trim trailing white-space.
+            }
             redirect_error = TRUE;
+            assert(wcslen(cmd2) == len);
+            arg = cmd2;
         }
+
+        // encase within quotes "cmd"\0.
+        if (wcscspn(arg, L"\" ") != len) {
+            if (NULL == cmd2 && NULL == (cmd2 = (wchar_t *)malloc(sizeof(wchar_t) * (len + 3))))
+                goto enomem;                    // note: size of buffer (len + 4) if cmd2 != NULL
+            (void) memmove(cmd2 + 1, arg, sizeof(wchar_t) * len);
+            cmd2[0] = '"';
+            cmd2[len + 1] = '"';
+            cmd2[len + 2] = 0;
+            assert(wcslen(cmd2) == (len + 2));
+            arg = cmd2;
+        }
+
+        argv[1] = L"/c";
+        argv[2] = arg;
         argv[3] = NULL;
+
     } else {
         argv[1] = L"-i";
         argv[2] = cmd;
@@ -432,22 +508,30 @@ PipeW(const wchar_t *cmd, const char *mode)
     }
 
     if ('r' == p->readOrWrite) {
+        const int fd = 
+            _open_osfhandle((OSFHANDLE)out_read, _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT) | _O_RDONLY);
+        if (-1 == fd) 
+            goto pipe_error;
+
+        out_read = INVALID_HANDLE_VALUE;        // fd has ownership
         if (NULL == (p->file = _fdopen(         // readable end of the pipe
-                _open_osfhandle((long)out_read,
-                    _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
-                    'b' == textOrBinary ? "rb" : "rt"))) {
+                        fd, 'b' == textOrBinary ? "rb" : "rt"))) {
+            _close(fd);
             goto pipe_error;
         }
-        out_read = INVALID_HANDLE_VALUE;
 
     } else {
+        const int fd =
+            _open_osfhandle((OSFHANDLE)in_write, _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT));
+        if (-1 == fd) 
+            goto pipe_error;
+
+        in_write = INVALID_HANDLE_VALUE;        // fd has ownership
         if (NULL == (p->file = _fdopen(         // writeable end of the pipe
-                _open_osfhandle((long)in_write,
-                    _O_NOINHERIT | ('b' == textOrBinary ? _O_BINARY : _O_TEXT)),
-                    'b' == textOrBinary ? "wb" : "wt"))) {
+                        fd, 'b' == textOrBinary ? "wb" : "wt"))) {
+            _close(fd);
             goto pipe_error;
         }
-        in_write = INVALID_HANDLE_VALUE;
     }
     setvbuf(p->file, NULL, _IONBF, 0);          // non-buffered
 
@@ -489,6 +573,11 @@ pipe_error:
 
 einvalid:
     errno = EINVAL;
+    return NULL;
+
+enomem:
+    free(p);
+    errno = ENOMEM;
     return NULL;
 
 #endif  /*USE_NATIVE_POPEN*/
@@ -620,8 +709,10 @@ w32_pclose(FILE *file)
         if (pipe) {
             int status = 0, ret = 0;
 
-            if ('w' == pipe->readOrWrite) fclose(file); Close2(pipe->hIn, "pclose/stdin");
-            if ('r' == pipe->readOrWrite) fclose(file); Close2(pipe->hOut, "pclose/stdout");
+            if ('w' == pipe->readOrWrite) fclose(file);
+            Close2(pipe->hIn,  "pclose/stdin");
+            if ('r' == pipe->readOrWrite) fclose(file);
+            Close2(pipe->hOut, "pclose/stdout");
             Close2(pipe->hErr, "pclose/stderr");
             if (! w32_child_wait(pipe->handle, &status, FALSE /*block*/)) {
                 ret = -1;
@@ -652,7 +743,7 @@ Dup(HANDLE old, HANDLE *dup, BOOL inherit)
 
     if (dup == NULL || old == INVALID_HANDLE_VALUE ||
             !DuplicateHandle(self, old, self, dup, 0, inherit, DUPLICATE_SAME_ACCESS)) {
-        *dup = INVALID_HANDLE_VALUE;
+        if (dup) *dup = INVALID_HANDLE_VALUE;
         return (FALSE);
     }
     return (TRUE);
@@ -744,7 +835,7 @@ DisplayErrorA(
     int len;
 
     len = _snprintf(buffer, sizeof(buffer),
-            "Internal Error: %s = %d (%s).\n", msg, rc, rcmsg);
+            "Internal Error: %s = %u (%s).\n", msg, (unsigned)rc, rcmsg);
     WriteConsoleA(hOutput, buffer, len, NULL, NULL);
 }
 

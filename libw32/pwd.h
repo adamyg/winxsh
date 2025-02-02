@@ -1,7 +1,7 @@
 #ifndef LIBW32_PWD_H_INCLUDED
 #define LIBW32_PWD_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_pwd_h,"$Id: pwd.h,v 1.6 2022/03/15 12:15:36 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_pwd_h,"$Id: pwd.h,v 1.7 2023/12/26 17:01:01 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
@@ -33,6 +33,7 @@ __CPRAGMA_ONCE
 
 #include <sys/cdefs.h>                          /* __BEGIN_DECLS, __PDECL */
 #include <sys/utypes.h>                         /* uid_t */
+#include <stddef.h>                             /* size_t */
 
 __BEGIN_DECLS
 

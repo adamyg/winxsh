@@ -1,13 +1,13 @@
 
     Source: libssh2 1.9.0, code changes
 
-	src\libssh2_priv.h
+        src\libssh2_priv.h
 
                   #include <time.h>
-		+ #include <limits.h>	//UINT_MAX
+                + #include <limits.h>   //UINT_MAX
 
 
-	src\misc.c
+        src\misc.c
 
                   #ifdef WIN32
                 + #if defined(__WATCOMC__)
@@ -18,7 +18,7 @@
                 +      safememset;
                 + #else
                   static void * (__cdecl * const volatile memset_libssh)(void *, int, size_t) =
-                      memset;
+                       memset;
                 + #endif
                   #else
                   static void * (* const volatile memset_libssh)(void *, int, size_t) = memset;

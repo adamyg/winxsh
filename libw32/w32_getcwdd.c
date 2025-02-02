@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getcwdd_c,"$Id: w32_getcwdd.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getcwdd_c,"$Id: w32_getcwdd.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 getcwdd() implementation
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -88,7 +88,7 @@ __CIDENT_RCSID(gr_w32_getcwdd_c,"$Id: w32_getcwdd.c,v 1.1 2022/03/15 12:15:37 cv
 */
 
 LIBW32_API char *
-w32_getcwdd(char drive, char *path, int size)
+w32_getcwdd(char drive, char *path, size_t size)
 {
     if (NULL == path || size <= 0) {
         errno = EINVAL;
@@ -117,7 +117,7 @@ w32_getcwdd(char drive, char *path, int size)
 
 
 LIBW32_API char *
-w32_getcwddA(char drive, char *path, int size)
+w32_getcwddA(char drive, char *path, size_t size)
 {
     const unsigned nDrive =
             (isalpha((unsigned char)drive) ? (toupper(drive) - 'A') : 0xff);
@@ -179,7 +179,7 @@ w32_getcwddA(char drive, char *path, int size)
 
 
 LIBW32_API wchar_t *
-w32_getcwddW(char drive, wchar_t *path, int size)
+w32_getcwddW(char drive, wchar_t *path, size_t size)
 {
     const unsigned nDrive =
             (isalpha((unsigned char)drive) ? (toupper(drive) - 'A') : 0xff);

@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getrusage_c,"$Id: w32_getrusage.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getrusage_c,"$Id: w32_getrusage.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 getrusage() system calls
  *
- * Copyright (c) 2020 - 2022, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -118,7 +118,7 @@ getrusage(int who, struct rusage *usage)
                 totimeval(&kerneltime, &usage->ru_stime);   // system CPU time used
                 totimeval(&usertime, &usage->ru_utime);     // user CPU time used
                 usage->ru_majflt = pmc.PageFaultCount;      // page faults (hard page faults)
-                usage->ru_maxrss = pmc.PeakWorkingSetSize / 1024; // maximum resident set size
+                usage->ru_maxrss = (long)(pmc.PeakWorkingSetSize / 1024); // maximum resident set size
                 ret = 0;
             }
 

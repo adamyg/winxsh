@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.11 2022/03/20 08:22:55 cvsuser Exp $")
+__CIDENT_RCSID(termemu_keymap_c,"$Id: termemu_keymap.c,v 1.14 2025/02/02 16:52:25 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2015 - 2022, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -313,9 +313,9 @@ termemu_keymap_parse(termemu_keymap_t *keymap, const char *source, size_t buflen
 		//  other or error.
 error:		if (!*err) strcpy(err, "syntax error");
 		if (label) {
-			fprintf(stderr, "%s (%u): \"%.*s\" : %s\n", label, line, length, source, err);
+			fprintf(stderr, "%s (%u): \"%.*s\" : %s\n", label, line, (int)length, source, err);
 		} else {
-			fprintf(stderr, "line: \"%.*s\" : %s\n", length, source, err);
+			fprintf(stderr, "line: \"%.*s\" : %s\n", (int)length, source, err);
 		}
 		return -1;
 	}

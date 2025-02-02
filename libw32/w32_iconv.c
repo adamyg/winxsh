@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_iconv_c,"$Id: w32_iconv.c,v 1.1 2022/03/15 12:15:37 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_iconv_c,"$Id: w32_iconv.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 iconv dynamic loader.
  *
- * Copyright (c) 1998 - 2022, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -70,15 +70,17 @@ static iconvfn_t        x_iconv;
 //  static void *       x_iconv_errno;
 
 static const char *     x_iconvnames[] = {
-        NULL,                                   // place-holder
-#if defined(ICONVDLL_NAME)
-        ICONVDLL_NAME,                          // compile-time configuration
+        NULL,                                   // place-holder/runtime configuration
+#if defined(HAVE_LIBICONV_CITRUS_DLL)
+        HAVE_LIBICONV_CITRUS_DLL,
+#elif defined(ICONVDLL_NAME)
+        ICONVDLL_NAME,
 #else
-#define ICONVDLL_NAME   "[lib]iconv[2].dll"     // dynamic
-        "libiconv2.dll",
         "libiconv.dll",
-        "iconv2.dll",
-        "iconv.dll",
+        "iconv.dll"
+#endif
+#if !defined(ICONVDLL_NAME)
+#define ICONVDLL_NAME "iconv.dll"               // generic name
 #endif
        };
 
@@ -162,6 +164,10 @@ w32_iconv_connect(int verbose)
     }
 
     fullname[0] = 0;                            // resolve symbols, iconvctl() is optional
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
     GetModuleFileNameA(x_iconvdll, fullname, sizeof(fullname));
     if (NULL != (x_iconv = (iconvfn_t)GetProcAddress(x_iconvdll, "libiconv"))) {
         x_iconv_open = (iconvopenfn_t)GetProcAddress(x_iconvdll, "libiconv_open");
@@ -171,6 +177,9 @@ w32_iconv_connect(int verbose)
         x_iconv_open = (iconvopenfn_t)GetProcAddress(x_iconvdll, "iconv_open");
         x_iconv_close = (iconvclosefn_t)GetProcAddress(x_iconvdll, "iconv_close");
     }
+#if defined(GCC_VERSION) && (GCC_VERSION >= 80000)
+#pragma GCC diagnostic pop
+#endif
 
 //  x_iconvctl = (void *)GetProcAddress(x_iconvdll, "libiconvctl");
 //  x_iconv_errno = (void *)GetProcAddress(x_iconvdll, "libiconv_errno");

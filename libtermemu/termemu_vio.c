@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.14 2022/03/17 03:49:42 cvsuser Exp $")
+__CIDENT_RCSID(termemu_vio_c,"$Id: termemu_vio.c,v 1.17 2025/02/02 16:52:25 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console driver
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -234,14 +234,14 @@ static void             CopyIn(unsigned pos, unsigned cnt, WCHAR_INFO *image);
 static void             CopyOut(copyoutctx_t *ctx, unsigned offset, unsigned len, unsigned flags);
 #if defined(WIN32_CONSOLEEXT)
 #if defined(WIN32_CONSOLE256)
-static void             CopyOutEx(copyoutctx_t *ctx, unsigned pos, unsigned cnt, unsigned flags);
+static void             CopyOutEx(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags);
 #define WIN32_CONSOLEVIRTUAL
 #if defined(WIN32_CONSOLEVIRTUAL)
 static void             CopyOutEx2(copyoutctx_t *ctx, size_t pos, size_t cnt, unsigned flags);
 #endif  //WIN32_CONSOLEVIRTUAL
 #endif  //WIN32_CONSOLE256
-static void             UnderOutEx(copyoutctx_t *ctx, unsigned pos, unsigned cnt);
-static void             StrikeOutEx(copyoutctx_t *ctx, unsigned pos, unsigned cnt);
+static void             UnderOutEx(copyoutctx_t *ctx, size_t pos, size_t cnt);
+static void             StrikeOutEx(copyoutctx_t *ctx, size_t pos, size_t cnt);
 #endif  //WIN32_CONSOLEEXT
 
 #if defined(WIN32_CONSOLE256)

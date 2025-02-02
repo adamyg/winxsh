@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_sockbase_c,"$Id: w32_sockbase.c,v 1.5 2022/03/15 12:15:38 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_sockbase_c,"$Id: w32_sockbase.c,v 1.7 2025/02/02 08:46:58 cvsuser Exp $")
 
 /*
  * win32 socket () system calls
  * Base functionality.
  *
- * Copyright (c) 2007, 2012 - 2022 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -57,7 +57,12 @@ __CIDENT_RCSID(gr_w32_sockbase_c,"$Id: w32_sockbase.c,v 1.5 2022/03/15 12:15:38 
 #pragma comment(lib, "Ws2_32.lib")
 
 static int x_sockinit = 0;                      /* initialisation status */
-LIBW32_API int w32_h_errno = 0;                 /* lookup error */
+/*LIBW32_API*/ int w32_h_errno = 0;             /* lookup error */
+
+#undef getaddrinfo
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+INT WSAAPI getaddrinfo(PCSTR pNodeName, PCSTR pServiceName, const ADDRINFOA *pHints, PADDRINFOA *ppResult);
+#endif
 
 
 /*
