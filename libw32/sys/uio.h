@@ -1,7 +1,7 @@
 #ifndef LIBW32_SYS_UIO_H_INCLUDED
 #define LIBW32_SYS_UIO_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_sys_uio_h,"$Id: uio.h,v 1.2 2020/06/28 23:57:48 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_sys_uio_h,"$Id: uio.h,v 1.1 2025/02/02 10:23:25 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */

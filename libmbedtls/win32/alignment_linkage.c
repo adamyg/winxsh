@@ -1,4 +1,4 @@
-//$Id: alignment_linkage.c,v 1.1 2023/09/12 16:48:17 cvsuser Exp $
+//$Id: alignment_linkage.c,v 1.1 2025/02/02 10:22:40 cvsuser Exp $
 //
 //  alignment support
 //
