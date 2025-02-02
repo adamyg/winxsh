@@ -33,6 +33,7 @@ __CPRAGMA_ONCE
  */
 
 #include <sys/types.h>
+#include <stdint.h>
 
 #define _LITTLE_ENDIAN      1234
 #define _BIG_ENDIAN         4321
@@ -47,9 +48,19 @@ __CPRAGMA_ONCE
 #elif defined(IS_BIG_ENDIAN)
 #define __BYTE_ORDER        _BIG_ENDIAN
 #else
-#error __BYTE_ORDER not defined ....
+#   if defined(_M_IX86)
+#       define IS_LITTLE_ENDIAN 1
+#   elif defined(_M_MRX000)
+#       define IS_LITTLE_ENDIAN 1
+#   elif defined(_M_ALPHA)
+#       define IS_LITTLE_ENDIAN 1
+#   elif defined(_M_PPC)
+#       define IS_LITTLE_ENDIAN 1
+#   else
+#       error unknown endian
+#   endif
 #endif
-#endif
+#endif /*__BYTE_ORDER*/
 #if defined(_BSD_SOURCE)
 #define BYTE_ORDER          __BYTE_ORDER
 #endif

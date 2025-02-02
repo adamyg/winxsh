@@ -1,14 +1,14 @@
 #ifndef LIBW32_WIN32_IOCTL_H_INCLUDED
 #define LIBW32_WIN32_IOCTL_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_win32_ioctl_h,"$Id: win32_ioctl.h,v 1.4 2023/12/26 17:01:06 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_win32_ioctl_h,"$Id: win32_ioctl.h,v 1.5 2025/02/02 08:46:58 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 ioctl support.
  *
- * Copyright (c) 2018 - 2023, Adam Young.
+ * Copyright (c) 2018 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

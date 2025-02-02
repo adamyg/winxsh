@@ -1,14 +1,14 @@
 #ifndef LIBW32_WIN32_TIME_H_INCLUDED
 #define LIBW32_WIN32_TIME_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_time_h,"$Id: win32_time.h,v 1.8 2023/12/26 17:01:06 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_time_h,"$Id: win32_time.h,v 1.9 2025/02/02 08:46:58 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 time functionality.
  *
- * Copyright (c) 1998 - 2023, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -88,6 +88,8 @@ LIBW32_API int          w32_utimeW(const wchar_t *path, const struct utimbuf *ti
 LIBW32_API time_t       timegm(struct tm *tm);
 #endif
 #endif //libcompat
+
+LIBW32_API char *       w32_strptime(const char *buf, const char *fmt, struct tm *tm);
 
 __END_DECLS
 

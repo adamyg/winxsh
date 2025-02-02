@@ -1,9 +1,9 @@
 # -*- mode: mak; -*-
-# $Id: Makefile.in,v 1.18 2023/12/26 17:01:00 cvsuser Exp $
+# $Id: Makefile.in,v 1.19 2025/02/02 08:47:32 cvsuser Exp $
 # winxsh - top level makefile.
 #
 #
-# Copyright (c) 2015 - 2023, Adam Young.
+# Copyright (c) 2015 - 2025, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -83,7 +83,7 @@ libdir		= @libdir@
 datadir		= @datadir@
 
         # package directories
-pkgname		= winsh
+pkgname		= @PACKAGE@
 ifeq (rief,$(findstring rief,$(libexecdir)))
 pkglibexecdir	= $(libexecdir)
 pkglibdir	= $(libdir)
@@ -109,11 +109,10 @@ top_srcdir	= @top_srcdir@
 
 # File extensions
 
-E=
 A=		.a
 O=		.o
 LP=		lib
-E=		.exe
+E=		
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=		$(D_BIN)/*.map
@@ -145,7 +144,7 @@ ifneq ("$(word 1,$(MAKECMDGOALS))","release")
 		| make [VERBOSE=1] [release or debug] target \n\
 		|\n\
 		|	Build one or more of the following targets recursively within each sub-directory\n\
-		|	for the toolchain @TOOLCHAIN@. \n\
+		|	for the toolchain "@TOOLCHAINNAME@" (@TOOLCHAIN@). \n\
 		|\n\
 		| Options: \n\
 		|	VERBOSE - increase run-time diagnostics; suppress stderr filtering. \n\

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_iconv_native_c,"$Id: w32_iconv_native.c,v 1.2 2023/12/26 17:01:03 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_iconv_native_c,"$Id: w32_iconv_native.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /*
  * iconv implementation using Win32 API to convert.
@@ -124,7 +124,7 @@ static int iso2022jp_mbtowc(csconv_t *cv, const uchar *buf, int bufsize, ushort 
 static int iso2022jp_wctomb(csconv_t *cv, ushort *wbuf, int wbufsize, uchar *buf, int bufsize);
 static int iso2022jp_flush(csconv_t *cv, uchar *buf, int bufsize);
 
-static struct {
+static const struct {
     int codepage;
     const char *name;
 } codepage_alias[] = {
@@ -815,9 +815,9 @@ win_iconv(iconv_t _cd, const char **inbuf, size_t *inbytesleft, char **outbuf, s
 
     while (*inbytesleft != 0)
     {
+        int wsize = MB_CHAR_MAX;
         frommode = cd->from.mode;
         tomode = cd->to.mode;
-        int wsize = MB_CHAR_MAX;
 
         insize = cd->from.mbtowc(&cd->from, (const uchar *)*inbuf, (int)(*inbytesleft), wbuf, &wsize);
         if (insize == -1)

@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.14 2023/12/26 17:01:07 cvsuser Exp $
+# $Id: Makefile.in,v 1.15 2025/02/02 08:46:36 cvsuser Exp $
 # rlogind Makefile
 #
 #
-# Copyright (c) 2020 - 2023, Adam Young.
+# Copyright (c) 2020 - 2025, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -34,9 +34,11 @@ top_builddir=	@top_builddir@
 # File extensions
 
 C=		.c
-E=
-O=		.o
 H=		.h
+O=		.o
+A=		.a
+LP=		lib
+E=
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
@@ -49,6 +51,8 @@ ifeq ("$(CXX)","")
 CXX=		$(CC)
 endif
 RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 RC=		@RC@
 
 # Configuration
@@ -151,7 +155,7 @@ $(RESOURCES):		../include/buildinfo.h
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS) $(RESOURCES)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)

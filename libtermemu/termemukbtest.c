@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.11 2023/12/22 17:07:45 cvsuser Exp $")
+__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.12 2025/02/02 08:47:06 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -28,7 +28,7 @@ __CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.11 2023/12/22 17:07:45 
  * License for more details.
  * ==end==
  */
- 
+
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #endif
@@ -232,7 +232,7 @@ main(int argc, char *argv[])
 
 			cio = termemu_cio_keyevent(key, &evt);
 		}
-		
+
 		KeyboardPush(oconsole, vkstatus, &evt);
 		esc = (0x1b == key->uChar.AsciiChar ? esc + 1 : 0);
 
@@ -242,7 +242,7 @@ main(int argc, char *argv[])
 		if (key->uChar.AsciiChar >= 0x20 && key->uChar.AsciiChar <= 0x7f /*isprint*/) {
 			printf("VK:%u/0x%x SCAN:0x%04x Ascii(0x%x/%c)",
 			    key->wVirtualKeyCode, key->wVirtualKeyCode, key->wVirtualScanCode, key->uChar.AsciiChar, key->uChar.AsciiChar);
-		} else {				
+		} else {
 			printf("VK:%u/0x%x SCAN:0x%04x Unicode(0x%x)",
 			    key->wVirtualKeyCode, key->wVirtualKeyCode, key->wVirtualScanCode, key->uChar.UnicodeChar);
 		}
@@ -281,7 +281,7 @@ main(int argc, char *argv[])
 
 static void
 Verify(const termemu_event_t *evt)
-{	
+{
 #if defined(_DEBUG)	// Verify KeySymbol support functions
 	if (evt->xkbkey) {
 		const char *str = termemu_keysym_tostr(evt->xkbkey);
@@ -341,9 +341,9 @@ KeyboardExport(const char *out)
 
 		fprintf(f, "! exported keymap\n");
 		fprintf(f, "xterm.VT100.translations: #override \\n\\\n");
-		for (r = 0; r < recorded; ++r) {		
+		for (r = 0; r < recorded; ++r) {
 			if (r) {
-				if (0 == strcmp(events[r].str, events[r-1].str)) 
+				if (0 == strcmp(events[r].str, events[r-1].str))
 					continue; //dup; ignore
 				fprintf(f, " \\n\\\n");
 			}
@@ -426,7 +426,7 @@ static void
 KeyboardStatus(HANDLE console, BYTE *status)
 {
 	struct row {
-		int vk;	
+		int vk;
 		const wchar_t *name;
 	};
 
@@ -437,7 +437,7 @@ KeyboardStatus(HANDLE console, BYTE *status)
 #define AS(__c)	    (__c)		    // ASCII
 
 	static const struct row row1[] = {
-		{VK(ESCAPE),L"ESC"},{VK(F1),L"F1"}, {VK(F2),L"F2"},{VK(F3),L"F3"},{VK(F4),L"F4"},{VK(F5),L"F5"},{VK(F6),L"F6"},{VK(F7),L"F7"}, 
+		{VK(ESCAPE),L"ESC"},{VK(F1),L"F1"}, {VK(F2),L"F2"},{VK(F3),L"F3"},{VK(F4),L"F4"},{VK(F5),L"F5"},{VK(F6),L"F6"},{VK(F7),L"F7"},
 		    {VK(F8),L"F8"},{VK(F9),L"F9"},{VK(F10),L"F10"},{VK(F11),L"F11"},{VK(F11),L"F12"},{VK(PRINT),L"PRT"},{VK(SCROLL),L"SLk"},{0}};
 	static const struct row row2[] = {
 		{223,L"¬"},{'1'},{'2'},{'3'},{'4'},{'5'},{'6'},{'7'},{'8'},
@@ -478,7 +478,7 @@ KeyboardStatus(HANDLE console, BYTE *status)
 		}
 		coord.Y += 2;
 	}
-	coord.X = 0; 
+	coord.X = 0;
 	SetConsoleCursorPosition(console, coord);
 }
 
@@ -500,7 +500,7 @@ KeyboardKey(HANDLE console, int vk, const wchar_t *name, BYTE *status)
 
 		SetConsoleTextAttribute(console, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY|
 			((vkstatus & VKS_PRESS)  ? BACKGROUND_GREEN :
-			  ((vkstatus & VKS_DONE) ? BACKGROUND_RED   : 
+			  ((vkstatus & VKS_DONE) ? BACKGROUND_RED   :
 			   ((vkstatus & VKS_ON)  ? BACKGROUND_BLUE  : BACKGROUND_INTENSITY))));
 		if (vkstatus & VKS_PRESS) status[vk] &= ~VKS_PRESS;
 		len1 = wsprintfW(wbuf, L"%3s", (name ? name : t_name));
@@ -524,7 +524,7 @@ KeyboardKey(HANDLE console, int vk, const wchar_t *name, BYTE *status)
 static void
 ConsoleClear(HANDLE console)
 {
-	COORD coord = {0,0}; 
+	COORD coord = {0,0};
 	CONSOLE_SCREEN_BUFFER_INFO csbi = {0,0};
 	DWORD dwConSize;
 	DWORD cCharsWritten;

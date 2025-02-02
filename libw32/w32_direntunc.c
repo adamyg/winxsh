@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_direntunc_c,"$Id: w32_direntunc.c,v 1.2 2023/12/26 17:01:02 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_direntunc_c,"$Id: w32_direntunc.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 unc directory access services ...
  *
- * Copyright (c) 2007, 2012 - 2023 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -105,7 +105,7 @@ w32_unc_iterateW(const wchar_t *servername, unc_push_t push, void *data)
             // build directory ..
             for (e = 0, ent = buffer; e < entries; ++e, ++ent) {
                 if (STYPE_DISKTREE == ent->shi502_type) {
-                    const WCHAR *filename = ent->shi502_netname;
+                    const wchar_t *filename = ent->shi502_netname;
 
                     if ('p' == filename[0]) {   // prnproc$ or print$
                         if (0 == wcscmp(filename, L"prnproc$") ||
@@ -198,7 +198,7 @@ struct dirent *
 w32_unc_readdirA(DIR *dp)
 {
     DWORD bufsize = 4 * 1024;
-    DWORD result, count;
+    DWORD result, count = 0;
     void *buffer;
     char *cursor;
 
@@ -243,7 +243,7 @@ struct dirent *
 w32_unc_readdirW(DIR *dp)
 {
     DWORD bufsize = 4 * 1024;
-    DWORD result, count;
+    DWORD result, count = 0;
     void *buffer;
     wchar_t *cursor;
 

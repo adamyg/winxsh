@@ -1,14 +1,14 @@
 #ifndef GR_DLFCN_H_INCLUDED
 #define GR_DLFCN_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_dlfcn_h,"$Id: dlfcn.h,v 1.2 2023/12/26 17:01:01 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_dlfcn_h,"$Id: dlfcn.h,v 1.3 2025/02/02 08:46:57 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * <dlfcn.h> for windows
  *
- * Copyright (c) 1998 - 2023, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

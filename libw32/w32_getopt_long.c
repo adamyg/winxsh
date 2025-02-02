@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt_long.c,v 1.4 2023/12/26 17:01:03 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt_long.c,v 1.5 2025/02/02 08:46:58 cvsuser Exp $")
 
 /*-
  * Copyright (c) 2000 The NetBSD Foundation, Inc.
@@ -32,6 +32,7 @@ __CIDENT_RCSID(gr_w32_getopt_c,"$Id: w32_getopt_long.c,v 1.4 2023/12/26 17:01:03
  *  $NetBSD: getopt_long.c,v 1.21.4.1 2008/01/09 01:34:14 matt Exp $
  */
 
+#if !defined(__MINGW32__)
 
 #include <assert.h>
 #include <err.h>
@@ -484,5 +485,12 @@ getopt_long2(int nargc, char * const *nargv, const char *options, const struct o
 #undef IDENTICAL_INTERPRETATION
 }
 
+#else
+
+extern void __stdlibrary_has_getopt_long(void);
+
+void __stdlibrary_has_getopt_long(void) {}
+
+#endif  /*!__MINGW32__*/
 
 //end

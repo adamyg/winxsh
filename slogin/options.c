@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_c,"$Id: options.c,v 1.17 2023/12/22 17:07:46 cvsuser Exp $")
+__CIDENT_RCSID(options_c,"$Id: options.c,v 1.18 2025/02/02 08:46:12 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
  * win slogin
  *
- * Copyright (c) 2015 - 2023, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -65,6 +65,7 @@ __CIDENT_RCSID(options_c,"$Id: options.c,v 1.17 2023/12/22 17:07:46 cvsuser Exp 
 
 #include "options.h"
 #include "console.h"
+#include <buildinfo.h>
 
 #include "../libtermemu/compat.h"
 #include "../libtermemu/termemu_tsm.h"
@@ -568,7 +569,7 @@ version(void)
 #endif
 
 	fprintf(stderr,
-	    "Copyright (C) 2015-2022 Adam Young\n"
+	    "Copyright (C) 2015 - " WINSH_BUILD_YEAR " Adam Young\n"
 	    "libssh2    - Copyright (C) 2004-2019 (https://www.libssh2.org/license.html)\n"
 #if defined(MBEDTLS_VERSION_STRING)
 	    "libmbedtls - Apache 2.0 license (https://tls.mbed.org/)\n"

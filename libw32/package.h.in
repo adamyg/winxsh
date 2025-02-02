@@ -1,15 +1,15 @@
 #ifndef GR_EDPACKAGE_H_INCLUDED
 #define GR_EDPACKAGE_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(edpackage_h, "$Id: package.h.in,v 1.4 2023/12/26 17:01:01 cvsuser Exp $")
+__CIDENT_RCSID(edpackage_h, "$Id: package.h.in,v 1.5 2025/02/02 08:46:57 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: h; set-indent: 4; -*- */
-/* $Id: package.h.in,v 1.4 2023/12/26 17:01:01 cvsuser Exp $
+/* $Id: package.h.in,v 1.5 2025/02/02 08:46:57 cvsuser Exp $
  * Package configuration.
  *
  *
- * Copyright (c) 2015 - 2023, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * 
  * This file is part of the WinRSH/WinSSH project.
  * 

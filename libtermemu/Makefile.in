@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.15 2023/12/26 17:01:00 cvsuser Exp $
+# $Id: Makefile.in,v 1.16 2025/02/02 08:47:06 cvsuser Exp $
 # libtermemu makefile.
 #
 #
-# Copyright (c) 2015 - 2022, Adam Young.
+# Copyright (c) 2015 - 2025, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -32,10 +32,12 @@ top_builddir=	@top_builddir@
 
 # File extensions
 
-O=		.o
+C=		.c
 H=		.h
+O=		.o
 A=		.a
 LP=		lib
+E=
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
@@ -46,6 +48,9 @@ CC=		@CC@
 AR=		@AR@
 RANLIB=		@RANLIB@
 RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
+RC=		@RC@
 
 # Configuration
 
@@ -57,12 +62,21 @@ ifneq ("$(BUILD_TYPE)","release")
 RTSUFFIX=d
 endif
 
+QUIETOUT:=	>/dev/null 2>&1
+ifeq ($(VERBOSE),1)
+QUIETOUT:=
+else ifeq ($(VERBOSE),0)
+else ifeq ($(VERBOSE),)
+else
+$(error VERBOSE: unexpected value 0 or 1 required, $(VERBOSE) given]))
+endif
+
 # Directories
 
 D_INC=		$(ROOT)/include
 D_BIN=		$(ROOT)/bin@TOOLCHAINEXT@/$(BUILD_TYPE)
-D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/libtermemu
 D_LIB=		$(ROOT)/lib@TOOLCHAINEXT@/$(BUILD_TYPE)
+D_OBJ=		$(ROOT)/obj@TOOLCHAINEXT@/$(BUILD_TYPE)/libtermemu
 
 # Common flags
 
@@ -134,11 +148,11 @@ $(LIBRARY):		$(D_OBJ)/.created $(LIBOBJS)
 
 $(D_BIN)/mkkeys$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/mkkeys$(E):	$(D_OBJ)/.created $(MKKEYS_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(MKKEYS_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(MKKEYS_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_BIN)/kbtest$(E):	MAPFILE=$(basename $@).map
 $(D_BIN)/kbtest$(E):	$(D_OBJ)/.created $(KBTEST_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(KBTEST_OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(KBTEST_OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)

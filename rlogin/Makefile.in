@@ -1,9 +1,9 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.10 2023/12/26 17:01:07 cvsuser Exp $
+# $Id: Makefile.in,v 1.11 2025/02/02 08:46:41 cvsuser Exp $
 # rlogin makefile.
 #
 #
-# Copyright (c) 2015 - 2022, Adam Young.
+# Copyright (c) 2015 - 2025, Adam Young.
 # All rights reserved.
 #
 # This file is part of the WinRSH/WinSSH project.
@@ -33,9 +33,11 @@ top_builddir=	@top_builddir@
 # File extensions
 
 C=		.c
-E=
-O=		.o
 H=		.h
+O=		.o
+A=		.a
+LP=		lib
+E=
 
 CLEAN=		*.bak *~ *.BAK *.swp *.tmp core *.core a.out
 XCLEAN=
@@ -48,6 +50,8 @@ ifeq ("$(CXX)","")
 CXX=		$(CC)
 endif
 RM=		@RM@
+PERL=		@PERL@
+LIBTOOL=	@LIBTOOL@
 RC=		@RC@
 
 # Configuration
@@ -116,7 +120,7 @@ debug:
 
 $(D_BIN)/$(TARGET):	MAPFILE=$(basename $@).map
 $(D_BIN)/$(TARGET):	$(D_OBJ)/.created $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
+		$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS) @LDMAPFILE@
 
 $(D_OBJ)/.created:
 		-@mkdir $(D_OBJ)

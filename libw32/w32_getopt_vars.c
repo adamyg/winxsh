@@ -1,10 +1,12 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_getopt_vars_c,"$Id: w32_getopt_vars.c,v 1.1 2023/12/26 17:01:03 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_getopt_vars_c,"$Id: w32_getopt_vars.c,v 1.2 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  *  common getopt and getopt_long globals
  */
+
+#if !defined(__MINGW32__)
 
 #include <sys/cdefs.h>
 
@@ -17,10 +19,13 @@ __CIDENT_RCSID(gr_w32_getopt_vars_c,"$Id: w32_getopt_vars.c,v 1.1 2023/12/26 17:
 /*LIBW32_VAR*/ int  optreset = 0;               /* reset getopt */
 /*LIBW32_VAR*/ char *optarg = NULL;             /* argument associated with option */
 
+#endif  /*!__MINGW32__*/
+
+extern void __w32_getopt_globals(void);
+
 void
 __w32_getopt_globals(void)
 {
 }
 
 /*end*/
-

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: updateyear.pl,v 1.1 2023/10/02 08:13:36 cvsuser Exp $
+# $Id: updateyear.pl,v 1.1 2025/02/02 08:46:21 cvsuser Exp $
 # -*- mode: perl; tabs: 8; indent-width: 4; -*-
 # Update the copyright year within the specified files
 #
@@ -151,8 +151,16 @@ load($$)                # (file)
         chomp(); chomp();
         if ($result < 0) {
             if (/Copyright \(C\) 20/i) {
-                s/- 2022/- 2023/;
-                s/-2022/-2023/;
+                s/-[ ]*2022/- 2025/;
+                s/-[ ]*2023/- 2025/;
+                s/-[ ]*2024/- 2025/;
+                $result = scalar @lines;
+
+            } elsif (/Copyright \(C\) 19/i) {
+                s/-[ ]*2023/- 2025/;
+                s/-[ ]*2022/- 2025/;
+                s/-[ ]*2022/- 2025/;
+
                 $result = scalar @lines;
             }
         }

@@ -1,14 +1,14 @@
 #ifndef LIBW32_DIRENT_H_INCLUDED
 #define LIBW32_DIRENT_H_INCLUDED
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_libw32_dirent_h,"$Id: dirent.h,v 1.7 2023/12/26 17:01:01 cvsuser Exp $")
+__CIDENT_RCSID(gr_libw32_dirent_h,"$Id: dirent.h,v 1.8 2025/02/02 08:46:57 cvsuser Exp $")
 __CPRAGMA_ONCE
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win32 <dirent.h> implementation
  *
- * Copyright (c) 1998 - 2023, Adam Young.
+ * Copyright (c) 1998 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
@@ -229,9 +229,9 @@ LIBW32_API void         _wseekdir __P((_WDIR *, long));
 LIBW32_API long         _wtelldir __P((_WDIR *));
 LIBW32_API int          _wreaddir_r __P((_WDIR *, struct _wdirent *, struct _wdirent **)); /*deprecated*/
 
-LIBW32_API int          alphasort __P((const void *, const void *));
-LIBW32_API int          scandir __P((void));
-LIBW32_API int          getdirentries __P((int, char *, int, long *));
+//LIBW32_API int          alphasort __P((const void *, const void *));
+//LIBW32_API int          scandir __P((void));
+//LIBW32_API int          getdirentries __P((int, char *, int, long *));
 #endif  /*_POSIX_SOURCE*/
 
 __END_DECLS

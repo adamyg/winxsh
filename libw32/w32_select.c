@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(gr_w32_select_c,"$Id: w32_select.c,v 1.2 2023/12/26 17:01:04 cvsuser Exp $")
+__CIDENT_RCSID(gr_w32_select_c,"$Id: w32_select.c,v 1.3 2025/02/02 08:46:58 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  *  Windows 'select' compat interface
  *
- * Copyright (c) 2007, 2012 - 2023 Adam Young.
+ * Copyright (c) 2007, 2012 - 2025 Adam Young.
  *
  * This file is part of the WinRSH/WinSSH project.
  *
@@ -210,7 +210,7 @@ static int
 sel_wait(u_int cnt, Select_t *selfds, DWORD timeout)
 {
     DWORD  stick, ret;
-    HANDLE waitfor[MAXIMUM_WAIT_OBJECTS];       // system limit
+    HANDLE waitfor[MAXIMUM_WAIT_OBJECTS] = {0}; // system limit
     u_int i = 0;
 
     if (cnt > sizeof(waitfor)/sizeof(waitfor[0]))

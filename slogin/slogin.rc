@@ -67,15 +67,15 @@ VS_VERSION_INFO VERSIONINFO
                 BEGIN
                         BLOCK   "040904E4"  /* Language ID=040904E4 (U.S. English, char set = Windows, Multilingual) */
                         BEGIN
-                                VALUE "Comments",               "rlogin command line interface"
+                                VALUE "Comments",               "slogin command line interface"
 
                                 VALUE "CompanyName",            "WinXSH"
 
-                                VALUE "FileDescription",        "Windows rLogin"
+                                VALUE "FileDescription",        "Windows slogin"
 
                                 VALUE "FileVersion",            WINSH_VERSION ", Build:" WINSH_BUILD_DATE "-" WINSH_BUILD_NUMBER
 
-                                VALUE "InternalName",           "rlogind.exe"
+                                VALUE "InternalName",           "slogind.exe"
 
                                 VALUE "LegalCopyright",
                                         "Licensed under GNU General Public License version 3.0. \n"
@@ -87,9 +87,9 @@ VS_VERSION_INFO VERSIONINFO
                                 VALUE "Maintainers",
                                         "Port: https://github.com/adamyg/winxsh \n"
 
-                                VALUE "OriginalFilename",       "rlogin.exe"
+                                VALUE "OriginalFilename",       "slogin.exe"
 
-                                VALUE "ProductName",            "Native Windows rlogin tool"
+                                VALUE "ProductName",            "Native Windows slogin tool"
 
                                 VALUE "ProductVersion",         WINSH_VERSION ", Win32"
                         END
@@ -109,8 +109,8 @@ VS_VERSION_INFO VERSIONINFO
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-//IDI_ICON1               ICON                    "rlogind.ico"
-//IDI_ICON2               ICON                    "rlogind2.ico"
+//IDI_ICON1               ICON                    "slogind.ico"
+//IDI_ICON2               ICON                    "slogind2.ico"
 
 #endif  /* English (U.S.) resources */
 
