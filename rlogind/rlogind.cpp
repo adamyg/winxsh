@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.20 2025/02/02 08:46:36 cvsuser Exp $")
+__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.21 2025/02/02 14:10:46 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogind
  *
- * Copyright (c) 2020 - 2023, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.

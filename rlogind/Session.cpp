@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.17 2023/12/26 17:01:07 cvsuser Exp $")
+__CIDENT_RCSID(Session_cpp,"$Id: Session.cpp,v 1.18 2025/02/02 14:10:46 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * win rlogind
  *
- * Copyright (c) 2020 - 2023, Adam Young.
+ * Copyright (c) 2020 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
