@@ -104,9 +104,9 @@ protected:
         void assign_nl(const void *buffer, size_t buflen);
         char *data()
             { return data_; }
-        unsigned reserved() const
+        size_t reserved() const
             { return reserved_; }
-        unsigned size() const
+        size_t size() const
             { return size_; }
     public:
         TAILQ_ENTRY(BufferCursor) __entry;      // intrusive queue member; private
@@ -116,7 +116,7 @@ protected:
         ~BufferCursor() {
         }
         friend class LoggerImpl;
-        unsigned magic_, reserved_, size_;
+        size_t magic_, reserved_, size_;
         char *data_;
         void *parent_;
     };

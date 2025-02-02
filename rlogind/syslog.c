@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.9 2025/02/02 14:10:46 cvsuser Exp $")
+__CIDENT_RCSID(syslog_c,"$Id: syslog.c,v 1.10 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -236,7 +236,7 @@ vsyslog(int pri, const char *fmt, va_list ap)
                 //  syslog( "%s", buffer )
                 const char *buffer = va_arg(ap, const char *);
                 if (buffer && *buffer) {        // formatting optimization
-                        if ((len2 = strlen(buffer)) > space) len2 = space;
+                        if ((len2 = (int)strlen(buffer)) > space) len2 = space;
                         memcpy(message + len, buffer, len2);
                         len += len2;
                 }

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.17 2025/02/02 14:02:56 cvsuser Exp $")
+__CIDENT_RCSID(slogin_c,"$Id: slogin.c,v 1.18 2025/02/02 16:52:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -882,7 +882,7 @@ ssh2_authenticate_agent(const struct options *options)
 	/*
 	 *  Check what authentication methods are available
 	 */
-	userauthlist = libssh2_userauth_list(session, user, strlen(user));
+	userauthlist = libssh2_userauth_list(session, user, (unsigned int)strlen(user));
 	fprintf(stderr, "Authentication methods: %s\n", userauthlist);
 	if (strstr(userauthlist, "publickey") == NULL) {
 		fprintf(stderr, "\"publickey\" authentication is not supported\n");
@@ -942,7 +942,7 @@ static int
 ssh2_prompt_continue(const struct options *options, const char *msg)
 {
 	char message[1024] = {0};
-	int msglen = 0;
+	size_t msglen = 0;
 
 	if (msg && *msg) {
 		if ((msglen = strlen(msg)) > (sizeof(message) - 32))
@@ -1122,7 +1122,7 @@ ssh2_trace_handler(LIBSSH2_SESSION *session, void* context, const char *data, si
 			cxt->timestamp[strftime(cxt->timestamp, sizeof(cxt->timestamp)-2, "%H:%M:%S", tm)] = '\0';
 			cxt->now = now;
 		}
-		fprintf(cxt->file, "%s %*s\n", cxt->timestamp, length, data);
+		fprintf(cxt->file, "%s %*s\n", cxt->timestamp, (int)length, data);
 		fflush(cxt->file);
 	}
 }
@@ -1226,12 +1226,12 @@ static char *
 copyargs(char **argv)
 {
 	char **ap, *args, *p, *ep;
-	int cc;
+	size_t cc;
 
 	cc = 1; 	// trailing newline
 	for (ap = argv; *ap; ++ap)
 		cc += strlen(*ap) + 1;
-	if (NULL == (args = (char *)malloc((size_t)cc))) {
+	if (NULL == (args = (char *)malloc(cc))) {
 		err(1, "malloc");
 		return NULL;
 	}
@@ -1503,7 +1503,7 @@ direct_writer(const struct options *options)
 			int ret;
 
 			do {
-				ret = libssh2_channel_write(channel, outbuffer + written, count - written);
+				ret = (int)libssh2_channel_write(channel, outbuffer + written, count - written);
 				if (ret > 0) {
 					written += ret;
 				}
@@ -1703,7 +1703,7 @@ remote_drain(const struct options *options, int isterminal)
 	int written = 0, ret;
 
 	do {
-		ret = libssh2_channel_read(channel, inbuffer, sizeof(inbuffer));
+		ret = (int)libssh2_channel_read(channel, inbuffer, sizeof(inbuffer));
 		if (ret > 0) {
 			if (isterminal) {
 				EnterCriticalSection(&term_lock);
@@ -1720,7 +1720,7 @@ remote_drain(const struct options *options, int isterminal)
 		int eret;
 
 		do {
-			eret = libssh2_channel_read_stderr(channel, inbuffer, sizeof(inbuffer));
+			eret = (int)libssh2_channel_read_stderr(channel, inbuffer, sizeof(inbuffer));
 			if (eret > 0) {
 				(void) _write(STDERR_FILENO, inbuffer, eret);
 			}

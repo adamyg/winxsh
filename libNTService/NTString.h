@@ -123,7 +123,7 @@ public:
 
         void assign(const char *buffer)
         {
-                assign(buffer, strlen(buffer));
+                assign(buffer, (unsigned)strlen(buffer));
         }
 
         void append(const char *buffer, unsigned length)
@@ -142,7 +142,7 @@ public:
 
         void append(const char *buffer)
         {
-                append(buffer, strlen(buffer));
+                append(buffer, (unsigned)strlen(buffer));
         }
 
         void clear()

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(options_c,"$Id: options.c,v 1.18 2025/02/02 08:46:12 cvsuser Exp $")
+__CIDENT_RCSID(options_c,"$Id: options.c,v 1.19 2025/02/02 16:52:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -525,14 +525,14 @@ usage_format(size_t lmargin, size_t rmargin, size_t col, const char *text)
 		const size_t wordlen = strcspn(text, " .,\t;\n") + 1;
 
 		if (col < lmargin) {
-			fprintf(stderr, "%*s", lmargin - col, "");
+			fprintf(stderr, "%*s", (int)(lmargin - col), "");
 			col = lmargin;
 		} else if (col && (wordlen + col) > rmargin) {
-			fprintf(stderr, "\n%*s", lmargin, "");
+			fprintf(stderr, "\n%*s", (int)lmargin, "");
 			col = lmargin;
 		}
 
-		fprintf(stderr, "%.*s", wordlen, text);
+		fprintf(stderr, "%.*s", (int)wordlen, text);
 		col += wordlen;
 
 		if (text[wordlen-1] == '\n') { // <br>
@@ -630,7 +630,7 @@ use_detailed(void)
 
 	for (col = 0, opttext = usage_text; (text = *opttext) != NULL; ++opttext) {
 		if (text[0] == '\1') {          //argument, left aligment.
-			fprintf(stderr, "    %-*.*s", optlen, optlen, text + 1);
+			fprintf(stderr, "    %-*.*s", (int)optlen, (int)optlen, text + 1);
 			col = 4 + optlen;
 
 		} else if (text[0] == '\2') {   //description, right alignment.

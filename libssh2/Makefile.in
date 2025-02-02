@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.14 2025/02/02 14:02:50 cvsuser Exp $
+# $Id: Makefile.in,v 1.15 2025/02/02 16:51:54 cvsuser Exp $
 # libssh2 makefile.
 #
 #
@@ -125,7 +125,9 @@ SSH2INCLUDE=	$(SSH2BASE)/include
 
 CINCLUDE+=	-I$(SSH2BASE)/win32 -I$(SSH2INCLUDE)
 ifneq (mingw,$(findstring mingw,"@TOOLCHAIN@"))
+ifeq ("yes","@ISWIN32@"))
 CINCLUDE+=	-I./sdk
+endif
 endif
 CEXTRA+=	-DLIBSSH2_HAVE_ZLIB
 	# also see libssh2/win32/libssh2_config.h

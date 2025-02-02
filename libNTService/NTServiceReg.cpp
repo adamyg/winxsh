@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.7 2025/02/02 08:47:18 cvsuser Exp $")
+__CIDENT_RCSID(NTServiceReg_cpp, "$Id: NTServiceReg.cpp,v 1.8 2025/02/02 17:05:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -269,6 +269,10 @@ CNTServiceReg::GetValue(HKEY key, NTService::IDiagnostics &diags,
         DWORD t_dwSize, dwType, t_dwResult = 0;
         LSTATUS status;
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
         t_dwSize = dwSize, dwType = 0;
         if ((status = ::RegQueryValueEx(key, csKey, NULL,
                             &dwType, (BYTE *) szBuffer, &t_dwSize)) == ERROR_SUCCESS && REG_DWORD == dwType) {
@@ -277,6 +281,9 @@ CNTServiceReg::GetValue(HKEY key, NTService::IDiagnostics &diags,
                 dwSize = t_dwSize;
                 return true;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
         if (ERROR_MORE_DATA == status) {        // overflow
                 diags.fwarning("parameter <%s> too large", csKey);
@@ -384,6 +391,10 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
         //  Note: If szKey is NULL or an empty string, "",
         //  the function sets the type and data for the key's unnamed or default value.
         //
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
         dwSize = strlen(szValue) + 1 /*nul*/;
         if ((dwRet = ::RegSetValueExA(key, csKey, 0,
                             REG_SZ, (const BYTE *)szValue, dwSize)) != ERROR_SUCCESS) {
@@ -392,6 +403,9 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
                         (unsigned)dwRet, StrError(dwRet, errmsg, sizeof(errmsg)));
                 return false;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
         return true;
 }
 
@@ -412,6 +426,10 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 #endif
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4312)
+#endif
         dwSize = sizeof(dwValue);
         if ((dwRet = ::RegSetValueExA(key, csKey, 0,
                             REG_DWORD, (const BYTE *)dwValue, dwSize)) != ERROR_SUCCESS) {
@@ -420,6 +438,9 @@ CNTServiceReg::SetValue(HKEY key, NTService::IDiagnostics &diags,
                         (unsigned)dwRet, StrError(dwRet, errmsg, sizeof(errmsg)));
                 return false;
         }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
         return true;
 }
 
@@ -600,7 +621,7 @@ CNTServiceReg::StrError(DWORD dwError, char *buffer, size_t buflen)
         DWORD   len = ::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
                             FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL,
                             dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                                buffer, buflen - 1 /*nul*/, NULL);
+                                buffer, (DWORD)(buflen - 1 /*nul*/), NULL);
 
         if (0 == len) {
                 if ( !buffer || buflen < 32) {

@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.15 2025/02/02 08:47:18 cvsuser Exp $")
+__CIDENT_RCSID(NTService_cpp, "$Id: NTService.cpp,v 1.16 2025/02/02 17:05:39 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -186,7 +186,7 @@ CNTService::DefaultServiceName(const char *arg0, char *buf, size_t buflen)
 
         const char *dot, *p1 = strrchr(arg0, '\\'),
                 *p2 = strrchr(arg0, '/');
-        int t_length, length = buflen - 1 /*nul*/;
+        size_t t_length, length = buflen - 1 /*nul*/;
 
         if (p1 || p2) {                         // last component.
                 arg0 = (p1 > p2 ? p1 : p2) + 1;
@@ -378,7 +378,7 @@ int CNTService::InstallArgumentsParse(int argc, const char * const *argv, Instal
                         break;
                 case 'A': { //-A,--arg
                                 // TODO: allow client validation
-                                const int needed = strlen(options.optarg());
+                                const size_t needed = (int)strlen(options.optarg());
                                 char *cursor = arguments.buffer,
                                     *end = (cursor + sizeof(arguments.buffer)) - 1;
 
@@ -494,7 +494,7 @@ bool CNTService::Install(const InstallArguments &arguments)
 
         szBinaryPathNameEx[0] = 0;
         if (arguments.additional) {             // Append argument
-                const DWORD needed = strlen(arguments.additional) + 2 /*space+nul*/;
+                const size_t needed = strlen(arguments.additional) + 2 /*space+nul*/;
                 if (needed >= (sizeof(szBinaryPathName) - pathlen)) {
                         ::SetLastError(ERROR_FILE_TOO_LARGE);
                         return false;

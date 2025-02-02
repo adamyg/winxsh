@@ -1,5 +1,5 @@
 # -*- mode: mak; indent-tabs-mode: t; tab-width: 8 -*-
-# $Id: Makefile.in,v 1.13 2025/02/02 08:46:12 cvsuser Exp $
+# $Id: Makefile.in,v 1.14 2025/02/02 16:52:39 cvsuser Exp $
 # winssh Makefile
 #
 #
@@ -103,7 +103,10 @@ RESOURCES=	slogin.rc
 OBJS=		$(addprefix $(D_OBJ)/,$(subst .c,$(O),$(CSOURCES)))
 OBJS+=		$(addprefix $(D_OBJ)/,$(subst .rc,.res,$(RESOURCES)))
 
-LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static -llibz_static -llibw32_static ../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
+LDLIBS=		-L$(D_LIB) -llibtermemu -llibssh2_static -llibssh2_static -llibmbedtls_static -llibmbedcrypto_static -llibz_static -llibw32_static
+ifeq ("yes","@ISWIN32@")
+LDLIBS+=	../libssh2/sdk/bcrypt.lib ../libssh2/sdk/crypt32.lib
+endif
 
 .PHONY:			build release debug
 build:		$(D_BIN)/$(TARGET)

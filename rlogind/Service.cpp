@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.12 2025/02/02 14:10:46 cvsuser Exp $")
+__CIDENT_RCSID(Service_cpp,"$Id: Service.cpp,v 1.13 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 8; -*- */
 /*
@@ -384,7 +384,7 @@ Service::ResolveRelative(const char *path)
 
                 const char *d1 = strrchr(t_szAppPath, '/'), *d2 = strrchr(t_szAppPath, '\\'),
                     *d = (d1 > d2 ? d1 : d2);   // last delimitor
-                len = (d ? (d - t_szAppPath) : len);
+                len = (d ? (int)(d - t_szAppPath) : len);
 
                 snprintf(t_szAppPath + len, sizeof(t_szAppPath) - len, "\\%s", basename);
                 t_szAppPath[sizeof(t_szAppPath) - 1] = 0;

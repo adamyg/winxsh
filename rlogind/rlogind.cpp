@@ -1,5 +1,5 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.21 2025/02/02 14:10:46 cvsuser Exp $")
+__CIDENT_RCSID(rlogind_c, "$Id: rlogind.cpp,v 1.22 2025/02/02 16:53:40 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
@@ -510,7 +510,7 @@ usage_print()
                                 collen = optlen;
                         }
                         col = 4 + collen;
-                        fprintf(stderr, "    %-*.*s", collen, collen, text + 1);
+                        fprintf(stderr, "    %-*.*s", (int)collen, (int)collen, text + 1);
 
                 } else if (text[0] == '\2' ||   //description, right alignment.
                            text[0] == '\3') {   //section text, right alignment.
@@ -550,14 +550,14 @@ usage_format(size_t lmargin, size_t rmargin, size_t col, const char *text)
                 const size_t wordlen = strcspn(text, " .,\t;\n") + 1;
 
                 if (col < lmargin) {
-                        fprintf(stderr, "%*s", lmargin - col, "");
+                        fprintf(stderr, "%*s", (int)(lmargin - col), "");
                         col = lmargin;
                 } else if (col && (wordlen + col) > rmargin) {
-                        fprintf(stderr, "\n%*s", lmargin, "");
+                        fprintf(stderr, "\n%*s", (int)lmargin, "");
                         col = lmargin;
                 }
 
-                fprintf(stderr, "%.*s", wordlen, text);
+                fprintf(stderr, "%.*s", (int)wordlen, text);
                 col += wordlen;
 
                 if (text[wordlen-1] == '\n') { // <br>
