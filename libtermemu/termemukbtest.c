@@ -1,11 +1,11 @@
 #include <edidentifier.h>
-__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.12 2025/02/02 08:47:06 cvsuser Exp $")
+__CIDENT_RCSID(termemukbtest_c,"$Id: termemukbtest.c,v 1.13 2025/02/02 13:58:14 cvsuser Exp $")
 
 /* -*- mode: c; indent-width: 4; -*- */
 /*
  * libtermemu console keyboard test application
  *
- * Copyright (c) 2015 - 2023, Adam Young.
+ * Copyright (c) 2015 - 2025, Adam Young.
  * All rights reserved.
  *
  * This file is part of the WinRSH/WinSSH project.
