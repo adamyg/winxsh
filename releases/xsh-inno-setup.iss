@@ -1,7 +1,7 @@
 ;
 ; WinXSH - Inno Setup
 ;
-; Adam Young, 2020 - 2022
+; Adam Young, 2020 - 2025
 ;
 ; This file is part of the WinRSH/WinSSH project.
 ;
@@ -120,7 +120,7 @@ begin
         if WinXSHInstalled(version,uninst)
         then
                 begin
-                msgres:= MsgBox('Midnight Commander-'+version+' is currently installed.'+#13#13 +'Do you want to uninstall it first?.', mbError, MB_YESNOCANCEL);
+                msgres:= MsgBox('winxsh-'+version+' is currently installed.'+#13#13 +'Do you want to uninstall it first?.', mbError, MB_YESNOCANCEL);
                 case msgres of
                 IdYes: begin
                         Exec(uninst, '', '', SW_SHOWNORMAL, true, execres);
